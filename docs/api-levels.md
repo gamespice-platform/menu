@@ -6,7 +6,7 @@ What each `GSMenuApi.LEVEL` added; the rule for bumping is on `GSAddonApi`.
 
 2: GSMenuNetStat (follow, read_settings) and GSMenu.net_stat; GSMenuStock advanced_page(), declare_net_stat() and the net_stat, net_stat_height and net_stat_position settings; GSMenuConfig.net_stat.
 
-3: voice: GSMenuStock.GROUP_VOICE (in DEFAULT_GROUPS), VOICE_ROWS, input_device_row(), the voice_mode and voice_input_device settings; GSMenuBindings.add_voice() (bind_voice_talk on the dot_voice_talk action); GSMenuApplier.bind_voice(), VOICE_SERVICE and voice_available_changed; GSMenuSettings.bind_voice(); GSMenu.hide_rows().
+3: voice: GSMenuStock.GROUP_VOICE (in DEFAULT_GROUPS), VOICE_ROWS, input_device_row(), the voice_mode and voice_input_device settings; GSMenuBindings.add_voice() (bind_voice_talk on the gs_voice_talk action); GSMenuApplier.bind_voice(), VOICE_SERVICE and voice_available_changed; GSMenuSettings.bind_voice(); GSMenu.hide_rows().
 
 4: the help key and the stock Leave: GSMenuBindings.HELP_ACTION/HELP_SETTING/HELP_KEY, add_help(), help_group(), defaults_on(); GSMenu.help_action defaults to HELP_ACTION, leave_on_its_own, leave_link, leave_service, leave(), leave_label(); GSMenuHelp.about, add_text(), heading(), help_key_shown(); GSMenuSettings.leave_on_its_own and _fill_help(); GSMenuConfig.help_hint and GSMenu.help_hint, the HUD's help plate.
 
@@ -24,7 +24,7 @@ What each `GSMenuApi.LEVEL` added; the rule for bumping is on `GSAddonApi`.
 
 11: GSProfileEditorScreen (list profile kinds and ids, edit one in GSUiForm; save and reset are callables).
 
-12: GSMenuCfg.load_admin_menu reads cfg/addons/dot_menu/admin_menu.yml and the operator's cfg/server/addons/dot_menu/, with the flat cfg/admin_menu.yml as a shim until 2026-12-31. Needs GameSpice Core API level 17.
+12: GSMenuCfg.load_admin_menu reads cfg/addons/gs_menu/admin_menu.yml and the operator's cfg/server/addons/gs_menu/, with the flat cfg/admin_menu.yml as a shim until 2026-12-31. Needs GameSpice Core API level 17.
 
 13: GSAddonConfigEditorScreen (edit the player's user-tier override of addon cfg files in GSUiForm; needs GameSpice Core API 18).
 
@@ -36,10 +36,10 @@ What each `GSMenuApi.LEVEL` added; the rule for bumping is on `GSAddonApi`.
 
 17 GSMenuTeams, GSMenuTeamScreen, GSMenu.use_teams/open_teams/show_teams and GSMenuBindings.add_teams (the team menu on the period key; the avatar Pose default moves to Semicolon).
 
-18 GSMenuStock.performance_section and PROFILER_SERVICE: the Advanced page draws a Performance card from a placed `dot_profiler` service's `make_menu_panel(kit)`, duck-typed.
+18 GSMenuStock.performance_section and PROFILER_SERVICE: the Advanced page draws a Performance card from a placed `gs_profiler` service's `make_menu_panel(kit)`, duck-typed.
 19 GSMenuTeams.default_when_unwired and default_offer(): the period key opens a free-for-all Play/Spectate menu when no server link and no offer is wired, instead of a toast.
 20 GSMenuBindings.add_workbench, WORKBENCH_ACTION/SETTING/KEY (the workbench toggle on the semicolon, added by GSMenuSettings where GameSpice Workbench is linked; the avatar Pose default moves to the apostrophe).
 
 21 The Maps / Game modes tabs: GSMenuMaps.modes_fn/mode_group/modes_tab/apply_mode_now/mode/toggle_tab()/has_tabs(); GSMenu.modes_action; GSMenuBindings.add_modes and MODES_*; GSMenuSettings.map_modes; GSMenuPicker.tabs/tab/pick_closes/tab_clicked.
 22 GSMenuGameSpec and GSMenuGameSettings: a game declares its settings menu (names, field of view, ambient and Comfort rows, left-out stock keys, key table, help text) as data.
-23 The Gamespice stock theme; GSMenuPalette.glow and flame(); GSMenuKit.focus_ring() and flame_strip(); GSMenuThemes.platform_default() and PLATFORM_SETTING (the project setting dot_menu/theme/platform_default, which GSMenuConfig.make_themes puts first).
+23 The Gamespice stock theme; GSMenuPalette.glow and flame(); GSMenuKit.focus_ring() and flame_strip(); GSMenuThemes.platform_default() and PLATFORM_SETTING (the project setting gs_menu/theme/platform_default, which GSMenuConfig.make_themes puts first).

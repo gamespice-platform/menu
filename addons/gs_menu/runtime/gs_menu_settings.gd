@@ -7,7 +7,7 @@ extends Node
 
 const CHANNEL := "menu.settings"
 ## Present only where GameSpice Workbench is linked, which is when the Controls page offers its key.
-const WORKBENCH_SCRIPT := "res://addons/dot_workbench/dot_workbench_api.gd"
+const WORKBENCH_SCRIPT := "res://addons/gs_workbench/gs_workbench_api.gd"
 
 ## A menu opened or the last one closed. What a client suspends its input sampler on.
 signal menu_state_changed(any_open: bool)
@@ -123,7 +123,7 @@ func _add_stock_keys() -> void:
 		var _l := bindings.add_loadout("", bindings.free_key([GSMenuBindings.LOADOUT_KEY, "F4"]))
 	# The talk key goes with the voice settings, so every game that has them has the key in
 	# its table, its Controls page and its help screen, on the same setting.
-	if bindings != null and schema.has(&"voice_mode") and bindings.row_for_action(&"dot_voice_talk").is_empty():
+	if bindings != null and schema.has(&"voice_mode") and bindings.row_for_action(&"gs_voice_talk").is_empty():
 		var _v := bindings.add_voice("Communication", bindings.free_key(["V", "K", "B", "X"]))
 	# The help key, H, in every game's table (API 4), unless the game put its own help row
 	# in. A game with no table gets one with the help key alone, so H is still a rebindable
@@ -187,7 +187,7 @@ func bind_audio(audio: Object) -> void:
 
 
 ## A player's own voice (GameSpice Voice's `GSVoiceManager`). Rarely needed: the applier binds
-## whatever is published as `dot_voice_client` by itself.
+## whatever is published as `gs_voice_client` by itself.
 func bind_voice(voice: Object) -> void:
 	if applier != null:
 		applier.bind_voice(voice)

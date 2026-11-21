@@ -6,13 +6,13 @@ In-game menus for Godot 4 games, built from data. Press Escape and get a setting
 
 ## Install
 
-You need Godot 4.7. [GameSpice Bootstrap](https://github.com/gamespice-platform/bootstrap) clones every project and links the addons for you. To add it by hand, copy these into your project and enable dot-menu under **Project > Project Settings > Plugins**:
+You need Godot 4.7. [GameSpice Bootstrap](https://github.com/gamespice-platform/bootstrap) clones every project and links the addons for you. To add it by hand, copy these into your project and enable gs-menu under **Project > Project Settings > Plugins**:
 
-- `addons/dot_menu/` (this repo)
-- `addons/dot_core/` from [GameSpice Core](https://github.com/gamespice-platform/core)
-- `addons/dot_ui/` from [GameSpice UI](https://github.com/gamespice-platform/ui)
-- `addons/dot_input/` from [GameSpice Input](https://github.com/gamespice-platform/input) (GameSpice UI requires it)
-- `addons/dot_settings/` from [GameSpice Settings](https://github.com/gamespice-platform/settings)
+- `addons/gs_menu/` (this repo)
+- `addons/gs_core/` from [GameSpice Core](https://github.com/gamespice-platform/core)
+- `addons/gs_ui/` from [GameSpice UI](https://github.com/gamespice-platform/ui)
+- `addons/gs_input/` from [GameSpice Input](https://github.com/gamespice-platform/input) (GameSpice UI requires it)
+- `addons/gs_settings/` from [GameSpice Settings](https://github.com/gamespice-platform/settings)
 
 Run `godot --path .` to open the demo. Escape, H, P and M all work.
 
@@ -27,7 +27,7 @@ Run `godot --path .` to open the demo. Escape, H, P and M all work.
 | Picker | A numbered list, seven to a page: 1 to 7 pick, 8 and 9 turn the page, 0 closes. Used for maps, teams and classes. |
 | Map, team and loadout menus | M opens a map picker, the period key a team screen, B a loadout screen. On a server the server decides; solo, the game does. See [docs/examples.md](docs/examples.md). |
 | HUD layout editor | Drag HUD pieces anywhere, right-click to reset one. Positions are saved as fractions of the screen. |
-| Themes | Eight ship: Midnight, Ember, Violet, Classic, Arcade, Paper, High contrast and GameSpice. A theme colours the menus and the HUD. Games, JSON files and servers can add more, and a host can set `dot_menu/theme/platform_default` so every game it runs opens in its theme. |
+| Themes | Eight ship: Midnight, Ember, Violet, Classic, Arcade, Paper, High contrast and GameSpice. A theme colours the menus and the HUD. Games, JSON files and servers can add more, and a host can set `gs_menu/theme/platform_default` so every game it runs opens in its theme. |
 | Scoreboard | Hold Tab: server name, map and slots, teams in their colours, and a row per player with score, time connected and ping, plus your own columns. Players choose which columns to show under Settings > General > Scoreboard. |
 | Connection overlay | `net_stat` shows frame rate, ping, jitter, loss and bytes in and out, with a graph. See [docs/net-stat.md](docs/net-stat.md). |
 | Server rules | While connected, a server can hide rows and pages, narrow the themes, reword Leave and cap a setting such as field of view. It can never read or change a player's stored value. Leaving restores everything. |
@@ -197,7 +197,7 @@ Stored per device unless the last column says otherwise.
 | `fps_max` | 0 | 0 (unlimited) to 1000 | device |
 | `render_scale` | 1.0 | 0.5 to 1 | device |
 | `field_of_view` | 90 | 70 to 120 | account; a server may cap it |
-| `viewmodel_fov` | 54 | 50 to 100 | device; only with a view model in group `dot_view_model` |
+| `viewmodel_fov` | 54 | 50 to 100 | device; only with a view model in group `gs_view_model` |
 | `fx_quality` | 3 | 0 to 3 | device |
 | `aniso`, `aa`, `mip_bias`, `sharpness` | -1, 0, 0.0, 0.2 | texture filtering and anti-aliasing | device |
 | `sensitivity` | 2.5 | 0.05 to 20 | account, shared between games |

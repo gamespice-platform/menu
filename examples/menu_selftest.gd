@@ -1,6 +1,6 @@
 extends "res://examples/menu_selftest_keys.gd"
 
-## Exercises dot-menu with no game: the data model, stock settings and what applies them, the bindings table, the screens, the facade's keys, and what a server may do.
+## Exercises gs-menu with no game: the data model, stock settings and what applies them, the bindings table, the screens, the facade's keys, and what a server may do.
 ## CHECKS is the guard the section counter cannot be: a script error aborts that test, not the run, and only the total notices checks that never ran.
 const SECTIONS := 36
 const CHECKS := 578
@@ -13,7 +13,7 @@ func _ready() -> void:
 
 
 func _run() -> void:
-	_line("dot-menu self-test")
+	_line("gs-menu self-test")
 	_line("")
 
 	_test_palette()
@@ -120,7 +120,7 @@ func _test_themes() -> void:
 	_check(t.keep_only(PackedStringArray(["typo"])) == 2, "and a list naming nothing there keeps what there was")
 	_check(t.make_default(&"contrast") and t.default_id() == &"contrast", "and choose the default")
 
-	var dir := "user://dot_menu_test"
+	var dir := "user://gs_menu_test"
 	DirAccess.make_dir_recursive_absolute(dir)
 	var path := dir + "/themes.json"
 	var f := FileAccess.open(path, FileAccess.WRITE)
@@ -230,7 +230,7 @@ func _test_stock() -> void:
 
 	var all := _schema(GSMenuStock.ALL_GROUPS)
 	var sl := all.find(&"slide_volume")
-	_check(sl != null and is_equal_approx(float(sl.default_value), 1.0) and sl.category == &"audio", "slide_volume is stock, default 1.0 in the audio group (dot-game's default)")
+	_check(sl != null and is_equal_approx(float(sl.default_value), 1.0) and sl.category == &"audio", "slide_volume is stock, default 1.0 in the audio group (gs-game's default)")
 	_check(GSMenuStock.audio_page().sections.any(func(sec) -> bool: return sec.rows.any(func(r) -> bool: return r.key == &"slide_volume")), "the Audio page has the slide_volume slider")
 	var rowless := PackedStringArray()
 	var unknown := PackedStringArray()
@@ -258,7 +258,7 @@ func _test_bindings() -> void:
 
 	var k := _keys()
 	_check(k.rows.size() == 9 and k.groups() == PackedStringArray(["Movement", "View", "Interface"]), "rows in order, groups once each")
-	k.add(&"dot_fps_crouch", &"bind_duck", "Crouch", "Shift", "Movement")
+	k.add(&"gs_fps_crouch", &"bind_duck", "Crouch", "Shift", "Movement")
 	_check(k.rows.size() == 9 and k.rows[5]["label"] == "Crouch", "a row for an action already there replaces it in place")
 
 	var s := GSSettingsSchema.new()
@@ -271,7 +271,7 @@ func _test_bindings() -> void:
 
 	var st := _manager(s)
 	k.apply_all(st)
-	_check(GSMenuBindings.shown(k.row_for_action(&"dot_fps_forward")) == "W", "every row lands on the InputMap")
+	_check(GSMenuBindings.shown(k.row_for_action(&"gs_fps_forward")) == "W", "every row lands on the InputMap")
 	_check(k.key_for(&"test_help") == "F1", "from the stored value, not the table's default")
 
 	var _cleared := st.set_value(&"bind_flashlight", "")
@@ -279,14 +279,14 @@ func _test_bindings() -> void:
 	_check(k.row_using("F", &"bind_jump", st) == k.row_for_action(&"test_flashlight"),
 		"and is found on its default by the conflict check, or binding F elsewhere leaves F on two actions")
 
-	var res := k.rebind(k.row_for_action(&"dot_fps_jump"), "F", st)
+	var res := k.rebind(k.row_for_action(&"gs_fps_jump"), "F", st)
 	_check(res.ok and str(res.value).contains("moved"), "binding a key that is taken says what moved")
 	_check(st.get_string(&"bind_jump") == "F" and st.get_string(&"bind_flashlight") == "Space",
 		"and swaps the two, so nothing is left unbound")
-	_check(k.key_for(&"dot_fps_jump") == "F" and k.key_for(&"test_flashlight") == "Space", "both are on the InputMap at once")
+	_check(k.key_for(&"gs_fps_jump") == "F" and k.key_for(&"test_flashlight") == "Space", "both are on the InputMap at once")
 
 	k.reset_all(st)
-	_check(st.get_string(&"bind_jump") == "Space" and k.key_for(&"dot_fps_jump") == "Space", "a reset puts every key back")
+	_check(st.get_string(&"bind_jump") == "Space" and k.key_for(&"gs_fps_jump") == "Space", "a reset puts every key back")
 
 	# A document from before GameSpice UI named the wheel stores "Mouse 4"; the Controls page
 	# draws stored(), so it must come out as the wheel's name, and still be the wheel.

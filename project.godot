@@ -10,8 +10,8 @@ config_version=5
 
 [application]
 
-config/name="dot-menu"
-config/description="In-game menus as data: pages of rows that are views of dot-settings, the stock audio, video and general settings with the code that applies them, rebindable keys, a help screen, a picker, a HUD layout editor, and whole-palette themes a game or a server can add to."
+config/name="gs-menu"
+config/description="In-game menus as data: pages of rows that are views of gs-settings, the stock audio, video and general settings with the code that applies them, rebindable keys, a help screen, a picker, a HUD layout editor, and whole-palette themes a game or a server can add to."
 run/main_scene="res://examples/menu_demo.tscn"
 config/features=PackedStringArray("4.7", "GL Compatibility")
 config/icon="res://icon.svg"
@@ -23,7 +23,7 @@ window/size/viewport_height=900
 
 [editor_plugins]
 
-enabled=PackedStringArray("res://addons/dot_menu/plugin.cfg")
+enabled=PackedStringArray("res://addons/gs_menu/plugin.cfg")
 
 [importer_defaults]
 

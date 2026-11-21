@@ -2,7 +2,7 @@ class_name GSMenuHuds
 extends RefCounted
 ## The HUD roots a game hands [GSMenu] through `follow_hud`: themed and scaled on every change.
 
-var _menu: CanvasLayer  # a GSMenu, held untyped so this file and dot_menu.gd do not keep each other's parsers alive
+var _menu: CanvasLayer  # a GSMenu, held untyped so this file and gs_menu.gd do not keep each other's parsers alive
 var _entries: Array[Dictionary] = []
 
 

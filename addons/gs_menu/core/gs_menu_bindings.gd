@@ -7,53 +7,53 @@ extends RefCounted
 const CHANNEL := "menu.bindings"
 
 ## The help key's action, setting and default: H in every game of the family (API 4).
-const HELP_ACTION := &"dot_menu_help"
+const HELP_ACTION := &"gs_menu_help"
 const HELP_SETTING := &"bind_help"
 const HELP_KEY := "H"
 
 ## The map menu's action, setting and default: M in every game with more than one map (API 5).
 ## See [GSMenuMaps].
-const MAPS_ACTION := &"dot_menu_maps"
+const MAPS_ACTION := &"gs_menu_maps"
 const MAPS_SETTING := &"bind_maps"
 const MAPS_KEY := "M"
 ## Switches the open map menu between Maps and Game modes.
-const MODES_ACTION := &"dot_menu_modes"
+const MODES_ACTION := &"gs_menu_modes"
 const MODES_SETTING := &"bind_modes"
 const MODES_KEY := "Minus"
 
 ## The loadout menu's key (API 6), B, in every game where players choose what they carry: the
 ## same row on every such game's Controls page, so "B is loadout" holds across the family.
-const LOADOUT_ACTION := &"dot_menu_loadout"
+const LOADOUT_ACTION := &"gs_menu_loadout"
 const LOADOUT_SETTING := &"bind_loadout"
 const LOADOUT_KEY := "B"
-const TEAMS_ACTION := &"dot_menu_teams"
+const TEAMS_ACTION := &"gs_menu_teams"
 const TEAMS_SETTING := &"bind_teams"
 const TEAMS_KEY := "Period"
 
 ## The avatar emote, pose and gesture keys (API 16): `,` `.` `/` in every game that plays avatar
 ## actions. The actions are the ones GameSpice User Avatar's `GSAvatarActionInput` listens on.
-const AVATAR_EMOTE_ACTION := &"dot_avatar_emote"
-const AVATAR_POSE_ACTION := &"dot_avatar_pose"
-const AVATAR_GESTURE_ACTION := &"dot_avatar_gesture"
+const AVATAR_EMOTE_ACTION := &"gs_avatar_emote"
+const AVATAR_POSE_ACTION := &"gs_avatar_pose"
+const AVATAR_GESTURE_ACTION := &"gs_avatar_gesture"
 const AVATAR_EMOTE_SETTING := &"bind_avatar_emote"
 const AVATAR_POSE_SETTING := &"bind_avatar_pose"
 const AVATAR_GESTURE_SETTING := &"bind_avatar_gesture"
 
 ## The workbench toggle (`;`), registered by [GSMenuSettings] only where GameSpice Workbench is linked. GameSpice Game's GSGameWorkbench listens on the action.
-const WORKBENCH_ACTION := &"dot_workbench_toggle"
+const WORKBENCH_ACTION := &"gs_workbench_toggle"
 const WORKBENCH_SETTING := &"bind_workbench"
 const WORKBENCH_KEY := "Semicolon"
 
 ## The stock weapon-cycling actions and settings ([method add_wheel_weapons], API 10): the
 ## settings are the ones game-fatal-contact has always stored the wheel's weapon rows as, so a game
 ## that moves its own rows onto these keeps every player's keys.
-const WEAPON_PREVIOUS_ACTION := &"dot_menu_weapon_previous"
-const WEAPON_NEXT_ACTION := &"dot_menu_weapon_next"
+const WEAPON_PREVIOUS_ACTION := &"gs_menu_weapon_previous"
+const WEAPON_NEXT_ACTION := &"gs_menu_weapon_next"
 const WEAPON_PREVIOUS_SETTING := &"bind_weapon_previous"
 const WEAPON_NEXT_SETTING := &"bind_weapon_next"
 
 ## The wheel's extra jump keys ([method add_wheel_jump], API 10).
-const JUMP_ACTION := &"dot_fps_jump"
+const JUMP_ACTION := &"gs_fps_jump"
 const WHEEL_JUMP_UP_SETTING := &"bind_jump_wheel_up"
 const WHEEL_JUMP_DOWN_SETTING := &"bind_jump_wheel_down"
 
@@ -155,19 +155,19 @@ func renamed(setting: StringName, old_keys: Array) -> GSMenuBindings:
 
 
 ## GameSpice Player Controller's movement actions, by their own names. `GSFpsSampler` polls
-## `dot_fps_*` and only creates actions that are missing, so a binding applied here first is
+## `gs_fps_*` and only creates actions that are missing, so a binding applied here first is
 ## the one it reads. Duck is Ctrl; a game that wants Shift passes it.
 func add_movement(group: String = "Movement", crouch_key: String = "Ctrl", crouch_label: String = "Duck") -> GSMenuBindings:
-	add(&"dot_fps_forward", &"bind_forward", "Forward", "W", group)
-	add(&"dot_fps_back", &"bind_back", "Back", "S", group)
-	add(&"dot_fps_left", &"bind_left", "Strafe left", "A", group)
-	add(&"dot_fps_right", &"bind_right", "Strafe right", "D", group)
-	add(&"dot_fps_jump", &"bind_jump", "Jump", "Space", group)
-	add(&"dot_fps_crouch", &"bind_duck", crouch_label, crouch_key, group)
+	add(&"gs_fps_forward", &"bind_forward", "Forward", "W", group)
+	add(&"gs_fps_back", &"bind_back", "Back", "S", group)
+	add(&"gs_fps_left", &"bind_left", "Strafe left", "A", group)
+	add(&"gs_fps_right", &"bind_right", "Strafe right", "D", group)
+	add(&"gs_fps_jump", &"bind_jump", "Jump", "Space", group)
+	add(&"gs_fps_crouch", &"bind_duck", crouch_label, crouch_key, group)
 	return self
 
 
-## The mouse wheel also jumps (`bind_jump_wheel_up`, `bind_jump_wheel_down`): two extra rows on `dot_fps_jump`. A game that cycles weapons calls [method add_wheel_weapons] instead.
+## The mouse wheel also jumps (`bind_jump_wheel_up`, `bind_jump_wheel_down`): two extra rows on `gs_fps_jump`. A game that cycles weapons calls [method add_wheel_weapons] instead.
 ## Not part of [method add_movement]: half the family puts the wheel on weapons, and a forgotten opt-in is a wheel that does nothing, which is visible.
 ## A wheel tick is a press and release in one event pair; `GSFpsSampler` latches presses so each tick reaches jump once.
 func add_wheel_jump(group: String = "") -> GSMenuBindings:
@@ -196,11 +196,11 @@ func add_wheel_weapons(
 	return self
 
 
-## The push-to-talk key: GameSpice Voice's `dot_voice_talk` action (`GSVoiceManager.TALK_ACTION`,
+## The push-to-talk key: GameSpice Voice's `gs_voice_talk` action (`GSVoiceManager.TALK_ACTION`,
 ## named here as text because GameSpice Menu does not depend on GameSpice Voice), stored as
 ## `bind_voice_talk`, on V. [GSMenuSettings] adds it when the schema has the voice group.
 func add_voice(group: String = "Communication", key: String = "V") -> GSMenuBindings:
-	return add(&"dot_voice_talk", &"bind_voice_talk", "Push to talk", key, group)
+	return add(&"gs_voice_talk", &"bind_voice_talk", "Push to talk", key, group)
 
 
 ## The help screen's key, which every game has on H unless it says otherwise: [GSMenu]'s
@@ -210,30 +210,30 @@ func add_help(group: String = "", key: String = HELP_KEY) -> GSMenuBindings:
 	return add(HELP_ACTION, HELP_SETTING, "Help and controls", key, group if group != "" else help_group())
 
 
-## The map menu key (`dot_menu_maps`, stored as `bind_maps`), M by default, on the same card
+## The map menu key (`gs_menu_maps`, stored as `bind_maps`), M by default, on the same card
 ## as help. [GSMenuSettings] adds it to every game's table; a game that builds its menu by
 ## hand calls this itself.
 func add_maps(group: String = "", key: String = MAPS_KEY) -> GSMenuBindings:
 	return add(MAPS_ACTION, MAPS_SETTING, "Change map", key, group if group != "" else help_group())
 
 
-## The Maps / Game modes tab key (`dot_menu_modes`, stored as `bind_modes`), `-` by default. For a game that opts in to a modes tab ([member GSMenuSettings.map_modes]).
+## The Maps / Game modes tab key (`gs_menu_modes`, stored as `bind_modes`), `-` by default. For a game that opts in to a modes tab ([member GSMenuSettings.map_modes]).
 func add_modes(group: String = "", key: String = MODES_KEY) -> GSMenuBindings:
 	return add(MODES_ACTION, MODES_SETTING, "Maps / Game modes tab", key, group if group != "" else help_group())
 
 
-## The loadout menu key (`dot_menu_loadout`, stored as `bind_loadout`), B by default, on the same
+## The loadout menu key (`gs_menu_loadout`, stored as `bind_loadout`), B by default, on the same
 ## card as help. [GSMenuSettings] adds it when [member GSMenuSettings.loadout_menu] is on.
 func add_loadout(group: String = "", key: String = LOADOUT_KEY) -> GSMenuBindings:
 	return add(LOADOUT_ACTION, LOADOUT_SETTING, "Loadout", key, group if group != "" else help_group())
 
 
-## The team menu key (`dot_menu_teams`, stored as `bind_teams`), the period by default. The avatar pose moved to the semicolon for it.
+## The team menu key (`gs_menu_teams`, stored as `bind_teams`), the period by default. The avatar pose moved to the semicolon for it.
 func add_teams(group: String = "", key: String = TEAMS_KEY) -> GSMenuBindings:
 	return add(TEAMS_ACTION, TEAMS_SETTING, "Choose team", key, group if group != "" else help_group())
 
 
-## The workbench toggle key (`dot_workbench_toggle`, stored as `bind_workbench`), the semicolon by default, on the help card. The avatar pose moved to the apostrophe for it.
+## The workbench toggle key (`gs_workbench_toggle`, stored as `bind_workbench`), the semicolon by default, on the help card. The avatar pose moved to the apostrophe for it.
 func add_workbench(group: String = "", key: String = WORKBENCH_KEY) -> GSMenuBindings:
 	return add(WORKBENCH_ACTION, WORKBENCH_SETTING, "Workbench", key, group if group != "" else help_group())
 

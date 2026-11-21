@@ -27,7 +27,7 @@ static func run(host: Selftest) -> void:
 	host._section("H is help in every game, and Leave is stock")
 
 	var fresh := GSMenu.new()
-	host._check(fresh.help_action == GSMenuBindings.HELP_ACTION, "a menu's help key is dot_menu_help unless the game says otherwise")
+	host._check(fresh.help_action == GSMenuBindings.HELP_ACTION, "a menu's help key is gs_menu_help unless the game says otherwise")
 	fresh.free()
 
 	# A game with no table: GSMenuSettings gives it one with the help key, on H.

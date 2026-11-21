@@ -2,7 +2,7 @@ class_name GSMenuTeams
 extends RefCounted
 
 ## The team menu: the period key opens [GSMenuTeamScreen] with a card per team and Spectate. Solo it reads [member offer_fn]; on a server the SERVER decides: this sends `/teams` through the client link's chat, reads the `team_menu` notice, and a choice sends `/teams <id>` (`auto`, `play` or `spectate`).
-## Nothing here names dot-server or dot-team; the data is `{teams: [{id, name, colour, count, max, closed, current}], ffa, spectating, spectate_ok, enabled, wait, result}`.
+## Nothing here names gs-server or gs-team; the data is `{teams: [{id, name, colour, count, max, closed, current}], ffa, spectating, spectate_ok, enabled, wait, result}`.
 
 const CHANNEL := "menu.teams"
 const TOPIC := &"team_menu"
@@ -19,9 +19,9 @@ var choose_fn: Callable = Callable()
 var enabled: bool = true
 ## With nothing wired (no server link, no [member offer_fn]) the menu still opens as a free-for-all: Play and Spectate. False keeps the old toast.
 var default_when_unwired: bool = true
-var menu: CanvasLayer = null  # a GSMenu (untyped: see dot_menu_huds.gd)
+var menu: CanvasLayer = null  # a GSMenu (untyped: see gs_menu_huds.gd)
 var link: Object = null
-var link_service: StringName = &"dot_client_link"
+var link_service: StringName = &"gs_client_link"
 var command_prefix: String = "/"
 var toast: bool = true
 ## Seconds between asks while the menu is open, so the counts stay live. 0 turns it off.

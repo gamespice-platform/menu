@@ -130,7 +130,7 @@ func flame_strip(height: int = 3) -> Control:
 	return strip
 
 
-## A fresh [Theme] every call, for dot-ui's reason: a Theme is mutable and shared.
+## A fresh [Theme] every call, for gs-ui's reason: a Theme is mutable and shared.
 func theme() -> Theme:
 	var p := palette
 	var t := Theme.new()
@@ -401,7 +401,7 @@ void fragment() {
 
 
 ## A [Control] sized by its parent's rectangle, every offset set explicitly — the trap
-## dot-ui's notes have paid for seven times: an anchor set on a Control with no rectangle
+## gs-ui's notes have paid for seven times: an anchor set on a Control with no rectangle
 ## yet keeps a zero size.
 static func fill_parent(c: Control) -> void:
 	c.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)

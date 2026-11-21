@@ -1,5 +1,5 @@
 class_name GSMenuLoadoutScreen
-extends "dot_menu_loadout_offer.gd"
+extends "gs_menu_loadout_offer.gd"
 
 ## The loadout screen: slots down the left, the slot's choices as cards with a picture, and the highlighted card's statistics against what is equipped. Example: docs/examples.md.
 ## A draft sent once when the screen closes (B, Escape, Done): per-click sends would hit a rate-limited server. It shows only what the server will take: fixed slots are locked, over-budget cards are dimmed.

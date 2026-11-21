@@ -5,7 +5,7 @@ extends RefCounted
 var rules: Dictionary = {}
 ## reason -> rows hidden for it.
 var hidden_by: Dictionary = {}
-var _menu: CanvasLayer  # a GSMenu (untyped: see dot_menu_huds.gd)
+var _menu: CanvasLayer  # a GSMenu (untyped: see gs_menu_huds.gd)
 
 
 func _init(menu: CanvasLayer) -> void:

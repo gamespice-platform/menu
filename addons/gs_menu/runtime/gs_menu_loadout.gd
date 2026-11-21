@@ -11,7 +11,7 @@ const TOPIC := &"loadout_menu"
 const COMMAND := "loadout"
 
 ## Where remembered choices live: one file, keyed by game and account.
-const REMEMBER_FILE := "user://dot_menu/loadouts.json"
+const REMEMBER_FILE := "user://gs_menu/loadouts.json"
 
 ## A choice was saved. [param result] is `{ok, text, now}`.
 signal saved(picks: Dictionary, result: Dictionary)
@@ -44,12 +44,12 @@ var store_fn: Callable = Callable()
 var enabled: bool = true
 
 ## The menu it draws in. Set by [method GSMenu.use_loadout].
-var menu: CanvasLayer = null  # a GSMenu (untyped: see dot_menu_huds.gd)
+var menu: CanvasLayer = null  # a GSMenu (untyped: see gs_menu_huds.gd)
 
 ## What is asked when connected: anything with `send_chat(text)` and `notice_received`. Null looks
 ## up [member link_service] in [GSRegistry] when B is pressed.
 var link: Object = null
-var link_service: StringName = &"dot_client_link"
+var link_service: StringName = &"gs_client_link"
 var command_prefix: String = "/"
 
 ## The screen's heading.

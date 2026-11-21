@@ -103,7 +103,7 @@ func touch_ui() -> bool:
 
 
 func env_prefix() -> String:
-	return "DOT_MENU_"
+	return "GS_MENU_"
 
 
 func cli_prefix() -> String:

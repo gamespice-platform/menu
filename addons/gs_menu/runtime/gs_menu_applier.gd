@@ -48,12 +48,12 @@ const LEFT_TO_THE_GAME: Array[StringName] = [
 ]
 
 ## Nodes in this group with `set_hands_fov_at_4_3(horizontal)` get `viewmodel_fov`, now and
-## when they are added (zee-dot-weapons' `ZeeViewModel` joins it itself).
-const VIEW_MODEL_GROUP := &"dot_view_model"
+## when they are added (zee-gs-weapons' `ZeeViewModel` joins it itself).
+const VIEW_MODEL_GROUP := &"gs_view_model"
 
 ## The registry name a client publishes its own player's voice under (GameSpice Voice's
 ## `GSVoiceManager.CLIENT_SERVICE`, as text: GameSpice Menu does not depend on GameSpice Voice).
-const VOICE_SERVICE := &"dot_voice_client"
+const VOICE_SERVICE := &"gs_voice_client"
 
 ## A bound voice said whether its server allows voice (`sv_voice_enable`). [GSMenuSettings]
 ## hides the voice rows on false.
@@ -201,7 +201,7 @@ func bind_camera(camera: Object, property: StringName = &"fov") -> void:
 
 ## A player's own voice: anything with `set_open_mic(bool)`, `set_input_device(String)` and `set_volume(float)`,
 ## optionally `server_enabled` and a `server_enabled_changed(bool)` signal, which [signal voice_available_changed] passes on.
-## Bound automatically when one is published as `dot_voice_client`.
+## Bound automatically when one is published as `gs_voice_client`.
 func bind_voice(target: Object) -> void:
 	if target == null or _voice.has(target):
 		return

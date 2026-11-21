@@ -223,11 +223,11 @@ func _test_voice() -> void:
 	node.bindings = _keys()
 	add_child(node)
 	var res := node.setup(GSSettingsStoreMemory.new())
-	_check(res.ok and not node.bindings.row_for_action(&"dot_voice_talk").is_empty(),
+	_check(res.ok and not node.bindings.row_for_action(&"gs_voice_talk").is_empty(),
 		"a game with the voice settings gets the Push to talk key in its table")
-	_check(node.settings.schema.has(&"bind_voice_talk") and InputMap.has_action(&"dot_voice_talk"),
-		"stored as bind_voice_talk, on the dot_voice_talk action")
-	var talk_keys := InputMap.action_get_events(&"dot_voice_talk") if InputMap.has_action(&"dot_voice_talk") else []
+	_check(node.settings.schema.has(&"bind_voice_talk") and InputMap.has_action(&"gs_voice_talk"),
+		"stored as bind_voice_talk, on the gs_voice_talk action")
+	var talk_keys := InputMap.action_get_events(&"gs_voice_talk") if InputMap.has_action(&"gs_voice_talk") else []
 	_check(talk_keys.size() == 1 and talk_keys[0] is InputEventKey and (talk_keys[0] as InputEventKey).physical_keycode == KEY_V,
 		"on V by default")
 
@@ -237,7 +237,7 @@ func _test_voice() -> void:
 	_check(voice.open_mic_calls.is_empty(), "an unpublished voice is told nothing")
 	GSRegistry.register(GSMenuApplier.VOICE_SERVICE, voice)
 	_check(voice.open_mic_calls == [false] and voice.devices == ["Default"],
-		"published as dot_voice_client, it is bound and told the stored mode and device (%s %s)" % [str(voice.open_mic_calls), str(voice.devices)])
+		"published as gs_voice_client, it is bound and told the stored mode and device (%s %s)" % [str(voice.open_mic_calls), str(voice.devices)])
 	var _set := node.settings.set_value(&"voice_mode", &"open_mic")
 	_check(voice.open_mic_calls.back() == true, "choosing an open microphone reaches it")
 

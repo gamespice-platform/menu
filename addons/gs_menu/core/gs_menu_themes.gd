@@ -157,13 +157,13 @@ const STOCK: Array[Dictionary] = [
 
 
 ## The theme the platform hosting the game asks for, from the project setting
-## [code]dot_menu/theme/platform_default[/code]; empty when none. A web shell sets it so every
+## [code]gs_menu/theme/platform_default[/code]; empty when none. A web shell sets it so every
 ## game it runs opens in the shell's look; [method GSMenuConfig.make_themes] puts it first.
 static func platform_default() -> StringName:
 	return StringName(str(ProjectSettings.get_setting(PLATFORM_SETTING, "")))
 
 
-const PLATFORM_SETTING := "dot_menu/theme/platform_default"
+const PLATFORM_SETTING := "gs_menu/theme/platform_default"
 
 
 ## Adds [param palette], or replaces the theme that has its id in place — so a game can

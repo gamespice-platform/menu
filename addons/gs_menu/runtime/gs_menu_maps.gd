@@ -30,12 +30,12 @@ var change_fn: Callable = Callable()
 var enabled: bool = true
 
 ## The menu it draws in. Set by [method GSMenu.use_maps].
-var menu: CanvasLayer = null  # a GSMenu (untyped: see dot_menu_huds.gd)
+var menu: CanvasLayer = null  # a GSMenu (untyped: see gs_menu_huds.gd)
 
 ## What is asked when connected: anything with `send_chat(text)` and `notice_received`.
 ## Null looks up [member link_service] in [GSRegistry] when M is pressed.
 var link: Object = null
-var link_service: StringName = &"dot_client_link"
+var link_service: StringName = &"gs_client_link"
 
 ## The command prefix sent to the server. `/` is a command on every GameSpice Server by default
 ## (`chat_command_prefixes`), and a command line is never broadcast.

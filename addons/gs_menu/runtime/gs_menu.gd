@@ -1,5 +1,5 @@
 class_name GSMenu
-extends "dot_menu_toast.gd"
+extends "gs_menu_toast.gd"
 
 ## A game's menus, in one node: the Escape menu, help, a picker, the HUD layout editor, a frame-rate counter, the [GSMenuNetStat] overlay, and the theme they are drawn in. Example: docs/examples.md.
 ## It owns which overlay is open, what Escape does, who has the pointer and the theme, one list in one place. In a browser Escape exits pointer lock and may not arrive, so
@@ -97,7 +97,7 @@ var leave_on_its_own: bool = false
 ## `is_connected_to_server()`. Null looks up [member leave_service] in [GSRegistry] when Leave
 ## is pressed, so a link made after the menu is still the one left.
 var leave_link: Object = null
-var leave_service: StringName = &"dot_client_link"
+var leave_service: StringName = &"gs_client_link"
 
 var screen: GSMenuScreen = null
 var help: GSMenuHelp = null

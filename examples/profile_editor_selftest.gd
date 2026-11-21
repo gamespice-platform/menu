@@ -16,7 +16,7 @@ func _ready() -> void:
 
 
 func _run() -> void:
-	_line("dot-menu profile editor self-test")
+	_line("gs-menu profile editor self-test")
 	await _test_listing()
 	await _test_open_and_apply()
 	await _test_reset()

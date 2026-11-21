@@ -1,7 +1,7 @@
 extends CanvasLayer
 
 ## The toast half of [GSMenu] (its base script): the short line at the top of the screen, and the
-## kit and loadout screen it is drawn with and placed by. Everything else is in dot_menu.gd.
+## kit and loadout screen it is drawn with and placed by. Everything else is in gs_menu.gd.
 
 ## The kit everything is drawn with now. Replaced, not changed, on a theme change.
 var kit: GSMenuKit = null

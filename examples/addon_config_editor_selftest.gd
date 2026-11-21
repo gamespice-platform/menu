@@ -17,7 +17,7 @@ func _ready() -> void:
 
 
 func _run() -> void:
-	_line("dot-menu addon config editor self-test")
+	_line("gs-menu addon config editor self-test")
 	await _test_open_and_apply()
 	await _test_reset()
 	await _test_tier_off()

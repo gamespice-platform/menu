@@ -299,8 +299,8 @@ func _rebuild() -> void:
 ## them somewhere else. Duck-aware: the Ctrl+W line warns specifically when Duck is on Ctrl,
 ## because then ducking while pressing forward IS that shortcut.
 static func browser_tips(keys: GSMenuBindings) -> Array:
-	var duck := keys.key_for(&"dot_fps_crouch") if keys != null else "—"
-	var duck_row := keys.row_for_action(&"dot_fps_crouch") if keys != null else {}
+	var duck := keys.key_for(&"gs_fps_crouch") if keys != null else "—"
+	var duck_row := keys.row_for_action(&"gs_fps_crouch") if keys != null else {}
 	var duck_name := str(duck_row.get("label", "Duck"))
 	return [
 		["Esc", "Frees the mouse and opens the menu. Click the game, or Resume, to take the mouse back. The browser will not lock it again for about a second after Esc, so if a click does nothing, click once more."],

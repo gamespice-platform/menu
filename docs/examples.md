@@ -2,17 +2,17 @@
 
 The usage snippets that used to sit in class doc comments.
 
-## dot_menu_bindings
+## gs_menu_bindings
 
 ```gdscript
 var keys := GSMenuBindings.new()
-keys.add_movement()                                   # dot_fps_* — WASD, Space, Ctrl
+keys.add_movement()                                   # gs_fps_* — WASD, Space, Ctrl
 keys.add(&"mygame_reload", &"bind_reload", "Reload", "R", "Combat")
 keys.add_to_schema(schema)                            # one binding setting per row
 keys.apply_all(settings)                              # onto the InputMap, at boot
 ```
 
-## dot_menu_config
+## gs_menu_config
 
 ```gdscript
 {
@@ -30,7 +30,7 @@ keys.apply_all(settings)                              # onto the InputMap, at bo
 }
 ```
 
-## dot_menu_kit
+## gs_menu_kit
 
 ```gdscript
 var kit := GSMenuKit.new(themes.named(&"ember"))
@@ -38,7 +38,7 @@ kit.font = preload("res://ui/my_font.ttf")
 kit.size_body = 16
 ```
 
-## dot_menu_page
+## gs_menu_page
 
 ```gdscript
 var page := GSMenuPage.make(&"gameplay", "Gameplay", "Your style and your view.")
@@ -46,7 +46,7 @@ page.section("View").add(GSMenuRow.toggle(&"show_own_body", "Your own body"))
 menu.add_page(page, &"video")        # before Video
 ```
 
-## dot_menu_row
+## gs_menu_row
 
 ```gdscript
 GSMenuRow.toggle(&"show_fps", "Frame rate counter", "In the top-right corner.")
@@ -57,7 +57,7 @@ GSMenuRow.button("Arrange", "Drag the HUD around.", "Move HUD elements", open_ed
 GSMenuRow.custom("Name", "", func(kit): return LineEdit.new())
 ```
 
-## dot_menu_themes
+## gs_menu_themes
 
 ```gdscript
 var themes := GSMenuThemes.stock()          # the eight this addon ships
@@ -66,14 +66,14 @@ themes.load_json("res://ui/themes.json")     # or a file of them
 themes.keep_only(["midnight", "paper"])      # an operator's choice of which to offer
 ```
 
-## dot_menu
+## gs_menu
 
 ```gdscript
 var menu := GSMenu.new()
 menu.settings = settings                       # a GSSettingsManager, set up
 menu.bindings = keys                           # a GSMenuBindings
 menu.config = config                           # a GSMenuConfig; null is the stock one
-menu.help_action = &"mygame_help"              # optional: H is dot_menu_help already
+menu.help_action = &"mygame_help"              # optional: H is gs_menu_help already
 menu.theme_action = &"mygame_theme_next"       # optional: a key that cycles themes
 add_child(menu)
 menu.setup()                                   # the stock pages, the themes, the screens
@@ -82,19 +82,19 @@ menu.action_requested.connect(func(id): if id == &"leave": leave())
 menu.overlays_changed.connect(func(open): sampler.suspended = open)
 ```
 
-## dot_menu (apply_server_rules)
+## gs_menu (apply_server_rules)
 
 ```gdscript
 {
   "rows_hidden":  ["field_of_view"],        # left off every page
   "pages_hidden": ["audio"],
   "themes":       ["midnight", "contrast"], # offered; the player's own stays if allowed
-  "clamps":       {"field_of_view": 100},   # through dot-settings' policy
+  "clamps":       {"field_of_view": 100},   # through gs-settings' policy
   "leave_text":   "Disconnect"
 }
 ```
 
-## dot_menu_applier
+## gs_menu_applier
 
 ```gdscript
 var applier := GSMenuApplier.new()
@@ -109,7 +109,7 @@ applier.on(&"show_own_body", func(v, _why): player.show_own_body = v)
 applier.setup()                            # connects, and applies everything now
 ```
 
-## dot_menu_loadout
+## gs_menu_loadout
 
 ```gdscript
 var loadout := menu.use_loadout(
@@ -121,7 +121,7 @@ loadout.remember_as("fc", account_name)
 loadout.restore()      # after joining: re-sends what this account chose last time
 ```
 
-## dot_menu_maps
+## gs_menu_maps
 
 ```gdscript
 var maps := menu.use_maps(
@@ -130,7 +130,7 @@ var maps := menu.use_maps(
 	func(id: StringName) -> GSResult: return world.change_map_now(id))
 ```
 
-## dot_menu_settings
+## gs_menu_settings
 
 ```gdscript
 var settings := GSMenuSettings.new()
@@ -145,7 +145,7 @@ settings.bind_audio(audio)
 settings.menu_state_changed.connect(func(open): sampler.suspended = open)
 ```
 
-## dot_menu_stock
+## gs_menu_stock
 
 ```gdscript
 var schema := GSSettingsSchema.new()
@@ -156,16 +156,16 @@ config.apply_to_schema(schema)               # the developer's defaults and rang
 var pages := GSMenuStock.pages()            # General, Video, Audio, Controls
 ```
 
-## dot_addon_config_editor_screen
+## gs_addon_config_editor_screen
 
 ```gdscript
 var ed := GSAddonConfigEditorScreen.new()
 add_child(ed)
-ed.add_file("dot-weapon", "tuning.yml", schema, "Weapon tuning")
-ed.open("dot-weapon", "tuning.yml")   # Apply saves to the user tier; Reset deletes the file
+ed.add_file("gs-weapon", "tuning.yml", schema, "Weapon tuning")
+ed.open("gs-weapon", "tuning.yml")   # Apply saves to the user tier; Reset deletes the file
 ```
 
-## dot_menu_frame_clock
+## gs_menu_frame_clock
 
 ```gdscript
 var clock := GSMenuFrameClock.new()
@@ -174,7 +174,7 @@ clock.start(get_tree())
 var s := clock.summary(1.0)   # {fps, mean_ms, worst_ms, physics_ms, steps, ...}
 ```
 
-## dot_menu_layout_editor
+## gs_menu_layout_editor
 
 ```gdscript
 editor.target = hud
@@ -183,7 +183,7 @@ editor.saved.connect(func(text): settings.set_value(&"hud_positions", text))
 editor.open()
 ```
 
-## dot_menu_loadout_screen
+## gs_menu_loadout_screen
 
 ```gdscript
 screen.open({
@@ -195,7 +195,7 @@ screen.open({
 screen.committed.connect(func(picks: Dictionary): send(picks))   # slot -> item, changed only
 ```
 
-## dot_menu_net_stat
+## gs_menu_net_stat
 
 ```gdscript
 net_stat 1    # numbers: frame rate, ping and jitter, in and out, loss
@@ -204,7 +204,7 @@ net_stat 3    # and what leaves, where each frame went, prediction, the server's
 net_stat 0    # off
 ```
 
-## dot_menu_picker
+## gs_menu_picker
 
 ```gdscript
 picker.title_text = "Change map — this server"
@@ -214,7 +214,7 @@ picker.chosen.connect(func(id): change_map(id))
 if picker.key(event.keycode): get_viewport().set_input_as_handled()
 ```
 
-## dot_menu_scoreboard
+## gs_menu_scoreboard
 
 ```gdscript
 var board := menu.scoreboard                      # GSMenu builds one; Tab holds it open
@@ -226,7 +226,7 @@ board.source = func() -> Dictionary: return {"server": {...}, "players": [...]}
 board.decorate = func(row): row["avatar"] = faces.get(row["id"])
 ```
 
-## dot_menu_screen
+## gs_menu_screen
 
 ```gdscript
 var screen := GSMenuScreen.new()
@@ -238,7 +238,7 @@ add_child(screen)
 screen.open()
 ```
 
-## dot_profile_editor_screen
+## gs_profile_editor_screen
 
 ```gdscript
 var ed := GSProfileEditorScreen.new()
@@ -247,7 +247,7 @@ ed.add_set(npc_set, "NPCs")
 ed.open("npc", "zombie")   # Apply saves to the player's user tier by default
 ```
 
-## dot_menu_game_spec
+## gs_menu_game_spec
 
 ```gdscript
 var spec := GSMenuGameSpec.new()

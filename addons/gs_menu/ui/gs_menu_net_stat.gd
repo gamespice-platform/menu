@@ -3,7 +3,7 @@ extends Control
 
 ## `net_stat`: what the connection is doing, drawn over the game in a corner. Levels 0 (off) to 3; [GSMenu] drives it from `net_stat`, `net_stat_height` and `net_stat_position`. Example: docs/examples.md.
 ## Numbers come from [method sample_source], a [GSMeteredPeer] (this node's own multiplayer peer, or [member source]); a browser's WebSocket reports every arrival on channel 0, so those bars are one colour. Rates are drawn as rates, per [member bucket_sec], so the scale means the same at every frame rate.
-## Frame times are wall-clock ([GSMenuFrameClock]); prediction is read duck-typed from `dot_net_manager`. One draw call, no children, redrawn when a bar closes, so the overlay is not a cost of its own.
+## Frame times are wall-clock ([GSMenuFrameClock]); prediction is read duck-typed from `gs_net_manager`. One draw call, no children, redrawn when a bar closes, so the overlay is not a cost of its own.
 
 enum Level { OFF = 0, NUMBERS = 1, GRAPH = 2, FULL = 3 }
 
@@ -232,12 +232,12 @@ func restyle(p_kit: GSMenuKit) -> void:
 
 
 ## The client's GameSpice Net manager, or null: [member net_source], else the one published in
-## [GSRegistry] under [code]dot_net_manager[/code] (any scope) that is not a server's.
+## [GSRegistry] under [code]gs_net_manager[/code] (any scope) that is not a server's.
 func net_manager() -> Object:
 	if net_source.is_valid():
 		return net_source.call()
 	for n in GSRegistry.names():
-		if not n.begins_with("dot_net_manager"):
+		if not n.begins_with("gs_net_manager"):
 			continue
 		var m := GSRegistry.get_service(StringName(n))
 		if m != null and m.has_method(&"perf_counters") and not bool(m.get(&"is_server")):

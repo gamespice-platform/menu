@@ -2,8 +2,8 @@ extends Node
 
 ## The yml layout of GameSpice Menu's admin_menu.yml: new path, flat shim, operator layer.
 
-const FOLDER := "dot_menu"
-const LEGACY := "user://dot_menu_cfg_selftest_legacy"
+const FOLDER := "gs_menu"
+const LEGACY := "user://gs_menu_cfg_selftest_legacy"
 
 const SECTIONS := 1
 const CHECKS := 6
@@ -19,7 +19,7 @@ func _ready() -> void:
 
 
 func _run() -> void:
-	print("dot-menu cfg self-test")
+	print("gs-menu cfg self-test")
 	var addon_dir := "user://cfg/addons/" + FOLDER
 	var server_dir := "user://cfg/server/addons/" + FOLDER
 	_clean(addon_dir, server_dir)

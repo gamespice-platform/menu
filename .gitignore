@@ -3,14 +3,14 @@
 /android/
 
 # The addons this one builds on are separate repositories. For local development,
-# dot-bootstrap symlinks them (it reads these lines to know which):
-#   ln -s ../../dot-core/addons/dot_core addons/dot_core
+# gs-bootstrap symlinks them (it reads these lines to know which):
+#   ln -s ../../gs-core/addons/gs_core addons/gs_core
 # Consumers copy every addon into their own project.
-/addons/dot_core
-/addons/dot_profile
-/addons/dot_ui
-/addons/dot_input
-/addons/dot_settings
+/addons/gs_core
+/addons/gs_profile
+/addons/gs_ui
+/addons/gs_input
+/addons/gs_settings
 
 # Exports
 build/

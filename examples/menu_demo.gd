@@ -42,7 +42,7 @@ func _build_menu() -> void:
 	keys.add_to_schema(schema)
 	var _problems := config.apply_to_schema(schema)
 
-	settings = GSMenuStock.manager(schema, "user://dot_menu_demo", &"dot_menu_demo", &"")
+	settings = GSMenuStock.manager(schema, "user://gs_menu_demo", &"gs_menu_demo", &"")
 	add_child(settings)
 	var _loaded := settings.setup()
 
@@ -88,7 +88,7 @@ func _build_menu() -> void:
 
 	menu.screen.subtitle = "Offline · demo"
 	menu.help.title_text = "How to play the demo"
-	menu.help.about = "Nothing to win here: every menu a game gets from dot-menu, in the theme you pick. A game puts its goal in this card."
+	menu.help.about = "Nothing to win here: every menu a game gets from gs-menu, in the theme you pick. A game puts its goal in this card."
 	menu.help.add_text("Modes", "A game describes its modes or its rules in a card like this one, and the keys come from its table on the left.")
 	menu.help.add_section("This demo", [["P", "The next theme"]], &"keys")
 	# The map menu: M opens these, and offline a choice changes the map (here, says so).

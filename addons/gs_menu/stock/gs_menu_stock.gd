@@ -6,7 +6,7 @@ extends RefCounted
 ## A game declares only what it applies: [method declare] skips keys the schema has, and a row whose setting is not declared is not drawn. Defaults that differ per genre go in [GSMenuConfig].
 
 ## The GSRegistry name GameSpice Profiler publishes itself under.
-const PROFILER_SERVICE := &"dot_profiler"
+const PROFILER_SERVICE := &"gs_profiler"
 const GROUP_AUDIO := &"audio"
 const GROUP_VIDEO := &"video"
 const GROUP_CONTROLS := &"controls"
@@ -27,7 +27,7 @@ const GROUP_MUSIC := &"music"
 ## [method declare] adds it with the video group when the project has a view model class.
 const GROUP_VIEWMODEL := &"viewmodel"
 
-## A game with this script class gets `viewmodel_fov` (zee-dot-weapons' `ZeeViewModel`).
+## A game with this script class gets `viewmodel_fov` (zee-gs-weapons' `ZeeViewModel`).
 const ZEE_VIEW_MODEL_CLASS := &"ZeeViewModel"
 ## Every view model class that answers `set_hands_fov_at_4_3`; a game with any of them gets `viewmodel_fov`.
 const VIEW_MODEL_CLASSES: Array[StringName] = [ZEE_VIEW_MODEL_CLASS, &"AwViewModel"]
@@ -293,7 +293,7 @@ static func advanced_page() -> GSMenuPage:
 	return p
 
 
-## The Performance card, built by the placed [code]dot_profiler[/code] service (GameSpice Profiler, duck-typed);
+## The Performance card, built by the placed [code]gs_profiler[/code] service (GameSpice Profiler, duck-typed);
 ## nothing without one. Its panel is not a row: it records, which no setting does.
 static func performance_section(kit: GSMenuKit, body: Control) -> void:
 	var prof := GSRegistry.get_service(PROFILER_SERVICE)

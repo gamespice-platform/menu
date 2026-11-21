@@ -21,8 +21,8 @@ Run `godot --path .` to open the demo. Escape, H, P and M all work.
 | Feature | What it does |
 | --- | --- |
 | Stock settings | Volumes, window mode, V-Sync, frame-rate cap, render scale, field of view, effects quality, mouse sensitivity, invert mouse, camera shake, screen flashes, theme, HUD size, frame-rate counter, chat box, voice. Declared once, so moving a game onto GameSpice Menu keeps each player's choices. |
-| `DotMenuApplier` | Applies each setting to what it controls (engine, audio buses or a GameSpice Audio mixer, a GameSpice FX config, a mouse sampler, a camera) at load and on every change. |
-| `DotMenuBindings` | One table of key actions. Declares a setting per key, adds them to the InputMap, draws the Controls page and lists them in Help. Binding a used key swaps the two. Escape cannot be bound. |
+| `GSMenuApplier` | Applies each setting to what it controls (engine, audio buses or a GameSpice Audio mixer, a GameSpice FX config, a mouse sampler, a camera) at load and on every change. |
+| `GSMenuBindings` | One table of key actions. Declares a setting per key, adds them to the InputMap, draws the Controls page and lists them in Help. Binding a used key swaps the two. Escape cannot be bound. |
 | Help screen | Opens on H unless you turn it off: your game's goal and modes, every key as currently bound, the server's chat commands, your own cards, and what a browser does with Ctrl+W and friends. |
 | Picker | A numbered list, seven to a page: 1 to 7 pick, 8 and 9 turn the page, 0 closes. Used for maps, teams and classes. |
 | Map, team and loadout menus | M opens a map picker, the period key a team screen, B a loadout screen. On a server the server decides; solo, the game does. See [docs/examples.md](docs/examples.md). |
@@ -37,37 +37,37 @@ Run `godot --path .` to open the demo. Escape, H, P and M all work.
 
 ```gdscript
 # The keys your game reads.
-var keys := DotMenuBindings.new()
+var keys := GSMenuBindings.new()
 keys.add_movement()                                       # WASD, Space, Ctrl
 keys.add(&"mygame_flashlight", &"bind_flashlight", "Flashlight", "F", "View")
 keys.add_help()                                           # H opens help
 
 # The settings: the stock ones, your own, and your config over both.
-var config := DotMenuConfig.new()
+var config := GSMenuConfig.new()
 config.load_layered("res://menu.json")
-var schema := DotSettingsSchema.new()
-DotMenuStock.declare(schema)
-schema.add(DotSettingsDef.boolean(&"show_speed", true, &"hud"))
+var schema := GSSettingsSchema.new()
+GSMenuStock.declare(schema)
+schema.add(GSSettingsDef.boolean(&"show_speed", true, &"hud"))
 keys.add_to_schema(schema)
 config.apply_to_schema(schema)
 
-var settings := DotMenuStock.manager(schema, "user://my_game_settings", &"my_game")
+var settings := GSMenuStock.manager(schema, "user://my_game_settings", &"my_game")
 add_child(settings)
 settings.setup()
 
 # What applies them.
-var applier := DotMenuApplier.new()
+var applier := GSMenuApplier.new()
 applier.settings = settings
 applier.bindings = keys
 add_child(applier)
-applier.bind_audio(audio)            # a DotAudioManager; without one the buses are set directly
+applier.bind_audio(audio)            # a GSAudioManager; without one the buses are set directly
 applier.bind_look(sampler.tunables)  # sensitivity and invert
 applier.bind_camera(camera)          # field of view
 applier.on(&"show_speed", func(on, _why): hud.speed.visible = on)
 applier.setup()
 
 # The menu.
-var menu := DotMenu.new()
+var menu := GSMenu.new()
 menu.settings = settings
 menu.bindings = keys
 menu.config = config
@@ -83,9 +83,9 @@ menu.overlays_changed.connect(func(open): sampler.suspended = open)
 ### Add your own page
 
 ```gdscript
-var page := DotMenuPage.make(&"gameplay", "Gameplay", "Your view and the HUD.")
-page.section("HUD").add(DotMenuRow.toggle(&"show_speed", "Speed", "Under the clock."))
-page.section("View").add(DotMenuRow.live_toggle("Flashlight", "",
+var page := GSMenuPage.make(&"gameplay", "Gameplay", "Your view and the HUD.")
+page.section("HUD").add(GSMenuRow.toggle(&"show_speed", "Speed", "Under the clock."))
+page.section("View").add(GSMenuRow.live_toggle("Flashlight", "",
     func(): return light.on, func(on): light.on = on)
     .enabled_when(func(): return server_allows_flashlight))
 menu.add_page(page, &"video")       # before Video
@@ -118,7 +118,7 @@ menu.release_server_rules()
 ```gdscript
 menu.scoreboard_action = &"mygame_scores"                 # bind it to Tab in your keys table
 menu.scoreboard.feed_from(link)                           # online: the server's roster
-menu.scoreboard.add_column({"key": &"kills", "title": "K", "kind": DotMenuScoreboard.KIND_NUMBER}, &"score")
+menu.scoreboard.add_column({"key": &"kills", "title": "K", "kind": GSMenuScoreboard.KIND_NUMBER}, &"score")
 ```
 
 Online, [GameSpice Server](https://github.com/gamespice-platform/server) sends the roster only while a player holds the board. Add columns and teams on the server with `server.scoreboard_fields` (per player) and `server.scoreboard_extra` (teams and header). Offline, set `menu.scoreboard.source` to a function that returns the same dictionary.
@@ -127,7 +127,7 @@ A column is data: `key`, `title`, `kind` (text, number, ping, duration, avatar o
 
 ## Settings
 
-`DotMenuConfig` holds what a developer can change without code. It is layered like every GameSpice config: defaults, then a JSON file, then environment variables, then the command line.
+`GSMenuConfig` holds what a developer can change without code. It is layered like every GameSpice config: defaults, then a JSON file, then environment variables, then the command line.
 
 ```json
 {

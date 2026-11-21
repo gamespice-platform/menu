@@ -32,14 +32,14 @@ static func run(host: Selftest) -> void:
 	host._check(menu.find_child("Performance", true, false) == null, "and no Performance card without a profiler placed")
 	menu.close()
 	var profiler := Selftest.FakeProfiler.new()
-	DotRegistry.register(DotMenuStock.PROFILER_SERVICE, profiler)
+	GSRegistry.register(GSMenuStock.PROFILER_SERVICE, profiler)
 	menu.open(&"advanced")
 	await host.get_tree().process_frame
 	var perf := menu.find_child("Performance", true, false)
 	host._check(perf != null and perf.find_child("FakeProfilerPanel", true, false) != null,
 		"a placed profiler's panel is drawn in a Performance card, built with the menu's kit")
 	menu.close()
-	DotRegistry.unregister_instance(DotMenuStock.PROFILER_SERVICE, profiler)
+	GSRegistry.unregister_instance(GSMenuStock.PROFILER_SERVICE, profiler)
 
 	await _settings(host, menu, st, ns)
 	_meter(host, ns)
@@ -54,15 +54,15 @@ static func run(host: Selftest) -> void:
 	await host._test_net_stat_own()
 
 
-static func _settings(host: Selftest, menu: DotMenu, st: DotSettingsManager, ns: DotMenuNetStat) -> void:
+static func _settings(host: Selftest, menu: GSMenu, st: GSSettingsManager, ns: GSMenuNetStat) -> void:
 	var _fps := st.set_value(&"show_fps", true)
 	var _two := st.set_value(&"net_stat", 2)
-	host._check(ns.visible and ns.level == DotMenuNetStat.Level.GRAPH, "net_stat 2 draws the graph")
+	host._check(ns.visible and ns.level == GSMenuNetStat.Level.GRAPH, "net_stat 2 draws the graph")
 	host._check(not menu._fps_label.visible, "and the frame counter steps aside: net_stat shows the frame rate itself")
 
 	# What a console sends: the line's argument, as text.
 	var three := st.set_value(&"net_stat", "3")
-	host._check(three.ok and ns.level == DotMenuNetStat.Level.FULL, "\"3\" typed at a console is level 3")
+	host._check(three.ok and ns.level == GSMenuNetStat.Level.FULL, "\"3\" typed at a console is level 3")
 
 	var _h := st.set_value(&"net_stat_height", 160)
 	await host.get_tree().process_frame
@@ -73,14 +73,14 @@ static func _settings(host: Selftest, menu: DotMenu, st: DotSettingsManager, ns:
 	var _c := st.set_value(&"net_stat_position", &"top_left")
 	host._check(is_zero_approx(ns.anchor_left) and is_zero_approx(ns.anchor_top) and ns.offset_left > 0.0,
 		"the corner setting moves it")
-	host._check(ns.style == &"solid" and is_equal_approx(ns.bar_w(), DotMenuNetStat.BAR_W + DotMenuNetStat.BAR_GAP),
+	host._check(ns.style == &"solid" and is_equal_approx(ns.bar_w(), GSMenuNetStat.BAR_W + GSMenuNetStat.BAR_GAP),
 		"the graph style defaults to solid: bars as wide as their step, so they touch")
 	var _s := st.set_value(&"net_stat_style", &"line")
-	host._check(ns.style == &"line" and is_equal_approx(ns.bar_w(), DotMenuNetStat.BAR_W), "net_stat_style line brings back the gapped bars")
+	host._check(ns.style == &"line" and is_equal_approx(ns.bar_w(), GSMenuNetStat.BAR_W), "net_stat_style line brings back the gapped bars")
 	var bad_style := st.set_value(&"net_stat_style", &"mist")
 	host._check(not bad_style.ok or ns.style == &"line", "a style that is not one is refused")
 	var _s2 := st.set_value(&"net_stat_style", &"solid")
-	host._check(await _solid_pixels(host, ns), "DotStackedColumn stacks bands and flags a cut-off column")
+	host._check(await _solid_pixels(host, ns), "GSStackedColumn stacks bands and flags a cut-off column")
 	var bad := st.set_value(&"net_stat_position", &"middle")
 	host._check(not bad.ok or ns.corner == &"top_left", "a corner that is not one is refused")
 
@@ -92,10 +92,10 @@ class ColumnProbe extends Control:
 
 	func _draw() -> void:
 		var cols: Array[Color] = [Color.RED, Color.GREEN]
-		result = DotStackedColumn.draw(self, 0.0, 40.0, 4.0, heights, cols, 40.0, 0.5)
+		result = GSStackedColumn.draw(self, 0.0, 40.0, 4.0, heights, cols, 40.0, 0.5)
 
 
-static func _solid_pixels(host: Selftest, _ns: DotMenuNetStat) -> bool:
+static func _solid_pixels(host: Selftest, _ns: GSMenuNetStat) -> bool:
 	var probe := ColumnProbe.new()
 	probe.size = Vector2(8, 40)
 	probe.heights = PackedFloat32Array([10.0, 15.0])
@@ -110,9 +110,9 @@ static func _solid_pixels(host: Selftest, _ns: DotMenuNetStat) -> bool:
 	return fits and cut
 
 
-static func _meter(host: Selftest, ns: DotMenuNetStat) -> void:
+static func _meter(host: Selftest, ns: GSMenuNetStat) -> void:
 	# A meter fed by hand: 4 KB on the state channel and 512 B of control a bucket, 40 ms ping.
-	var meter := DotMeteredPeer.new()
+	var meter := GSMeteredPeer.new()
 	meter.note_rtt(40.0)
 	ns.source = func() -> Object: return meter
 	ns.reset()
@@ -144,7 +144,7 @@ static func _meter(host: Selftest, ns: DotMenuNetStat) -> void:
 	host._check(not bool(ns.describe()["connected"]), "with no meter it says so, not a flat line")
 
 
-static func _frame_clock(host: Selftest, ns: DotMenuNetStat) -> void:
+static func _frame_clock(host: Selftest, ns: GSMenuNetStat) -> void:
 	# The frame clock on the wall clock: frames held to 25 ms by a busy wait read as 25 ms or
 	# more, whatever the smoothed process delta says. Headless, so render is 0 and the busy
 	# wait lands in the script part.
@@ -170,7 +170,7 @@ static func _frame_clock(host: Selftest, ns: DotMenuNetStat) -> void:
 	host._check(int(ns.frames.summary(1.0)["hitches"]) >= 1, "a 60 ms frame is counted as a hitch")
 
 
-static func _prediction(host: Selftest, ns: DotMenuNetStat) -> void:
+static func _prediction(host: Selftest, ns: GSMenuNetStat) -> void:
 	# Prediction counters, from whatever the net source returns, per second.
 	var fake := FakeNetManager.new()
 	ns.net_source = func() -> Object: return fake

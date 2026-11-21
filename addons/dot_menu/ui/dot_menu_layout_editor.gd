@@ -1,4 +1,4 @@
-class_name DotMenuLayoutEditor
+class_name GSMenuLayoutEditor
 extends Control
 
 ## Moving the HUD: every piece a player can place is drawn with a frame round it and dragged where they want it. Right-click puts one back. Example: docs/examples.md.
@@ -10,7 +10,7 @@ signal closed()
 ## The layout as a setting stores it, after a drag or a reset. See [method encode].
 signal saved(text: String)
 
-var kit: DotMenuKit = null
+var kit: GSMenuKit = null
 
 ## The HUD being arranged. See the class note.
 var target: Control = null
@@ -29,8 +29,8 @@ var _built := false
 
 func _ready() -> void:
 	if kit == null:
-		kit = DotMenuKit.new()
-	DotMenuKit.fill_parent(self)
+		kit = GSMenuKit.new()
+	GSMenuKit.fill_parent(self)
 	mouse_filter = Control.MOUSE_FILTER_STOP
 	visible = false
 
@@ -44,11 +44,11 @@ func _ensure_built() -> void:
 	_build()
 
 
-func restyle(new_kit: DotMenuKit) -> void:
+func restyle(new_kit: GSMenuKit) -> void:
 	kit = new_kit
 	if not _built:
 		return
-	DotMenuKit.clear(self)
+	GSMenuKit.clear(self)
 	_build()
 
 

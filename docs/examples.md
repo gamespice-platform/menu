@@ -5,7 +5,7 @@ The usage snippets that used to sit in class doc comments.
 ## dot_menu_bindings
 
 ```gdscript
-var keys := DotMenuBindings.new()
+var keys := GSMenuBindings.new()
 keys.add_movement()                                   # dot_fps_* — WASD, Space, Ctrl
 keys.add(&"mygame_reload", &"bind_reload", "Reload", "R", "Combat")
 keys.add_to_schema(schema)                            # one binding setting per row
@@ -33,7 +33,7 @@ keys.apply_all(settings)                              # onto the InputMap, at bo
 ## dot_menu_kit
 
 ```gdscript
-var kit := DotMenuKit.new(themes.named(&"ember"))
+var kit := GSMenuKit.new(themes.named(&"ember"))
 kit.font = preload("res://ui/my_font.ttf")
 kit.size_body = 16
 ```
@@ -41,26 +41,26 @@ kit.size_body = 16
 ## dot_menu_page
 
 ```gdscript
-var page := DotMenuPage.make(&"gameplay", "Gameplay", "Your style and your view.")
-page.section("View").add(DotMenuRow.toggle(&"show_own_body", "Your own body"))
+var page := GSMenuPage.make(&"gameplay", "Gameplay", "Your style and your view.")
+page.section("View").add(GSMenuRow.toggle(&"show_own_body", "Your own body"))
 menu.add_page(page, &"video")        # before Video
 ```
 
 ## dot_menu_row
 
 ```gdscript
-DotMenuRow.toggle(&"show_fps", "Frame rate counter", "In the top-right corner.")
-DotMenuRow.slider(&"master_volume", "Master").formatted(DotMenuRow.FORMAT_PERCENT)
-DotMenuRow.select(&"window_mode", "Window")          # options from the setting itself
-DotMenuRow.live_toggle("Flashlight", "", is_on, set_on).enabled_when(server_allows)
-DotMenuRow.button("Arrange", "Drag the HUD around.", "Move HUD elements", open_editor)
-DotMenuRow.custom("Name", "", func(kit): return LineEdit.new())
+GSMenuRow.toggle(&"show_fps", "Frame rate counter", "In the top-right corner.")
+GSMenuRow.slider(&"master_volume", "Master").formatted(GSMenuRow.FORMAT_PERCENT)
+GSMenuRow.select(&"window_mode", "Window")          # options from the setting itself
+GSMenuRow.live_toggle("Flashlight", "", is_on, set_on).enabled_when(server_allows)
+GSMenuRow.button("Arrange", "Drag the HUD around.", "Move HUD elements", open_editor)
+GSMenuRow.custom("Name", "", func(kit): return LineEdit.new())
 ```
 
 ## dot_menu_themes
 
 ```gdscript
-var themes := DotMenuThemes.stock()          # the eight this addon ships
+var themes := GSMenuThemes.stock()          # the eight this addon ships
 themes.add(my_palette)                       # a game's own
 themes.load_json("res://ui/themes.json")     # or a file of them
 themes.keep_only(["midnight", "paper"])      # an operator's choice of which to offer
@@ -69,15 +69,15 @@ themes.keep_only(["midnight", "paper"])      # an operator's choice of which to 
 ## dot_menu
 
 ```gdscript
-var menu := DotMenu.new()
-menu.settings = settings                       # a DotSettingsManager, set up
-menu.bindings = keys                           # a DotMenuBindings
-menu.config = config                           # a DotMenuConfig; null is the stock one
+var menu := GSMenu.new()
+menu.settings = settings                       # a GSSettingsManager, set up
+menu.bindings = keys                           # a GSMenuBindings
+menu.config = config                           # a GSMenuConfig; null is the stock one
 menu.help_action = &"mygame_help"              # optional: H is dot_menu_help already
 menu.theme_action = &"mygame_theme_next"       # optional: a key that cycles themes
 add_child(menu)
 menu.setup()                                   # the stock pages, the themes, the screens
-menu.page(&"general").section("HUD").add(DotMenuRow.toggle(&"show_speed", "Speed"))
+menu.page(&"general").section("HUD").add(GSMenuRow.toggle(&"show_speed", "Speed"))
 menu.action_requested.connect(func(id): if id == &"leave": leave())
 menu.overlays_changed.connect(func(open): sampler.suspended = open)
 ```
@@ -97,12 +97,12 @@ menu.overlays_changed.connect(func(open): sampler.suspended = open)
 ## dot_menu_applier
 
 ```gdscript
-var applier := DotMenuApplier.new()
+var applier := GSMenuApplier.new()
 applier.settings = settings
 applier.bindings = keys
 add_child(applier)
-applier.bind_audio(audio)                  # a DotAudioManager, or its mixer
-applier.bind_fx(fx)                        # a DotFxManager, or its config
+applier.bind_audio(audio)                  # a GSAudioManager, or its mixer
+applier.bind_fx(fx)                        # a GSFxManager, or its config
 applier.bind_look(sampler.tunables)        # sensitivity and invert
 applier.bind_camera(camera)                # field of view
 applier.on(&"show_own_body", func(v, _why): player.show_own_body = v)
@@ -127,13 +127,13 @@ loadout.restore()      # after joining: re-sends what this account chose last ti
 var maps := menu.use_maps(
 	func() -> Array: return [{"id": "dm_atrium", "name": "Atrium", "mode": "Deathmatch",
 		"thumbnail": "res://maps/atrium.png", "current": true}, ...],
-	func(id: StringName) -> DotResult: return world.change_map_now(id))
+	func(id: StringName) -> GSResult: return world.change_map_now(id))
 ```
 
 ## dot_menu_settings
 
 ```gdscript
-var settings := DotMenuSettings.new()
+var settings := GSMenuSettings.new()
 settings.directory = "user://my_game_settings"
 settings.app_namespace = &"my_game"
 settings.schema = my_schema()          # null is the stock set
@@ -148,18 +148,18 @@ settings.menu_state_changed.connect(func(open): sampler.suspended = open)
 ## dot_menu_stock
 
 ```gdscript
-var schema := DotSettingsSchema.new()
-DotMenuStock.declare(schema)                 # audio, video, controls, comfort, interface
+var schema := GSSettingsSchema.new()
+GSMenuStock.declare(schema)                 # audio, video, controls, comfort, interface
 # ... the game's own settings ...
 config.apply_to_schema(schema)               # the developer's defaults and ranges
 
-var pages := DotMenuStock.pages()            # General, Video, Audio, Controls
+var pages := GSMenuStock.pages()            # General, Video, Audio, Controls
 ```
 
 ## dot_addon_config_editor_screen
 
 ```gdscript
-var ed := DotAddonConfigEditorScreen.new()
+var ed := GSAddonConfigEditorScreen.new()
 add_child(ed)
 ed.add_file("dot-weapon", "tuning.yml", schema, "Weapon tuning")
 ed.open("dot-weapon", "tuning.yml")   # Apply saves to the user tier; Reset deletes the file
@@ -168,7 +168,7 @@ ed.open("dot-weapon", "tuning.yml")   # Apply saves to the user tier; Reset dele
 ## dot_menu_frame_clock
 
 ```gdscript
-var clock := DotMenuFrameClock.new()
+var clock := GSMenuFrameClock.new()
 clock.start(get_tree())
 # ... later, any number of frames on:
 var s := clock.summary(1.0)   # {fps, mean_ms, worst_ms, physics_ms, steps, ...}
@@ -217,8 +217,8 @@ if picker.key(event.keycode): get_viewport().set_input_as_handled()
 ## dot_menu_scoreboard
 
 ```gdscript
-var board := menu.scoreboard                      # DotMenu builds one; Tab holds it open
-board.columns = DotMenuScoreboard.default_columns()
+var board := menu.scoreboard                      # GSMenu builds one; Tab holds it open
+board.columns = GSMenuScoreboard.default_columns()
 board.add_column({"key": &"kills", "title": "K"}, &"score")   # before Score
 board.feed_from(link)                             # the server's roster, while held
 # or, offline / for a game's own numbers:
@@ -229,11 +229,11 @@ board.decorate = func(row): row["avatar"] = faces.get(row["id"])
 ## dot_menu_screen
 
 ```gdscript
-var screen := DotMenuScreen.new()
-screen.kit = DotMenuKit.new(themes.named(&"midnight"))
+var screen := GSMenuScreen.new()
+screen.kit = GSMenuKit.new(themes.named(&"midnight"))
 screen.settings = settings
 screen.bindings = keys
-screen.pages = DotMenuStock.pages()
+screen.pages = GSMenuStock.pages()
 add_child(screen)
 screen.open()
 ```
@@ -241,7 +241,7 @@ screen.open()
 ## dot_profile_editor_screen
 
 ```gdscript
-var ed := DotProfileEditorScreen.new()
+var ed := GSProfileEditorScreen.new()
 add_child(ed)
 ed.add_set(npc_set, "NPCs")
 ed.open("npc", "zombie")   # Apply saves to the player's user tier by default
@@ -250,15 +250,15 @@ ed.open("npc", "zombie")   # Apply saves to the player's user tier by default
 ## dot_menu_game_spec
 
 ```gdscript
-var spec := DotMenuGameSpec.new()
+var spec := GSMenuGameSpec.new()
 spec.brand_name = "Wipeout"
 spec.settings_dir = "user://wipeout_settings"
 spec.app_namespace = &"wipeout"
 spec.ambient_text = "Quiet sounds under the course."
-spec.bindings_maker = func() -> DotMenuBindings: return WoBindings.make()
+spec.bindings_maker = func() -> GSMenuBindings: return WoBindings.make()
 spec.help_about = "Get round the course as fast as you can."
 spec.help_cards = [["Points", "Finishing earns points by place."]]
-var settings := DotMenuGameSettings.new(spec)         # or a shim: func _init(): super(spec_for())
+var settings := GSMenuGameSettings.new(spec)         # or a shim: func _init(): super(spec_for())
 ```
 
-Hooks for what a plain spec cannot say, all optional: `has_fov` (false for a 2D game), `base_schema` (a callable returning the schema the game's settings start from), `extra_defs` / `late_defs` (more settings before / after the ambient pair), `extra_rows` (`[page, section, DotMenuRow]`), `page_makers` (`[callable returning a DotMenuPage, before_page_id]`), `migrations` (schema version -> `func(doc) -> doc`), `fov_transform`, `before_setup` (`func(settings, store) -> store`, for a game's one-off file migration), `config_settings` and `manage_pointer`.
+Hooks for what a plain spec cannot say, all optional: `has_fov` (false for a 2D game), `base_schema` (a callable returning the schema the game's settings start from), `extra_defs` / `late_defs` (more settings before / after the ambient pair), `extra_rows` (`[page, section, GSMenuRow]`), `page_makers` (`[callable returning a GSMenuPage, before_page_id]`), `migrations` (schema version -> `func(doc) -> doc`), `fov_transform`, `before_setup` (`func(settings, store) -> store`, for a game's one-off file migration), `config_settings` and `manage_pointer`.

@@ -1,4 +1,4 @@
-class_name DotProfileEditorDemo
+class_name GSProfileEditorDemo
 extends RefCounted
 
 ## Profile sets with a few files on disk, for the editor's self-test and screenshots.
@@ -10,26 +10,26 @@ static func sets() -> Array:
 	return [_npc(), _weapon()]
 
 
-static func _npc() -> DotProfileSet:
-	var s := DotProfileSet.create("demo", "demogame", "npc", [
-		DotProfileSet.field("health", "int", 100, {"min": 1, "max": 1000, "group": "Body", "unit": "hp", "description": "Hit points at spawn."}),
-		DotProfileSet.field("speed", "float", 3.0, {"min": 0.0, "max": 12.0, "group": "Body", "unit": "m/s", "description": "Walking speed."}),
-		DotProfileSet.field("mode", "string", "melee", {"enum": ["melee", "ranged"], "group": "Behaviour"}),
-		DotProfileSet.field("boss", "bool", false, {"group": "Behaviour", "description": "Draws a health bar for everyone."}),
-		DotProfileSet.field("name", "string", "Unnamed", {"group": "Behaviour"}),
-		DotProfileSet.field("tint", "string", "#a04040", {"group": "Look"}),
+static func _npc() -> GSProfileSet:
+	var s := GSProfileSet.create("demo", "demogame", "npc", [
+		GSProfileSet.field("health", "int", 100, {"min": 1, "max": 1000, "group": "Body", "unit": "hp", "description": "Hit points at spawn."}),
+		GSProfileSet.field("speed", "float", 3.0, {"min": 0.0, "max": 12.0, "group": "Body", "unit": "m/s", "description": "Walking speed."}),
+		GSProfileSet.field("mode", "string", "melee", {"enum": ["melee", "ranged"], "group": "Behaviour"}),
+		GSProfileSet.field("boss", "bool", false, {"group": "Behaviour", "description": "Draws a health bar for everyone."}),
+		GSProfileSet.field("name", "string", "Unnamed", {"group": "Behaviour"}),
+		GSProfileSet.field("tint", "string", "#a04040", {"group": "Look"}),
 	])
 	s.roots = PackedStringArray([BASE])
 	s.user_root = BASE
 	return s
 
 
-static func _weapon() -> DotProfileSet:
-	var s := DotProfileSet.create("demo", "demogame", "weapon", [
-		DotProfileSet.field("damage", "float", 20.0, {"min": 0.0, "max": 500.0, "group": "Damage", "unit": "hp"}),
-		DotProfileSet.field("rate", "float", 6.0, {"min": 0.1, "max": 30.0, "group": "Damage", "unit": "/s"}),
-		DotProfileSet.field("magazine", "int", 12, {"min": 1, "max": 200, "group": "Ammo"}),
-		DotProfileSet.field("automatic", "bool", false, {"group": "Ammo"}),
+static func _weapon() -> GSProfileSet:
+	var s := GSProfileSet.create("demo", "demogame", "weapon", [
+		GSProfileSet.field("damage", "float", 20.0, {"min": 0.0, "max": 500.0, "group": "Damage", "unit": "hp"}),
+		GSProfileSet.field("rate", "float", 6.0, {"min": 0.1, "max": 30.0, "group": "Damage", "unit": "/s"}),
+		GSProfileSet.field("magazine", "int", 12, {"min": 1, "max": 200, "group": "Ammo"}),
+		GSProfileSet.field("automatic", "bool", false, {"group": "Ammo"}),
 	])
 	s.roots = PackedStringArray([BASE])
 	s.user_root = BASE

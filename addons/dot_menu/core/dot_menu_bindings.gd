@@ -1,4 +1,4 @@
-class_name DotMenuBindings
+class_name GSMenuBindings
 extends RefCounted
 
 ## Every key a client reads, as one table (action, setting, label, default, card), so the client, schema, Controls page and help screen never disagree. Stored per device by default.
@@ -12,7 +12,7 @@ const HELP_SETTING := &"bind_help"
 const HELP_KEY := "H"
 
 ## The map menu's action, setting and default: M in every game with more than one map (API 5).
-## See [DotMenuMaps].
+## See [GSMenuMaps].
 const MAPS_ACTION := &"dot_menu_maps"
 const MAPS_SETTING := &"bind_maps"
 const MAPS_KEY := "M"
@@ -31,7 +31,7 @@ const TEAMS_SETTING := &"bind_teams"
 const TEAMS_KEY := "Period"
 
 ## The avatar emote, pose and gesture keys (API 16): `,` `.` `/` in every game that plays avatar
-## actions. The actions are the ones GameSpice User Avatar's `DotAvatarActionInput` listens on.
+## actions. The actions are the ones GameSpice User Avatar's `GSAvatarActionInput` listens on.
 const AVATAR_EMOTE_ACTION := &"dot_avatar_emote"
 const AVATAR_POSE_ACTION := &"dot_avatar_pose"
 const AVATAR_GESTURE_ACTION := &"dot_avatar_gesture"
@@ -39,7 +39,7 @@ const AVATAR_EMOTE_SETTING := &"bind_avatar_emote"
 const AVATAR_POSE_SETTING := &"bind_avatar_pose"
 const AVATAR_GESTURE_SETTING := &"bind_avatar_gesture"
 
-## The workbench toggle (`;`), registered by [DotMenuSettings] only where GameSpice Workbench is linked. GameSpice Game's DotGameWorkbench listens on the action.
+## The workbench toggle (`;`), registered by [GSMenuSettings] only where GameSpice Workbench is linked. GameSpice Game's GSGameWorkbench listens on the action.
 const WORKBENCH_ACTION := &"dot_workbench_toggle"
 const WORKBENCH_SETTING := &"bind_workbench"
 const WORKBENCH_KEY := "Semicolon"
@@ -76,16 +76,16 @@ var renamed_defaults: Dictionary = {}
 var _extra_events: Dictionary = {}
 
 
-## Adds a row. [param scope] is a [enum DotSettingsDef.Scope]. Returns this, to chain.
+## Adds a row. [param scope] is a [enum GSSettingsDef.Scope]. Returns this, to chain.
 ## A second row for the same action or setting replaces the first in place, so a game can
 ## rename a stock row without moving it. Extra rows ([method add_extra]) are never replaced.
 func add(
 	action: StringName, setting: StringName, label: String, default_key: String,
-	group: String = "General", scope: int = DotSettingsDef.Scope.DEVICE
-) -> DotMenuBindings:
-	if DotInputBinding.from_text(default_key) is InputEventKey \
-			and (DotInputBinding.from_text(default_key) as InputEventKey).physical_keycode == KEY_ESCAPE:
-		push_error("DotMenuBindings: Escape is the menu and cannot be bound (%s)." % action)
+	group: String = "General", scope: int = GSSettingsDef.Scope.DEVICE
+) -> GSMenuBindings:
+	if GSInputBinding.from_text(default_key) is InputEventKey \
+			and (GSInputBinding.from_text(default_key) as InputEventKey).physical_keycode == KEY_ESCAPE:
+		push_error("GSMenuBindings: Escape is the menu and cannot be bound (%s)." % action)
 		return self
 
 	var row := {
@@ -105,8 +105,8 @@ func add(
 ## A row, not a second column: every reader of the table already understands a row.
 func add_extra(
 	action: StringName, setting: StringName, label: String, default_key: String,
-	group: String = "", scope: int = DotSettingsDef.Scope.DEVICE
-) -> DotMenuBindings:
+	group: String = "", scope: int = GSSettingsDef.Scope.DEVICE
+) -> GSMenuBindings:
 	var own := row_for_action(action)
 	var row := {
 		"action": action, "setting": setting, "label": label, "default": default_key,
@@ -145,7 +145,7 @@ func remove_setting(setting: StringName) -> bool:
 
 ## Declares that [param setting]'s default was each of [param old_keys] (as typed), for a default moved to make room for a family-shared key.
 ## A returning player who never touched the row gets the new default. Call before [method add_to_schema]. Returns this.
-func renamed(setting: StringName, old_keys: Array) -> DotMenuBindings:
+func renamed(setting: StringName, old_keys: Array) -> GSMenuBindings:
 	var list: Array = renamed_defaults.get(setting, [])
 	for k in old_keys:
 		if not list.has(str(k)):
@@ -154,10 +154,10 @@ func renamed(setting: StringName, old_keys: Array) -> DotMenuBindings:
 	return self
 
 
-## GameSpice Player Controller's movement actions, by their own names. `DotFpsSampler` polls
+## GameSpice Player Controller's movement actions, by their own names. `GSFpsSampler` polls
 ## `dot_fps_*` and only creates actions that are missing, so a binding applied here first is
 ## the one it reads. Duck is Ctrl; a game that wants Shift passes it.
-func add_movement(group: String = "Movement", crouch_key: String = "Ctrl", crouch_label: String = "Duck") -> DotMenuBindings:
+func add_movement(group: String = "Movement", crouch_key: String = "Ctrl", crouch_label: String = "Duck") -> GSMenuBindings:
 	add(&"dot_fps_forward", &"bind_forward", "Forward", "W", group)
 	add(&"dot_fps_back", &"bind_back", "Back", "S", group)
 	add(&"dot_fps_left", &"bind_left", "Strafe left", "A", group)
@@ -169,8 +169,8 @@ func add_movement(group: String = "Movement", crouch_key: String = "Ctrl", crouc
 
 ## The mouse wheel also jumps (`bind_jump_wheel_up`, `bind_jump_wheel_down`): two extra rows on `dot_fps_jump`. A game that cycles weapons calls [method add_wheel_weapons] instead.
 ## Not part of [method add_movement]: half the family puts the wheel on weapons, and a forgotten opt-in is a wheel that does nothing, which is visible.
-## A wheel tick is a press and release in one event pair; `DotFpsSampler` latches presses so each tick reaches jump once.
-func add_wheel_jump(group: String = "") -> DotMenuBindings:
+## A wheel tick is a press and release in one event pair; `GSFpsSampler` latches presses so each tick reaches jump once.
+func add_wheel_jump(group: String = "") -> GSMenuBindings:
 	add_extra(JUMP_ACTION, WHEEL_JUMP_UP_SETTING, "Jump (wheel up)", "Wheel up", group)
 	add_extra(JUMP_ACTION, WHEEL_JUMP_DOWN_SETTING, "Jump (wheel down)", "Wheel down", group)
 	return self
@@ -189,57 +189,57 @@ func add_wheel_weapons(
 	previous_action: StringName = WEAPON_PREVIOUS_ACTION, next_action: StringName = WEAPON_NEXT_ACTION,
 	group: String = "Weapons",
 	previous_setting: StringName = WEAPON_PREVIOUS_SETTING, next_setting: StringName = WEAPON_NEXT_SETTING
-) -> DotMenuBindings:
+) -> GSMenuBindings:
 	var _off := remove_wheel_jump()
 	add(previous_action, previous_setting, "Previous weapon", "Wheel up", group)
 	add(next_action, next_setting, "Next weapon", "Wheel down", group)
 	return self
 
 
-## The push-to-talk key: GameSpice Voice's `dot_voice_talk` action (`DotVoiceManager.TALK_ACTION`,
+## The push-to-talk key: GameSpice Voice's `dot_voice_talk` action (`GSVoiceManager.TALK_ACTION`,
 ## named here as text because GameSpice Menu does not depend on GameSpice Voice), stored as
-## `bind_voice_talk`, on V. [DotMenuSettings] adds it when the schema has the voice group.
-func add_voice(group: String = "Communication", key: String = "V") -> DotMenuBindings:
+## `bind_voice_talk`, on V. [GSMenuSettings] adds it when the schema has the voice group.
+func add_voice(group: String = "Communication", key: String = "V") -> GSMenuBindings:
 	return add(&"dot_voice_talk", &"bind_voice_talk", "Push to talk", key, group)
 
 
-## The help screen's key, which every game has on H unless it says otherwise: [DotMenu]'s
-## default [member DotMenu.help_action]. [DotMenuSettings] adds it to a game's table; a game
-## that builds its [DotMenu] itself calls this. [param group] empty is [method help_group].
-func add_help(group: String = "", key: String = HELP_KEY) -> DotMenuBindings:
+## The help screen's key, which every game has on H unless it says otherwise: [GSMenu]'s
+## default [member GSMenu.help_action]. [GSMenuSettings] adds it to a game's table; a game
+## that builds its [GSMenu] itself calls this. [param group] empty is [method help_group].
+func add_help(group: String = "", key: String = HELP_KEY) -> GSMenuBindings:
 	return add(HELP_ACTION, HELP_SETTING, "Help and controls", key, group if group != "" else help_group())
 
 
 ## The map menu key (`dot_menu_maps`, stored as `bind_maps`), M by default, on the same card
-## as help. [DotMenuSettings] adds it to every game's table; a game that builds its menu by
+## as help. [GSMenuSettings] adds it to every game's table; a game that builds its menu by
 ## hand calls this itself.
-func add_maps(group: String = "", key: String = MAPS_KEY) -> DotMenuBindings:
+func add_maps(group: String = "", key: String = MAPS_KEY) -> GSMenuBindings:
 	return add(MAPS_ACTION, MAPS_SETTING, "Change map", key, group if group != "" else help_group())
 
 
-## The Maps / Game modes tab key (`dot_menu_modes`, stored as `bind_modes`), `-` by default. For a game that opts in to a modes tab ([member DotMenuSettings.map_modes]).
-func add_modes(group: String = "", key: String = MODES_KEY) -> DotMenuBindings:
+## The Maps / Game modes tab key (`dot_menu_modes`, stored as `bind_modes`), `-` by default. For a game that opts in to a modes tab ([member GSMenuSettings.map_modes]).
+func add_modes(group: String = "", key: String = MODES_KEY) -> GSMenuBindings:
 	return add(MODES_ACTION, MODES_SETTING, "Maps / Game modes tab", key, group if group != "" else help_group())
 
 
 ## The loadout menu key (`dot_menu_loadout`, stored as `bind_loadout`), B by default, on the same
-## card as help. [DotMenuSettings] adds it when [member DotMenuSettings.loadout_menu] is on.
-func add_loadout(group: String = "", key: String = LOADOUT_KEY) -> DotMenuBindings:
+## card as help. [GSMenuSettings] adds it when [member GSMenuSettings.loadout_menu] is on.
+func add_loadout(group: String = "", key: String = LOADOUT_KEY) -> GSMenuBindings:
 	return add(LOADOUT_ACTION, LOADOUT_SETTING, "Loadout", key, group if group != "" else help_group())
 
 
 ## The team menu key (`dot_menu_teams`, stored as `bind_teams`), the period by default. The avatar pose moved to the semicolon for it.
-func add_teams(group: String = "", key: String = TEAMS_KEY) -> DotMenuBindings:
+func add_teams(group: String = "", key: String = TEAMS_KEY) -> GSMenuBindings:
 	return add(TEAMS_ACTION, TEAMS_SETTING, "Choose team", key, group if group != "" else help_group())
 
 
 ## The workbench toggle key (`dot_workbench_toggle`, stored as `bind_workbench`), the semicolon by default, on the help card. The avatar pose moved to the apostrophe for it.
-func add_workbench(group: String = "", key: String = WORKBENCH_KEY) -> DotMenuBindings:
+func add_workbench(group: String = "", key: String = WORKBENCH_KEY) -> GSMenuBindings:
 	return add(WORKBENCH_ACTION, WORKBENCH_SETTING, "Workbench", key, group if group != "" else help_group())
 
 
 ## The three avatar action keys (emote, pose, gesture), on [param group] or the help card.
-func add_avatar_actions(group: String = "") -> DotMenuBindings:
+func add_avatar_actions(group: String = "") -> GSMenuBindings:
 	var where := group if group != "" else help_group()
 	var _e := add(AVATAR_EMOTE_ACTION, AVATAR_EMOTE_SETTING, "Emote", "Comma", where)
 	var _p := add(AVATAR_POSE_ACTION, AVATAR_POSE_SETTING, "Pose", "Apostrophe", where)
@@ -260,9 +260,9 @@ func help_group() -> String:
 ## table that ships a conflict the swap cannot settle; what each game's suite asserts for H.
 func defaults_on(key: String) -> Array[Dictionary]:
 	var out: Array[Dictionary] = []
-	var wanted := DotInputBinding.from_text(key)
+	var wanted := GSInputBinding.from_text(key)
 	for row in rows:
-		var other := DotInputBinding.from_text(str(row["default"]))
+		var other := GSInputBinding.from_text(str(row["default"]))
 		if wanted != null and other != null and same_input(wanted, other):
 			out.append(row)
 	return out
@@ -294,12 +294,12 @@ func remove(action: StringName) -> bool:
 
 ## Declares a binding setting for every row the schema does not already have. A row whose
 ## setting a game declared itself (with its own scope or description) is left alone.
-func add_to_schema(s: DotSettingsSchema) -> void:
+func add_to_schema(s: GSSettingsSchema) -> void:
 	for row in rows:
 		var key: StringName = row["setting"]
 		if not s.has(key):
-			s.add(DotSettingsDef.binding(key, str(row["default"]), &"bindings")
-				.with_scope(int(row.get("scope", DotSettingsDef.Scope.DEVICE)) as DotSettingsDef.Scope)
+			s.add(GSSettingsDef.binding(key, str(row["default"]), &"bindings")
+				.with_scope(int(row.get("scope", GSSettingsDef.Scope.DEVICE)) as GSSettingsDef.Scope)
 				.with_description(str(row["label"])))
 		# Old defaults reach a declaration the game made itself too: they only add to it.
 		var def := s.find(key)
@@ -349,14 +349,14 @@ func rows_in(group: String) -> Array[Dictionary]:
 func apply_row(row: Dictionary, text: String) -> String:
 	if is_extra(row):
 		return _apply_extra(row, text)
-	var wanted := text if DotInputBinding.is_bound(text) else str(row["default"])
-	var bound := DotInputBinding.apply(row["action"], wanted)
+	var wanted := text if GSInputBinding.is_bound(text) else str(row["default"])
+	var bound := GSInputBinding.apply(row["action"], wanted)
 
-	if bound == DotInputBinding.UNBOUND:
-		DotLog.warn(CHANNEL, "a key binding names no input; the default is used", {
+	if bound == GSInputBinding.UNBOUND:
+		GSLog.warn(CHANNEL, "a key binding names no input; the default is used", {
 			"action": String(row["action"]), "binding": text,
 		})
-		bound = DotInputBinding.apply(row["action"], str(row["default"]))
+		bound = GSInputBinding.apply(row["action"], str(row["default"]))
 
 	# GameSpice UI's apply replaced every event on the action, the extra keys' with them.
 	for other in rows:
@@ -375,16 +375,16 @@ func _apply_extra(row: Dictionary, text: String) -> String:
 	if is_none(text):
 		row["bound"] = NONE
 		return NONE
-	var event := DotInputBinding.from_text(text)
+	var event := GSInputBinding.from_text(text)
 	if event == null:
-		event = DotInputBinding.from_text(str(row["default"]))
+		event = GSInputBinding.from_text(str(row["default"]))
 	if event == null:
 		row["bound"] = NONE
 		return NONE
 	if not InputMap.action_has_event(action, event):
 		InputMap.action_add_event(action, event)
 	_extra_events[row["setting"]] = event
-	row["bound"] = DotInputBinding.to_text(event)
+	row["bound"] = GSInputBinding.to_text(event)
 	return str(row["bound"])
 
 
@@ -400,7 +400,7 @@ func _take_off_extra(row: Dictionary) -> void:
 	# Another row of the action may be on the same input; then it stays.
 	var own := row_for_action(action)
 	if not own.is_empty():
-		var own_ev := DotInputBinding.from_text(DotInputBinding.describe_action(action))
+		var own_ev := GSInputBinding.from_text(GSInputBinding.describe_action(action))
 		if own_ev != null and same_input(own_ev, ev):
 			return
 	for other_setting in _extra_events:
@@ -417,7 +417,7 @@ static func is_none(text: String) -> bool:
 
 ## Every row from [param settings] onto the [InputMap]. Boot, and a reset. Settles any
 ## two rows stored on one key first ([method settle]).
-func apply_all(settings: DotSettingsManager) -> void:
+func apply_all(settings: GSSettingsManager) -> void:
 	var _settled := settle(settings)
 	for row in rows:
 		apply_row(row, stored(row, settings))
@@ -426,7 +426,7 @@ func apply_all(settings: DotSettingsManager) -> void:
 ## Puts right any key two rows are stored on: the row whose default it is keeps it, others go back to their default (logged). Returns `"label: old -> new"` per move.
 ## Rebinding swaps so a player cannot make a conflict, but a moved default can; [method renamed] catches declared moves, this the rest.
 ## Rows that all default to the key are left alone; where none does, the first row keeps it.
-func settle(settings: DotSettingsManager) -> PackedStringArray:
+func settle(settings: GSSettingsManager) -> PackedStringArray:
 	var moved := PackedStringArray()
 	if settings == null:
 		return moved
@@ -435,7 +435,7 @@ func settle(settings: DotSettingsManager) -> PackedStringArray:
 	for _pass in range(rows.size()):
 		var groups: Array = []   # [[event, [rows]], ...]
 		for row in rows:
-			var ev := DotInputBinding.from_text(stored(row, settings))
+			var ev := GSInputBinding.from_text(stored(row, settings))
 			if ev == null:
 				continue
 			var placed := false
@@ -462,7 +462,7 @@ func settle(settings: DotSettingsManager) -> PackedStringArray:
 				contenders = on_key
 			var owners: Array = []
 			for row in contenders:
-				var d := DotInputBinding.from_text(_default_text(row, settings))
+				var d := GSInputBinding.from_text(_default_text(row, settings))
 				if d != null and same_input(d, g[0]):
 					owners.append(row)
 			if owners.size() == on_key.size():
@@ -484,7 +484,7 @@ func settle(settings: DotSettingsManager) -> PackedStringArray:
 			break
 
 	if not moved.is_empty():
-		DotLog.info(CHANNEL, "two actions were stored on one key; the one whose default it is keeps it", {
+		GSLog.info(CHANNEL, "two actions were stored on one key; the one whose default it is keeps it", {
 			"moved": ", ".join(moved),
 		})
 	return moved
@@ -492,7 +492,7 @@ func settle(settings: DotSettingsManager) -> PackedStringArray:
 
 # The row's default as the schema declares it: a game may declare a row's setting itself,
 # with a default of its own, and that is the one the document falls back to.
-func _default_text(row: Dictionary, settings: DotSettingsManager) -> String:
+func _default_text(row: Dictionary, settings: GSSettingsManager) -> String:
 	if settings != null and settings.schema != null:
 		var def := settings.schema.find(row["setting"])
 		if def != null:
@@ -513,14 +513,14 @@ func apply_setting(key: StringName, value: Variant) -> bool:
 ## The binding a row is on: the stored one, or the default where the stored one names nothing. An extra row set to nothing is [constant NONE].
 ## The effective binding, not the stored text (a document cleared by hand stores "" for a default key), in GameSpice UI's current spelling
 ## ("Mouse 4" in an old document must read as the wheel).
-func stored(row: Dictionary, settings: DotSettingsManager) -> String:
+func stored(row: Dictionary, settings: GSSettingsManager) -> String:
 	var text := settings.get_string(row["setting"], str(row["default"])) if settings != null else str(row["default"])
 	if is_extra(row) and is_none(text):
 		return NONE
-	var event := DotInputBinding.from_text(text)
+	var event := GSInputBinding.from_text(text)
 	if event == null:
-		event = DotInputBinding.from_text(str(row["default"]))
-	return DotInputBinding.to_text(event) if event != null else str(row["default"])
+		event = GSInputBinding.from_text(str(row["default"]))
+	return GSInputBinding.to_text(event) if event != null else str(row["default"])
 
 
 ## The key a row is on right now, for a button or a help line. "—" for nothing.
@@ -530,8 +530,8 @@ static func shown(row: Dictionary) -> String:
 	if is_extra(row):
 		var b := str(row.get("bound", row["default"]))
 		return "—" if is_none(b) or b == "" else b
-	var text := DotInputBinding.describe_action(row["action"])
-	return text if text != DotInputBinding.UNBOUND else "—"
+	var text := GSInputBinding.describe_action(row["action"])
+	return text if text != GSInputBinding.UNBOUND else "—"
 
 
 ## The key [param action] is on right now, or "—".
@@ -540,24 +540,24 @@ func key_for(action: StringName) -> String:
 
 
 ## The row already using [param text], other than [param except], or an empty dictionary.
-func row_using(text: String, except: StringName, settings: DotSettingsManager) -> Dictionary:
-	var wanted := DotInputBinding.from_text(text)
+func row_using(text: String, except: StringName, settings: GSSettingsManager) -> Dictionary:
+	var wanted := GSInputBinding.from_text(text)
 	if wanted == null:
 		return {}
 	for row in rows:
 		if row["setting"] == except:
 			continue
-		var other := DotInputBinding.from_text(stored(row, settings))
+		var other := GSInputBinding.from_text(stored(row, settings))
 		if other != null and same_input(wanted, other):
 			return row
 	return {}
 
 
-## Puts [param text] on [param row]; whatever already had that key gets this row's old one. Returns what to tell the player, or a [DotResult] failure.
+## Puts [param text] on [param row]; whatever already had that key gets this row's old one. Returns what to tell the player, or a [GSResult] failure.
 ## A swap, not a refusal and not a steal: refusing makes a player unbind one thing to bind another, and stealing leaves a control on nothing.
-func rebind(row: Dictionary, text: String, settings: DotSettingsManager) -> DotResult:
+func rebind(row: Dictionary, text: String, settings: GSSettingsManager) -> GSResult:
 	if settings == null:
-		return DotResult.fail(DotError.CODE_STATE, "No settings to store the key in.")
+		return GSResult.fail(GSError.CODE_STATE, "No settings to store the key in.")
 
 	var key: StringName = row["setting"]
 	var old := stored(row, settings)
@@ -566,9 +566,9 @@ func rebind(row: Dictionary, text: String, settings: DotSettingsManager) -> DotR
 	# Only an extra key can be on nothing, and only an extra key can be given nothing. An
 	# action's own row would fall back to its default and leave the key on two actions.
 	if is_none(text) and not is_extra(row):
-		return DotResult.fail(DotError.CODE_INVALID, "%s needs a key." % str(row["label"]))
+		return GSResult.fail(GSError.CODE_INVALID, "%s needs a key." % str(row["label"]))
 	if is_none(old) and not other.is_empty() and not is_extra(other):
-		return DotResult.fail(DotError.CODE_CONFLICT,
+		return GSResult.fail(GSError.CODE_CONFLICT,
 			"%s is %s. Give %s another key first." % [text, str(other["label"]), str(other["label"])])
 
 	var res := settings.set_value(key, text)
@@ -584,14 +584,14 @@ func rebind(row: Dictionary, text: String, settings: DotSettingsManager) -> DotR
 			return swapped
 		var _moved := apply_row(other, old)
 		if is_none(old):
-			return DotResult.success("%s is on %s now, and %s is on nothing." % [str(row["label"]), text, str(other["label"])])
-		return DotResult.success("%s is on %s now, and %s moved to %s." % [str(row["label"]), text, str(other["label"]), old])
+			return GSResult.success("%s is on %s now, and %s is on nothing." % [str(row["label"]), text, str(other["label"])])
+		return GSResult.success("%s is on %s now, and %s moved to %s." % [str(row["label"]), text, str(other["label"]), old])
 	if is_none(text):
-		return DotResult.success("%s is on nothing now." % str(row["label"]))
-	return DotResult.success("%s is on %s now." % [str(row["label"]), text])
+		return GSResult.success("%s is on nothing now." % str(row["label"]))
+	return GSResult.success("%s is on %s now." % [str(row["label"]), text])
 
 
-func reset_all(settings: DotSettingsManager) -> void:
+func reset_all(settings: GSSettingsManager) -> void:
 	if settings == null:
 		return
 	for row in rows:
@@ -613,7 +613,7 @@ static func same_input(a: InputEvent, b: InputEvent) -> bool:
 	if a is InputEventMouseButton and b is InputEventMouseButton:
 		return (a as InputEventMouseButton).button_index == (b as InputEventMouseButton).button_index
 
-	return DotInputBinding.to_text(a) == DotInputBinding.to_text(b)
+	return GSInputBinding.to_text(a) == GSInputBinding.to_text(b)
 
 
 func describe() -> Dictionary:

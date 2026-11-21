@@ -25,20 +25,20 @@ class FakeLoadoutLink extends Node:
 static func run(host: Selftest) -> void:
 	host._section("B is the loadout menu: cards, the budget, a draft sent on close")
 
-	if FileAccess.file_exists(DotMenuLoadout.REMEMBER_FILE):
-		var _rm := DirAccess.remove_absolute(DotMenuLoadout.REMEMBER_FILE)
-	for a in [DotMenuBindings.LOADOUT_ACTION, DotMenuBindings.HELP_ACTION, DotMenuBindings.MAPS_ACTION]:
+	if FileAccess.file_exists(GSMenuLoadout.REMEMBER_FILE):
+		var _rm := DirAccess.remove_absolute(GSMenuLoadout.REMEMBER_FILE)
+	for a in [GSMenuBindings.LOADOUT_ACTION, GSMenuBindings.HELP_ACTION, GSMenuBindings.MAPS_ACTION]:
 		if InputMap.has_action(a):
 			InputMap.erase_action(a)
-	var node := DotMenuSettings.new()
+	var node := GSMenuSettings.new()
 	node.app_namespace = &"menu_loadout_test"
 	node.loadout_menu = true
-	node.config = DotMenuConfig.new()
+	node.config = GSMenuConfig.new()
 	node.config.escape_grace_ms = 0
 	host.add_child(node)
-	var _s := node.setup(DotSettingsStoreMemory.new())
-	var row := node.bindings.row_for_action(DotMenuBindings.LOADOUT_ACTION)
-	host._check(not row.is_empty() and str(row["default"]) == "B" and node.settings.schema.has(DotMenuBindings.LOADOUT_SETTING),
+	var _s := node.setup(GSSettingsStoreMemory.new())
+	var row := node.bindings.row_for_action(GSMenuBindings.LOADOUT_ACTION)
+	host._check(not row.is_empty() and str(row["default"]) == "B" and node.settings.schema.has(GSMenuBindings.LOADOUT_SETTING),
 		"a game that asks for it has the loadout key in its table, on B, stored as bind_loadout")
 	host._check(not node.menu.handle_event(host._key(KEY_B)) and not node.menu.any_open(), "and B does nothing until the game hands it an offer")
 
@@ -63,9 +63,9 @@ static func run(host: Selftest) -> void:
 	var small_pics := screen.find_children("*", "TextureRect", true, false).filter(func(n: Node) -> bool: return (n as TextureRect).texture_filter == CanvasItem.TEXTURE_FILTER_NEAREST)
 	host._check(small_pics.size() >= 2, "a small (pixel art) icon is drawn with nearest filtering, not blurred")
 	var big := TextureRect.new()
-	DotMenuPicker.apply_pixel_filter(big, ImageTexture.create_from_image(Image.create(512, 256, false, Image.FORMAT_RGB8)), {})
+	GSMenuPicker.apply_pixel_filter(big, ImageTexture.create_from_image(Image.create(512, 256, false, Image.FORMAT_RGB8)), {})
 	var forced := TextureRect.new()
-	DotMenuPicker.apply_pixel_filter(forced, ImageTexture.create_from_image(Image.create(512, 256, false, Image.FORMAT_RGB8)), {"icon_filter": "nearest"})
+	GSMenuPicker.apply_pixel_filter(forced, ImageTexture.create_from_image(Image.create(512, 256, false, Image.FORMAT_RGB8)), {"icon_filter": "nearest"})
 	host._check(big.texture_filter == CanvasItem.TEXTURE_FILTER_PARENT_NODE and forced.texture_filter == CanvasItem.TEXTURE_FILTER_NEAREST, "a large icon keeps the default filter unless the item asks for nearest")
 	big.free()
 	forced.free()
@@ -83,15 +83,15 @@ static func run(host: Selftest) -> void:
 
 	await host._test_loadout_bare(node)
 
-	if FileAccess.file_exists(DotMenuLoadout.REMEMBER_FILE):
-		var _rm2 := DirAccess.remove_absolute(DotMenuLoadout.REMEMBER_FILE)
+	if FileAccess.file_exists(GSMenuLoadout.REMEMBER_FILE):
+		var _rm2 := DirAccess.remove_absolute(GSMenuLoadout.REMEMBER_FILE)
 	link.queue_free()
 	node.queue_free()
 	await host.get_tree().process_frame
 
 
 ## B after prepare(), or again on the same offer, makes no node; a pick does redraw.
-static func _no_redraw(host: Selftest, node: DotMenuSettings, screen: DotMenuLoadoutScreen, lo: DotMenuLoadout) -> void:
+static func _no_redraw(host: Selftest, node: GSMenuSettings, screen: GSMenuLoadoutScreen, lo: GSMenuLoadout) -> void:
 	# prepare() draws the screen hidden: the first B after it, on the same offer, makes no node.
 	screen.close()
 	await host.get_tree().process_frame
@@ -119,7 +119,7 @@ static func _no_redraw(host: Selftest, node: DotMenuSettings, screen: DotMenuLoa
 	screen.revert()
 
 
-static func _draft(host: Selftest, node: DotMenuSettings, screen: DotMenuLoadoutScreen, lo: DotMenuLoadout, saved: Array) -> void:
+static func _draft(host: Selftest, node: GSMenuSettings, screen: GSMenuLoadoutScreen, lo: GSMenuLoadout, saved: Array) -> void:
 	var _r := screen.handle_key(host._key(KEY_RIGHT))
 	var _a := screen.handle_key(host._key(KEY_ENTER))
 	await host.get_tree().process_frame
@@ -149,7 +149,7 @@ static func _draft(host: Selftest, node: DotMenuSettings, screen: DotMenuLoadout
 	host._check(lo.remembered() == {"primary": "launcher", "secondary": "pistol"}, "the choice is remembered for this account, fixed slots left to the server")
 
 
-static func _restore_and_server_sets(host: Selftest, screen: DotMenuLoadoutScreen, lo: DotMenuLoadout, saved: Array) -> void:
+static func _restore_and_server_sets(host: Selftest, screen: GSMenuLoadoutScreen, lo: GSMenuLoadout, saved: Array) -> void:
 	saved.clear()
 	lo.open()
 	await host.get_tree().process_frame
@@ -166,7 +166,7 @@ static func _restore_and_server_sets(host: Selftest, screen: DotMenuLoadoutScree
 
 
 
-static func _online(host: Selftest, node: DotMenuSettings, screen: DotMenuLoadoutScreen, lo: DotMenuLoadout, link: FakeLoadoutLink, saved: Array) -> void:
+static func _online(host: Selftest, node: GSMenuSettings, screen: GSMenuLoadoutScreen, lo: GSMenuLoadout, link: FakeLoadoutLink, saved: Array) -> void:
 	host._check(node.menu.handle_event(host._key(KEY_B)) and link.sent == ["/loadout locked"] and not screen.is_open(), "online, B asks the server, locked items included")
 	link.answer(host._loadout_offer())
 	await host.get_tree().process_frame

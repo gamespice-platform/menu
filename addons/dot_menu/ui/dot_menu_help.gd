@@ -1,15 +1,15 @@
-class_name DotMenuHelp
+class_name GSMenuHelp
 extends Control
 
 ## The help screen: every key as it is bound now, the server's commands, and in a browser what the browser does with keys the game never sees.
-## Nothing on it is written down here: keys come from [DotMenuBindings] (the player's own), commands from what the server said on join.
-## The game adds only what no table can say: [member about], [method add_text] and [method add_section] ([DotMenuSettings] asks in `_fill_help`).
+## Nothing on it is written down here: keys come from [GSMenuBindings] (the player's own), commands from what the server said on join.
+## The game adds only what no table can say: [member about], [method add_text] and [method add_section] ([GSMenuSettings] asks in `_fill_help`).
 
 signal closed()
 
-var kit: DotMenuKit = null
-var bindings: DotMenuBindings = null
-var config: DotMenuConfig = null
+var kit: GSMenuKit = null
+var bindings: GSMenuBindings = null
+var config: GSMenuConfig = null
 
 ## `[[name, help], ...]` from the server. Empty offline.
 var commands: Array = []
@@ -34,15 +34,15 @@ func add_text(title: String, text: String) -> void:
 	add_section(title, [text], &"text")
 
 
-## The key help is on now, from the table or straight off the InputMap ([DotMenu] binds H
+## The key help is on now, from the table or straight off the InputMap ([GSMenu] binds H
 ## itself for a game with no row for it). Empty when there is no help key.
 func help_key_shown() -> String:
 	if help_action == &"" or not InputMap.has_action(help_action):
 		return ""
 	var k := bindings.key_for(help_action) if bindings != null else "—"
 	if k == "—":
-		k = DotInputBinding.describe_action(help_action)
-	return "" if k == DotInputBinding.UNBOUND else k
+		k = GSInputBinding.describe_action(help_action)
+	return "" if k == GSInputBinding.UNBOUND else k
 
 
 ## The heading as drawn.
@@ -55,7 +55,7 @@ func heading() -> String:
 
 
 ## Lines added to a key group's card after its bindings: `{group: [[key, what], ...]}`.
-## [DotMenu] puts Escape here, which is in no binding row on purpose.
+## [GSMenu] puts Escape here, which is in no binding row on purpose.
 var extra_keys: Dictionary = {}
 
 ## Whether to draw the browser card. Null follows the config ("auto" is a browser); settable
@@ -71,10 +71,10 @@ var _built := false
 
 func _ready() -> void:
 	if kit == null:
-		kit = DotMenuKit.new()
+		kit = GSMenuKit.new()
 	if config == null:
-		config = DotMenuConfig.new()
-	DotMenuKit.fill_parent(self)
+		config = GSMenuConfig.new()
+	GSMenuKit.fill_parent(self)
 	mouse_filter = Control.MOUSE_FILTER_STOP
 	visible = false
 	_watch_viewport()
@@ -109,12 +109,12 @@ func _ensure_built() -> void:
 	_build()
 	_fit()
 
-## Rebuilds this screen in [param new_kit]. See [method DotMenuScreen.restyle].
-func restyle(new_kit: DotMenuKit) -> void:
+## Rebuilds this screen in [param new_kit]. See [method GSMenuScreen.restyle].
+func restyle(new_kit: GSMenuKit) -> void:
 	kit = new_kit
 	if not _built:
 		return
-	DotMenuKit.clear(self)
+	GSMenuKit.clear(self)
 	_build()
 	_fit()
 	if visible:
@@ -127,11 +127,11 @@ func _build() -> void:
 
 	var back := ColorRect.new()
 	back.color = Color(p.backdrop, 0.72)
-	DotMenuKit.fill_parent(back)
+	GSMenuKit.fill_parent(back)
 	add_child(back)
 
 	var centre := CenterContainer.new()
-	DotMenuKit.fill_parent(centre)
+	GSMenuKit.fill_parent(centre)
 	add_child(centre)
 
 	_window = PanelContainer.new()
@@ -227,7 +227,7 @@ func browser_tips_shown() -> bool:
 			return true
 		&"off":
 			return false
-	return DotPlatform.is_web()
+	return GSPlatform.is_web()
 
 
 func _rebuild() -> void:
@@ -243,7 +243,7 @@ func _rebuild() -> void:
 	# The hint is rebuilt with the rest: the help key may have been rebound since.
 	var hint := _window.find_child("Hint", true, false) as HBoxContainer
 	if hint != null:
-		DotMenuKit.clear(hint)
+		GSMenuKit.clear(hint)
 		var help_key := help_key_shown()
 		if help_key != "":
 			hint.add_child(kit.keycap(help_key))
@@ -251,15 +251,15 @@ func _rebuild() -> void:
 		hint.add_child(kit.keycap("Esc"))
 		hint.add_child(kit.label("to close", kit.size_small, p.dim))
 
-	DotMenuKit.clear(_keys_column)
-	DotMenuKit.clear(_side_column)
+	GSMenuKit.clear(_keys_column)
+	GSMenuKit.clear(_side_column)
 
 	# Keys, by group, as the player has them bound right now.
 	var groups := bindings.groups() if bindings != null else PackedStringArray()
 	for group in groups:
 		var card := _card(_keys_column, group)
 		for row in bindings.rows_in(group):
-			_key_line(card, DotMenuBindings.shown(row), str(row["label"]))
+			_key_line(card, GSMenuBindings.shown(row), str(row["label"]))
 		for line in (extra_keys.get(group, []) as Array):
 			_key_line(card, str(line[0]), str(line[1]))
 	for group in extra_keys:
@@ -298,7 +298,7 @@ func _rebuild() -> void:
 ## What a browser does with keys, as `[[keys, sentence], ...]`. Static so a game can draw
 ## them somewhere else. Duck-aware: the Ctrl+W line warns specifically when Duck is on Ctrl,
 ## because then ducking while pressing forward IS that shortcut.
-static func browser_tips(keys: DotMenuBindings) -> Array:
+static func browser_tips(keys: GSMenuBindings) -> Array:
 	var duck := keys.key_for(&"dot_fps_crouch") if keys != null else "—"
 	var duck_row := keys.row_for_action(&"dot_fps_crouch") if keys != null else {}
 	var duck_name := str(duck_row.get("label", "Duck"))

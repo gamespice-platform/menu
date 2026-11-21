@@ -1,8 +1,8 @@
-class_name DotMenuScreen
+class_name GSMenuScreen
 extends Control
 
-## The Escape menu: a sidebar of pages and actions, and the page on the right as cards of rows. Built by [DotMenu]; usable alone. Example: docs/examples.md.
-## Every control is a view of a setting (see [DotMenuRow]); a page is drawn from data each time it is shown. It does not pause: pausing drifts from a server that carried on, so a game suspends its sampler instead.
+## The Escape menu: a sidebar of pages and actions, and the page on the right as cards of rows. Built by [GSMenu]; usable alone. Example: docs/examples.md.
+## Every control is a view of a setting (see [GSMenuRow]); a page is drawn from data each time it is shown. It does not pause: pausing drifts from a server that carried on, so a game suspends its sampler instead.
 ## A setting a server has clamped shows the player's own value and a line saying what this server caps it at.
 
 const CHANNEL := "menu.screen"
@@ -18,15 +18,15 @@ signal setting_written(key: StringName, value: Variant)
 ## A page was drawn. For a game that decorates a page after it is built.
 signal page_shown(id: StringName)
 
-var kit: DotMenuKit = null
-var settings: DotSettingsManager = null
-var bindings: DotMenuBindings = null
-var config: DotMenuConfig = null
+var kit: GSMenuKit = null
+var settings: GSSettingsManager = null
+var bindings: GSMenuBindings = null
+var config: GSMenuConfig = null
 
-var pages: Array[DotMenuPage] = []
+var pages: Array[GSMenuPage] = []
 
 ## Sidebar actions under the pages: `{id, text, danger}`, top to bottom. An empty text hides
-## one. [DotMenu] fills Help and Leave from its config.
+## one. [GSMenu] fills Help and Leave from its config.
 var actions: Array[Dictionary] = []
 
 ## Under the brand: where the player is ("Online · surf_g2g_intro").
@@ -61,11 +61,11 @@ var _built := false
 
 func _ready() -> void:
 	if kit == null:
-		kit = DotMenuKit.new()
+		kit = GSMenuKit.new()
 	if config == null:
-		config = DotMenuConfig.new()
+		config = GSMenuConfig.new()
 	kit.touch_target = 52 if config.touch_ui() else 0
-	DotMenuKit.fill_parent(self)
+	GSMenuKit.fill_parent(self)
 	mouse_filter = Control.MOUSE_FILTER_STOP
 	visible = false
 	_watch_viewport()
@@ -82,11 +82,11 @@ func _ensure_built() -> void:
 
 ## Rebuilds this screen in [param new_kit]. What a theme change calls.
 ## Rebuilt, not recoloured: walking the tree to find every override again would be a second copy of the build that drifts from the first.
-func restyle(new_kit: DotMenuKit) -> void:
+func restyle(new_kit: GSMenuKit) -> void:
 	kit = new_kit
 	if not _built:
 		return
-	DotMenuKit.clear(self)
+	GSMenuKit.clear(self)
 	_nav.clear()
 	_action_buttons.clear()
 	_build()
@@ -104,7 +104,7 @@ func _build() -> void:
 	add_child(kit.backdrop())
 
 	var centre := CenterContainer.new()
-	DotMenuKit.fill_parent(centre)
+	GSMenuKit.fill_parent(centre)
 	add_child(centre)
 
 	_window = PanelContainer.new()
@@ -237,7 +237,7 @@ func _sidebar() -> Control:
 	var flame := kit.flame_strip()
 	if flame != null:
 		col.add_child(flame)
-		col.add_child(DotMenuKit.gap(4))
+		col.add_child(GSMenuKit.gap(4))
 
 	if not _narrow and (config.brand_mark != "" or config.brand_name != ""):
 		col.add_child(_brand_row())
@@ -245,7 +245,7 @@ func _sidebar() -> Control:
 	_subtitle = kit.paragraph(subtitle, kit.size_small, p.dim)
 	_subtitle.visible = subtitle != "" and not _narrow
 	col.add_child(_subtitle)
-	var under_brand := DotMenuKit.gap(14)
+	var under_brand := GSMenuKit.gap(14)
 	under_brand.visible = not _narrow
 	col.add_child(under_brand)
 
@@ -254,7 +254,7 @@ func _sidebar() -> Control:
 	_resume.pressed.connect(close)
 	_resume.visible = not _narrow
 	col.add_child(_resume)
-	var under_resume := DotMenuKit.gap(10)
+	var under_resume := GSMenuKit.gap(10)
 	under_resume.visible = not _narrow
 	col.add_child(under_resume)
 
@@ -285,7 +285,7 @@ func _brand_row() -> HBoxContainer:
 	if config.brand_mark != "":
 		var mark := PanelContainer.new()
 		mark.add_theme_stylebox_override(&"panel", kit.box(p.accent, 8, Color(0, 0, 0, 0), 0, Vector4(8, 2, 8, 3)))
-		mark.add_child(kit.label(config.brand_mark, kit.size_small + 1, DotMenuPalette.ink_on(p.accent), true))
+		mark.add_child(kit.label(config.brand_mark, kit.size_small + 1, GSMenuPalette.ink_on(p.accent), true))
 		brand.add_child(mark)
 	if config.brand_name != "":
 		brand.add_child(kit.label(config.brand_name, kit.size_title - 4, p.text, true))
@@ -316,7 +316,7 @@ func _rebuild_sidebar() -> void:
 	var tabs := _window.find_child("Pages", true, false) as Container
 	if tabs == null:
 		return
-	DotMenuKit.clear(tabs)
+	GSMenuKit.clear(tabs)
 	_nav.clear()
 
 	var group := ButtonGroup.new()
@@ -392,8 +392,8 @@ func _content() -> Control:
 
 
 ## The pages the sidebar shows, in the config's order, without the hidden ones.
-func visible_pages() -> Array[DotMenuPage]:
-	var shown: Array[DotMenuPage] = []
+func visible_pages() -> Array[GSMenuPage]:
+	var shown: Array[GSMenuPage] = []
 	for page in pages:
 		if config.pages_hidden.has(String(page.id)) or extra_hidden_pages.has(String(page.id)):
 			continue
@@ -403,7 +403,7 @@ func visible_pages() -> Array[DotMenuPage]:
 	if config.page_order.is_empty():
 		return shown
 
-	var ordered: Array[DotMenuPage] = []
+	var ordered: Array[GSMenuPage] = []
 	for id in config.page_order:
 		for page in shown:
 			if String(page.id) == id:
@@ -414,7 +414,7 @@ func visible_pages() -> Array[DotMenuPage]:
 	return ordered
 
 
-func find_page(id: StringName) -> DotMenuPage:
+func find_page(id: StringName) -> GSMenuPage:
 	for page in pages:
 		if page.id == id:
 			return page
@@ -436,7 +436,7 @@ func _show_page(id: StringName) -> void:
 	for key in _nav:
 		(_nav[key] as Button).set_pressed_no_signal(key == id)
 
-	DotMenuKit.clear(_body)
+	GSMenuKit.clear(_body)
 	if page == null:
 		return
 
@@ -451,14 +451,14 @@ func _show_page(id: StringName) -> void:
 	page_shown.emit(id)
 
 
-func _draw_section(section: DotMenuSection) -> void:
-	var drawable: Array[DotMenuRow] = []
+func _draw_section(section: GSMenuSection) -> void:
+	var drawable: Array[GSMenuRow] = []
 	for row in section.rows:
 		if _row_shown(row):
 			drawable.append(row)
 	if section.rows_from.is_valid():
 		for row in (section.rows_from.call() as Array):
-			if row is DotMenuRow and _row_shown(row):
+			if row is GSMenuRow and _row_shown(row):
 				drawable.append(row)
 	var group_rows: Array[Dictionary] = []
 	if section.binding_group != "" and bindings != null:
@@ -472,10 +472,10 @@ func _draw_section(section: DotMenuSection) -> void:
 	for row in drawable:
 		_draw_row(card, row)
 	for b in group_rows:
-		_draw_row(card, DotMenuRow.binding(b))
+		_draw_row(card, GSMenuRow.binding(b))
 
 
-func _row_shown(row: DotMenuRow) -> bool:
+func _row_shown(row: GSMenuRow) -> bool:
 	var rid := String(row.row_id())
 	if rid != "" and (config.rows_hidden.has(rid) or extra_hidden_rows.has(rid)):
 		return false
@@ -486,9 +486,9 @@ func _draw_bindings() -> void:
 	if bindings == null:
 		return
 	for group in bindings.groups():
-		var rows: Array[DotMenuRow] = []
+		var rows: Array[GSMenuRow] = []
 		for b in bindings.rows_in(group):
-			var row := DotMenuRow.binding(b)
+			var row := GSMenuRow.binding(b)
 			if _row_shown(row):
 				rows.append(row)
 		if rows.is_empty():
@@ -507,22 +507,22 @@ func _draw_bindings() -> void:
 	_body.add_child(footer)
 
 
-func _draw_row(card: VBoxContainer, row: DotMenuRow) -> void:
+func _draw_row(card: VBoxContainer, row: GSMenuRow) -> void:
 	var rid := row.row_id()
 	var title := config.row_title(rid, row.title)
 	var words := config.row_description(rid, row.text_under())
 	var control: Control = null
 
 	match row.kind:
-		DotMenuRow.Kind.TOGGLE:
+		GSMenuRow.Kind.TOGGLE:
 			control = _toggle(row)
-		DotMenuRow.Kind.SLIDER:
+		GSMenuRow.Kind.SLIDER:
 			control = _slider(row)
-		DotMenuRow.Kind.SELECT:
+		GSMenuRow.Kind.SELECT:
 			control = _select(row)
-		DotMenuRow.Kind.BINDING:
+		GSMenuRow.Kind.BINDING:
 			control = _key_button(row)
-		DotMenuRow.Kind.BUTTON:
+		GSMenuRow.Kind.BUTTON:
 			var b := Button.new()
 			b.text = row.button_text
 			b.disabled = not row.is_enabled()
@@ -531,10 +531,10 @@ func _draw_row(card: VBoxContainer, row: DotMenuRow) -> void:
 			if row.on_press.is_valid():
 				b.pressed.connect(func() -> void: row.on_press.call())
 			control = b
-		DotMenuRow.Kind.NOTE:
+		GSMenuRow.Kind.NOTE:
 			_note(card, words)
 			return
-		DotMenuRow.Kind.CUSTOM:
+		GSMenuRow.Kind.CUSTOM:
 			if row.build.is_valid():
 				control = row.build.call(kit) as Control
 
@@ -550,28 +550,28 @@ func _draw_row(card: VBoxContainer, row: DotMenuRow) -> void:
 
 
 ## "Capped at 90 on this server." for a setting a server has clamped; empty otherwise.
-func _clamp_note(row: DotMenuRow) -> String:
+func _clamp_note(row: GSMenuRow) -> String:
 	if not row.is_setting() or settings == null or not settings.is_clamped(row.key):
 		return ""
 	var bound: Variant = settings.clamp_bound(row.key)
 	var def := settings.schema.find(row.key)
 	var shown := str(bound)
-	if row.kind == DotMenuRow.Kind.SLIDER:
+	if row.kind == GSMenuRow.Kind.SLIDER:
 		shown = row.show_value(float(bound))
-	elif row.kind == DotMenuRow.Kind.TOGGLE:
+	elif row.kind == GSMenuRow.Kind.TOGGLE:
 		shown = "on" if bool(bound) else "off"
-	elif def != null and def.kind == DotSettingsDef.Kind.ENUM:
+	elif def != null and def.kind == GSSettingsDef.Kind.ENUM:
 		shown = _option_label(row, bound)
-	var numeric := def != null and (def.kind == DotSettingsDef.Kind.INT or def.kind == DotSettingsDef.Kind.FLOAT)
+	var numeric := def != null and (def.kind == GSSettingsDef.Kind.INT or def.kind == GSSettingsDef.Kind.FLOAT)
 	return ("This server caps it at %s." if numeric else "This server sets it to %s.") % shown
 
 
-func _option_label(row: DotMenuRow, value: Variant) -> String:
+func _option_label(row: GSMenuRow, value: Variant) -> String:
 	var def := settings.schema.find(row.key) if settings != null else null
 	for o in row.option_list(def):
 		if str(o[0]) == str(value):
 			return str(o[1])
-	return DotMenuRow.label_for_option(value)
+	return GSMenuRow.label_for_option(value)
 
 
 func _row(card: VBoxContainer, title: String, description: String, control: Control) -> void:
@@ -634,13 +634,13 @@ func _card(title: String) -> VBoxContainer:
 
 ## The value a row shows: the player's own for a setting (see the class note on clamps),
 ## the getter's for a live row.
-func _value_of(row: DotMenuRow) -> Variant:
+func _value_of(row: GSMenuRow) -> Variant:
 	if row.is_setting():
 		return settings.chosen_value(row.key)
 	return row.getter.call() if row.getter.is_valid() else null
 
 
-func _write(row: DotMenuRow, value: Variant) -> void:
+func _write(row: GSMenuRow, value: Variant) -> void:
 	if not row.is_setting():
 		if row.setter.is_valid():
 			row.setter.call(value)
@@ -650,20 +650,20 @@ func _write(row: DotMenuRow, value: Variant) -> void:
 	var res := settings.set_value(row.key, value)
 	if not res.ok:
 		toast(res.error.message)
-		DotLog.warn(CHANNEL, "a setting was refused", {"key": String(row.key), "why": res.error.message})
+		GSLog.warn(CHANNEL, "a setting was refused", {"key": String(row.key), "why": res.error.message})
 		return
 	setting_written.emit(row.key, value)
 
 
-func _toggle(row: DotMenuRow) -> Control:
-	var sw := DotMenuSwitch.new(kit)
+func _toggle(row: GSMenuRow) -> Control:
+	var sw := GSMenuSwitch.new(kit)
 	sw.show_value(bool(_value_of(row)))
 	sw.disabled = not row.is_enabled()
 	sw.toggled.connect(func(on: bool) -> void: _write(row, on))
 	return sw
 
 
-func _slider(row: DotMenuRow) -> Control:
+func _slider(row: GSMenuRow) -> Control:
 	var def := settings.schema.find(row.key) if row.is_setting() and settings != null else null
 	var r := row.slider_range(def)
 
@@ -686,7 +686,7 @@ func _slider(row: DotMenuRow) -> Control:
 	readout.custom_minimum_size = Vector2(52, 0)
 	readout.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
 
-	var is_int := def != null and def.kind == DotSettingsDef.Kind.INT
+	var is_int := def != null and def.kind == GSSettingsDef.Kind.INT
 	slider.value_changed.connect(func(value: float) -> void:
 		readout.text = row.show_value(value)
 		_write(row, roundi(value) if is_int else value)
@@ -697,7 +697,7 @@ func _slider(row: DotMenuRow) -> Control:
 	return box
 
 
-func _select(row: DotMenuRow) -> Control:
+func _select(row: GSMenuRow) -> Control:
 	var def := settings.schema.find(row.key) if row.is_setting() and settings != null else null
 	var options := row.option_list(def)
 	var current: Variant = _value_of(row)
@@ -711,7 +711,7 @@ func _select(row: DotMenuRow) -> Control:
 			listed = true
 	if not listed and current != null and row.is_setting():
 		options = options.duplicate()
-		options.append([current, DotMenuRow.label_for_option(current)])
+		options.append([current, GSMenuRow.label_for_option(current)])
 
 	var pick := OptionButton.new()
 	pick.custom_minimum_size = Vector2(200, maxi(36, kit.touch_target - 8))
@@ -726,12 +726,12 @@ func _select(row: DotMenuRow) -> Control:
 	return pick
 
 
-func _key_button(row: DotMenuRow) -> Control:
-	var button := DotMenuKeyButton.new(kit)
+func _key_button(row: GSMenuRow) -> Control:
+	var button := GSMenuKeyButton.new(kit)
 	button.binding = bindings.stored(row.binding_row, settings) if bindings != null else str(row.binding_row.get("default", ""))
 	# An extra key may be on nothing, which the button draws as its dash.
-	button.clearable = DotMenuBindings.is_extra(row.binding_row)
-	if DotMenuBindings.is_none(button.binding):
+	button.clearable = GSMenuBindings.is_extra(row.binding_row)
+	if GSMenuBindings.is_none(button.binding):
 		button.binding = ""
 	button.captured.connect(func(text: String) -> void: _rebind(row.binding_row, text))
 	return button

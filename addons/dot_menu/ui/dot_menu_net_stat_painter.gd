@@ -1,12 +1,12 @@
-class_name DotMenuNetStatPainter
+class_name GSMenuNetStatPainter
 extends RefCounted
 
-## Draws a [DotMenuNetStat]'s graphs and text. Split out so the overlay stays under the size cap; it only calls the host's draw methods, so it must run inside the host's `_draw`.
+## Draws a [GSMenuNetStat]'s graphs and text. Split out so the overlay stays under the size cap; it only calls the host's draw methods, so it must run inside the host's `_draw`.
 
-var ns: DotMenuNetStat
+var ns: GSMenuNetStat
 
 
-func _init(p_host: DotMenuNetStat) -> void:
+func _init(p_host: GSMenuNetStat) -> void:
 	ns = p_host
 
 
@@ -63,7 +63,7 @@ func _bars(rect: Rect2, key: String, scale: float, one_colour: Variant, alpha: f
 		var heights := PackedFloat32Array()
 		for ch in chans.size():
 			heights.append(float(chans[ch]) / ns.bucket_sec / scale * rect.size.y)
-		var drawn := DotStackedColumn.draw(ns, x, rect.end.y, ns.bar_w(), heights, colours, rect.size.y, alpha)
+		var drawn := GSStackedColumn.draw(ns, x, rect.end.y, ns.bar_w(), heights, colours, rect.size.y, alpha)
 		if drawn.y > 0.0:
 			ns.draw_rect(Rect2(x - 0.5, rect.position.y, ns.bar_w() + 1.0, 2.0), ns._palette().hud_text)
 		elif not solid and drawn.x > 1.0:
@@ -74,7 +74,7 @@ func _bars(rect: Rect2, key: String, scale: float, one_colour: Variant, alpha: f
 func _draw_arrivals(rect: Rect2) -> void:
 	var p := ns._palette()
 	var websocket := str(ns._fig.get("transport", "")) == "websocket"
-	_frame(rect, "in", "%s/s" % DotMenuNetStat._bytes(ns._in_scale), p.hud_detail)
+	_frame(rect, "in", "%s/s" % GSMenuNetStat._bytes(ns._in_scale), p.hud_detail)
 	if not bool(ns._fig.get("connected", false)):
 		ns.draw_string(ns._font(), Vector2(rect.position.x, rect.get_center().y + 5.0), "not connected",
 			HORIZONTAL_ALIGNMENT_CENTER, rect.size.x, ns._font_size(), Color(p.hud_detail, 0.85))
@@ -122,7 +122,7 @@ func _draw_ping(rect: Rect2) -> void:
 
 func _draw_departures(rect: Rect2) -> void:
 	var p := ns._palette()
-	_frame(rect, "out", "%s/s" % DotMenuNetStat._bytes(ns._out_scale), p.hud_detail)
+	_frame(rect, "out", "%s/s" % GSMenuNetStat._bytes(ns._out_scale), p.hud_detail)
 	_bars(rect, "out", ns._out_scale, null, 0.75)
 
 
@@ -151,7 +151,7 @@ func _draw_frames(rect: Rect2) -> void:
 		var heights := PackedFloat32Array()
 		for k in 3:
 			heights.append(float(parts[k + 1]) / 1000.0 * px)
-		var stacked := DotStackedColumn.draw(ns, x, rect.end.y, ns.bar_w(), heights, PART_COLOURS, rect.size.y, 0.85).x
+		var stacked := GSStackedColumn.draw(ns, x, rect.end.y, ns.bar_w(), heights, PART_COLOURS, rect.size.y, 0.85).x
 		var base := rect.end.y - stacked
 		var total_h := minf(ms * px, rect.size.y)
 		var wait_h := total_h - (rect.end.y - base)
@@ -189,14 +189,14 @@ func _draw_text(rect: Rect2) -> void:
 	ns.draw_string(font, Vector2(x, y), transport, HORIZONTAL_ALIGNMENT_RIGHT, rect.size.x, fs - 2, p.hud_detail)
 
 	y += lh
-	_cell(x, y, col, DotMenuNetStat._bytes(float(ns._fig.get("in_rate", 0.0))), p.hud_text, "/s in")
-	_cell(x + col, y, col, DotMenuNetStat._bytes(float(ns._fig.get("out_rate", 0.0))), p.hud_text, "/s out")
+	_cell(x, y, col, GSMenuNetStat._bytes(float(ns._fig.get("in_rate", 0.0))), p.hud_text, "/s in")
+	_cell(x + col, y, col, GSMenuNetStat._bytes(float(ns._fig.get("out_rate", 0.0))), p.hud_text, "/s out")
 	if link.has("loss"):
 		var loss := float(link["loss"]) * 100.0
 		_cell(x + col * 2.0, y, col, "%.1f%%" % loss, p.hud_ahead if loss < 1.0 else (p.warn if loss < 5.0 else p.danger), " loss")
 	elif link.has("queued"):
 		var queued := int(link["queued"])
-		_cell(x + col * 2.0, y, col, DotMenuNetStat._bytes(float(queued)), p.hud_ahead if queued < 4096 else p.warn, " queued")
+		_cell(x + col * 2.0, y, col, GSMenuNetStat._bytes(float(queued)), p.hud_ahead if queued < 4096 else p.warn, " queued")
 
 	if ns.level < ns.Level.FULL:
 		return
@@ -204,7 +204,7 @@ func _draw_text(rect: Rect2) -> void:
 	y += lh
 	_cell(x, y, col, "%d" % roundi(float(ns._fig.get("in_pps", 0.0))), p.hud_text, " pkt/s in")
 	_cell(x + col, y, col, "%d" % roundi(float(ns._fig.get("out_pps", 0.0))), p.hud_text, " pkt/s out")
-	_cell(x + col * 2.0, y, col, DotMenuNetStat._bytes(float(ns._fig.get("largest", 0))), p.hud_text, " largest")
+	_cell(x + col * 2.0, y, col, GSMenuNetStat._bytes(float(ns._fig.get("largest", 0))), p.hud_text, " largest")
 
 	y += lh
 	y = _draw_frame_rows(x, y, rect.size.x, col)

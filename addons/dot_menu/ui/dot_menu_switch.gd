@@ -1,4 +1,4 @@
-class_name DotMenuSwitch
+class_name GSMenuSwitch
 extends Button
 
 ## An on/off switch: a rounded track and a knob that slides across it.
@@ -7,13 +7,13 @@ extends Button
 
 const TRACK := Vector2(44, 24)
 
-var kit: DotMenuKit = null
+var kit: GSMenuKit = null
 
 var _t: float = 0.0
 
 
-func _init(p_kit: DotMenuKit = null) -> void:
-	kit = p_kit if p_kit != null else DotMenuKit.new()
+func _init(p_kit: GSMenuKit = null) -> void:
+	kit = p_kit if p_kit != null else GSMenuKit.new()
 	toggle_mode = true
 	flat = true
 	focus_mode = Control.FOCUS_ALL

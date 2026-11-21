@@ -6,36 +6,36 @@ const Selftest := preload("res://examples/menu_selftest.gd")
 
 static func run(host: Selftest) -> void:
 	host._section("Video presets, aspect and window size")
-	var st := host._manager(host._schema(DotMenuStock.ALL_GROUPS))
-	var applier := DotMenuApplier.new()
+	var st := host._manager(host._schema(GSMenuStock.ALL_GROUPS))
+	var applier := GSMenuApplier.new()
 	applier.settings = st
 	host.add_child(applier)
 	var _s := applier.setup()
 
 	var missing: Array = []
-	for preset in DotMenuGraphicsPresets.TABLE:
-		for k in (DotMenuGraphicsPresets.TABLE[preset] as Dictionary):
+	for preset in GSMenuGraphicsPresets.TABLE:
+		for k in (GSMenuGraphicsPresets.TABLE[preset] as Dictionary):
 			if not st.schema.has(k):
 				missing.append(k)
-	host._check(missing.is_empty() and st.get_string(DotMenuGraphicsPresets.KEY) == String(DotMenuGraphicsPresets.DEFAULT), "every key a preset sets is declared, and High is the default (%s)" % [missing])
+	host._check(missing.is_empty() and st.get_string(GSMenuGraphicsPresets.KEY) == String(GSMenuGraphicsPresets.DEFAULT), "every key a preset sets is declared, and High is the default (%s)" % [missing])
 	var differs: Array = []
-	for k in (DotMenuGraphicsPresets.TABLE[DotMenuGraphicsPresets.DEFAULT] as Dictionary):
-		if not DotMenuGraphicsPresets.same(st.get_value(k), DotMenuGraphicsPresets.TABLE[DotMenuGraphicsPresets.DEFAULT][k]):
+	for k in (GSMenuGraphicsPresets.TABLE[GSMenuGraphicsPresets.DEFAULT] as Dictionary):
+		if not GSMenuGraphicsPresets.same(st.get_value(k), GSMenuGraphicsPresets.TABLE[GSMenuGraphicsPresets.DEFAULT][k]):
 			differs.append(k)
 	host._check(differs.is_empty(), "High is every key's own default, so an untouched player sees no change (%s)" % [differs])
 
-	var _l := st.set_value(DotMenuGraphicsPresets.KEY, &"low")
+	var _l := st.set_value(GSMenuGraphicsPresets.KEY, &"low")
 	host._check(st.get_int(&"shadow_quality", -1) == 1 and is_equal_approx(st.get_float(&"render_scale", 0.0), 0.75) and st.get_int(&"aa", -1) == 1
-		and not st.get_bool(&"glow", true) and st.get_string(DotMenuGraphicsPresets.KEY) == "low", "choosing Low writes Low's values and stays Low")
-	var _m := st.set_value(DotMenuGraphicsPresets.KEY, &"medium")
+		and not st.get_bool(&"glow", true) and st.get_string(GSMenuGraphicsPresets.KEY) == "low", "choosing Low writes Low's values and stays Low")
+	var _m := st.set_value(GSMenuGraphicsPresets.KEY, &"medium")
 	var _q := st.set_value(&"shadow_quality", 2)
-	host._check(st.get_string(DotMenuGraphicsPresets.KEY) == "medium", "setting a key to the preset's own value keeps the preset")
+	host._check(st.get_string(GSMenuGraphicsPresets.KEY) == "medium", "setting a key to the preset's own value keeps the preset")
 	var _h := st.set_value(&"shadow_quality", 4)
-	host._check(st.get_string(DotMenuGraphicsPresets.KEY) == "custom" and st.get_int(&"shadow_quality", -1) == 4, "changing a preset key by hand makes it Custom")
-	var _u := st.set_value(DotMenuGraphicsPresets.KEY, &"ultra")
-	host._check(st.get_int(&"aa", -1) == 5 and is_equal_approx(st.get_float(&"lod_bias", 0.0), 2.0) and st.get_string(DotMenuGraphicsPresets.KEY) == "ultra",
+	host._check(st.get_string(GSMenuGraphicsPresets.KEY) == "custom" and st.get_int(&"shadow_quality", -1) == 4, "changing a preset key by hand makes it Custom")
+	var _u := st.set_value(GSMenuGraphicsPresets.KEY, &"ultra")
+	host._check(st.get_int(&"aa", -1) == 5 and is_equal_approx(st.get_float(&"lod_bias", 0.0), 2.0) and st.get_string(GSMenuGraphicsPresets.KEY) == "ultra",
 		"choosing Ultra from Custom writes Ultra's values")
-	var _c := st.set_value(DotMenuGraphicsPresets.KEY, DotMenuGraphicsPresets.CUSTOM)
+	var _c := st.set_value(GSMenuGraphicsPresets.KEY, GSMenuGraphicsPresets.CUSTOM)
 	host._check(st.get_int(&"aa", -1) == 5, "choosing Custom keeps the values the player has")
 
 	var root := host.get_tree().root
@@ -58,10 +58,10 @@ static func run(host: Selftest) -> void:
 	root.content_scale_mode = mode
 	root.content_scale_aspect = aspect
 
-	host._check(DotMenuApplier.parse_size("1600x900") == Vector2i(1600, 900) and DotMenuApplier.parse_size(" 2560 X 1080 ") == Vector2i(2560, 1080)
-		and DotMenuApplier.parse_size("") == Vector2i.ZERO and DotMenuApplier.parse_size("100x50") == Vector2i.ZERO
-		and DotMenuApplier.parse_size("big") == Vector2i.ZERO, "a window size reads as WxH; empty, tiny or junk is the project's own")
-	host._check(DotMenuStock.resolution_options().size() >= 1 and DotMenuStock.resolution_options()[0][0] == "",
+	host._check(GSMenuApplier.parse_size("1600x900") == Vector2i(1600, 900) and GSMenuApplier.parse_size(" 2560 X 1080 ") == Vector2i(2560, 1080)
+		and GSMenuApplier.parse_size("") == Vector2i.ZERO and GSMenuApplier.parse_size("100x50") == Vector2i.ZERO
+		and GSMenuApplier.parse_size("big") == Vector2i.ZERO, "a window size reads as WxH; empty, tiny or junk is the project's own")
+	host._check(GSMenuStock.resolution_options().size() >= 1 and GSMenuStock.resolution_options()[0][0] == "",
 		"the size list starts with the project's own size")
 	host._check(applier.remember_window_after > 0.0 and st.schema.find(&"window_size").default_value == "", "a window size is remembered after a resize settles, empty by default")
 

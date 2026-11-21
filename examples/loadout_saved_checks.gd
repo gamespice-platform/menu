@@ -3,7 +3,7 @@ extends RefCounted
 ## The loadout screen's saved-loadout switcher, run from menu_selftest (kept out of it to hold its size baseline).
 
 
-static func run(host: Node, screen: DotMenuLoadoutScreen, lo: DotMenuLoadout, link: Object) -> void:
+static func run(host: Node, screen: GSMenuLoadoutScreen, lo: GSMenuLoadout, link: Object) -> void:
 	var off: Dictionary = host._loadout_offer()
 	lo.open_offer(off)
 	var saved_box := screen.find_child("Saved", true, false) as Control

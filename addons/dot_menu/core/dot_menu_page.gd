@@ -1,4 +1,4 @@
-class_name DotMenuPage
+class_name GSMenuPage
 extends RefCounted
 
 ## One page of the menu: a tab in the sidebar, a title, a sentence, and cards of rows. Example: docs/examples.md.
@@ -11,22 +11,22 @@ var title: String = ""
 ## The sentence under the title.
 var blurb: String = ""
 
-var sections: Array[DotMenuSection] = []
+var sections: Array[GSMenuSection] = []
 
-## `func(kit: DotMenuKit, body: VBoxContainer) -> void`, drawn after [member sections].
+## `func(kit: GSMenuKit, body: VBoxContainer) -> void`, drawn after [member sections].
 var build: Callable = Callable()
 
 ## `func() -> bool`. False leaves the page out of the sidebar.
 var visible_if: Callable = Callable()
 
-## Draw a card per [DotMenuBindings] group after [member sections], each row a key button,
+## Draw a card per [GSMenuBindings] group after [member sections], each row a key button,
 ## and a button that puts every key back. The stock Controls page sets it; a game that
 ## wants its keys on a page of their own sets it there instead.
 var show_bindings: bool = false
 
 
-static func make(p_id: StringName, p_title: String, p_blurb: String = "") -> DotMenuPage:
-	var p := DotMenuPage.new()
+static func make(p_id: StringName, p_title: String, p_blurb: String = "") -> GSMenuPage:
+	var p := GSMenuPage.new()
 	p.id = p_id
 	p.title = p_title
 	p.blurb = p_blurb
@@ -35,17 +35,17 @@ static func make(p_id: StringName, p_title: String, p_blurb: String = "") -> Dot
 
 ## The section called [param title] (or [param p_id]), made at the end if there is none —
 ## so adding a row to "Display" works whether or not a stock page already had one.
-func section(p_title: String, p_id: StringName = &"") -> DotMenuSection:
+func section(p_title: String, p_id: StringName = &"") -> GSMenuSection:
 	var want := p_id if p_id != &"" else StringName(p_title.to_snake_case())
 	for s in sections:
 		if s.id == want:
 			return s
-	var made := DotMenuSection.make(p_title, want)
+	var made := GSMenuSection.make(p_title, want)
 	sections.append(made)
 	return made
 
 
-func find_section(p_id: StringName) -> DotMenuSection:
+func find_section(p_id: StringName) -> GSMenuSection:
 	for s in sections:
 		if s.id == p_id:
 			return s
@@ -53,7 +53,7 @@ func find_section(p_id: StringName) -> DotMenuSection:
 
 
 ## Puts a section before the one called [param before], or at the end when there is none.
-func insert_section(s: DotMenuSection, before: StringName = &"") -> DotMenuSection:
+func insert_section(s: GSMenuSection, before: StringName = &"") -> GSMenuSection:
 	for i in range(sections.size()):
 		if sections[i].id == before:
 			sections.insert(i, s)
@@ -70,7 +70,7 @@ func remove_section(p_id: StringName) -> bool:
 	return false
 
 
-func find_row(row_id: StringName) -> DotMenuRow:
+func find_row(row_id: StringName) -> GSMenuRow:
 	for s in sections:
 		var r := s.find_row(row_id)
 		if r != null:
@@ -79,7 +79,7 @@ func find_row(row_id: StringName) -> DotMenuRow:
 
 
 ## Takes the row out of whichever section has it. Returns it, for moving elsewhere.
-func take_row(row_id: StringName) -> DotMenuRow:
+func take_row(row_id: StringName) -> GSMenuRow:
 	for s in sections:
 		var r := s.find_row(row_id)
 		if r != null:

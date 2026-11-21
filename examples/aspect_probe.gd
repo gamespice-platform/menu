@@ -11,8 +11,8 @@ const SIZES := [Vector2i(1600, 900), Vector2i(2520, 1080), Vector2i(1200, 900), 
 var _out := ""
 var _passed := 0
 var _failed := 0
-var _store: DotSettingsManager
-var _applier: DotMenuApplier
+var _store: GSSettingsManager
+var _applier: GSMenuApplier
 
 
 func _ready() -> void:
@@ -27,17 +27,17 @@ func _ready() -> void:
 	root.content_scale_mode = Window.CONTENT_SCALE_MODE_CANVAS_ITEMS
 	root.content_scale_aspect = Window.CONTENT_SCALE_ASPECT_KEEP
 	_build()
-	var schema := DotMenuStock.declare(DotSettingsSchema.new())
-	_store = DotSettingsManager.new()
+	var schema := GSMenuStock.declare(GSSettingsSchema.new())
+	_store = GSSettingsManager.new()
 	_store.schema = schema
-	_store.local_store = DotSettingsStoreMemory.new()
+	_store.local_store = GSSettingsStoreMemory.new()
 	_store.app_namespace = &"aspect_probe"
 	_store.persist = false
 	_store.register_as_service = false
 	add_child(_store)
 	var _s := _store.setup()
 	var _k := _store.set_value(&"keep_aspect", keep)
-	_applier = DotMenuApplier.new()
+	_applier = GSMenuApplier.new()
 	_applier.settings = _store
 	add_child(_applier)
 	var _a := _applier.setup()

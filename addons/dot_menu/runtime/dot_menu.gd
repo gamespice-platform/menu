@@ -1,9 +1,9 @@
-class_name DotMenu
+class_name GSMenu
 extends "dot_menu_toast.gd"
 
-## A game's menus, in one node: the Escape menu, help, a picker, the HUD layout editor, a frame-rate counter, the [DotMenuNetStat] overlay, and the theme they are drawn in. Example: docs/examples.md.
+## A game's menus, in one node: the Escape menu, help, a picker, the HUD layout editor, a frame-rate counter, the [GSMenuNetStat] overlay, and the theme they are drawn in. Example: docs/examples.md.
 ## It owns which overlay is open, what Escape does, who has the pointer and the theme, one list in one place. In a browser Escape exits pointer lock and may not arrive, so
-## [member DotMenuConfig.open_on_pointer_release] opens the menu on a lost lock. Not a pause (see [DotMenuScreen]); [signal overlays_changed] is how a game stops its sampler.
+## [member GSMenuConfig.open_on_pointer_release] opens the menu on a lost lock. Not a pause (see [GSMenuScreen]); [signal overlays_changed] is how a game stops its sampler.
 
 const CHANNEL := "menu"
 
@@ -15,7 +15,7 @@ signal overlays_changed(open: bool)
 signal action_requested(id: StringName)
 
 ## The theme changed. A HUD that draws in the palette recolours from this.
-signal theme_changed(palette: DotMenuPalette)
+signal theme_changed(palette: GSMenuPalette)
 
 ## The pointer was not recaptured after the menu closed — in a browser, because the close
 ## was a key. The game says "Click to play".
@@ -24,21 +24,21 @@ signal click_to_play()
 ## A picker row was chosen.
 signal picked(id: StringName)
 
-var settings: DotSettingsManager = null
-var bindings: DotMenuBindings = null
-var config: DotMenuConfig = null
+var settings: GSSettingsManager = null
+var bindings: GSMenuBindings = null
+var config: GSMenuConfig = null
 
 ## The theme catalogue. Null at setup is the stock eight, plus the config's file.
-var themes: DotMenuThemes = null
+var themes: GSMenuThemes = null
 
-## The pages, in sidebar order. Null at setup is [method DotMenuStock.pages].
-var pages: Array[DotMenuPage] = []
+## The pages, in sidebar order. Null at setup is [method GSMenuStock.pages].
+var pages: Array[GSMenuPage] = []
 
 
 ## Actions that, pressed with nothing open, open help and cycle the theme. Empty is none.
-## Help is on H in every game unless it says otherwise ([constant DotMenuBindings.HELP_ACTION]); a game with no table row still gets H,
+## Help is on H in every game unless it says otherwise ([constant GSMenuBindings.HELP_ACTION]); a game with no table row still gets H,
 ## because [method setup] puts the action on the InputMap and the help screen lists it.
-var help_action: StringName = DotMenuBindings.HELP_ACTION
+var help_action: StringName = GSMenuBindings.HELP_ACTION
 var theme_action: StringName = &""
 
 ## The action held to show the scoreboard (Tab). Empty is no scoreboard key; the board is
@@ -49,27 +49,27 @@ var scoreboard_action: StringName = &""
 ## The menu does not open the picker on it — what the list holds is the game's to fetch.
 var picker_action: StringName = &""
 
-## The map menu's key (API 5): M, [constant DotMenuBindings.MAPS_ACTION], in every game with
+## The map menu's key (API 5): M, [constant GSMenuBindings.MAPS_ACTION], in every game with
 ## more than one map. Pressed with nothing open it opens [member maps]; pressed again it closes
 ## the picker. Nothing happens on it until the game calls [method use_maps].
-var maps_action: StringName = DotMenuBindings.MAPS_ACTION
+var maps_action: StringName = GSMenuBindings.MAPS_ACTION
 
 ## The key that switches the map menu's Maps and Game modes tabs (`-`). A tab exists only when the game provides modes.
-var modes_action: StringName = DotMenuBindings.MODES_ACTION
+var modes_action: StringName = GSMenuBindings.MODES_ACTION
 
-## The map menu. Null until [method use_maps]. See [DotMenuMaps].
-var maps: DotMenuMaps = null
+## The map menu. Null until [method use_maps]. See [GSMenuMaps].
+var maps: GSMenuMaps = null
 
-## The loadout menu's key (API 6): B, [constant DotMenuBindings.LOADOUT_ACTION], in every game where
+## The loadout menu's key (API 6): B, [constant GSMenuBindings.LOADOUT_ACTION], in every game where
 ## players choose what they carry. Pressed with nothing open it opens [member loadout]; pressed
 ## again it closes the screen, which saves. Nothing happens on it until [method use_loadout].
-var loadout_action: StringName = DotMenuBindings.LOADOUT_ACTION
+var loadout_action: StringName = GSMenuBindings.LOADOUT_ACTION
 
 
-## The team menu's key (API 17): the period, [constant DotMenuBindings.TEAMS_ACTION]. Nothing happens on it until [method use_teams].
-var teams_action: StringName = DotMenuBindings.TEAMS_ACTION
-var teams: DotMenuTeams = null
-var team_screen: DotMenuTeamScreen = null
+## The team menu's key (API 17): the period, [constant GSMenuBindings.TEAMS_ACTION]. Nothing happens on it until [method use_teams].
+var teams_action: StringName = GSMenuBindings.TEAMS_ACTION
+var teams: GSMenuTeams = null
+var team_screen: GSMenuTeamScreen = null
 
 ## Handle Escape and the actions above from [method Node._unhandled_input]. Off for a host
 ## that routes input itself through [method handle_event].
@@ -90,29 +90,29 @@ var busy: Callable = Callable()
 
 ## Leave does the stock thing itself: disconnects from the server when connected, and quits a
 ## solo game on the desktop. Off, Leave is only [signal action_requested] (a game that leaves
-## its own way). [DotMenuSettings] turns it on.
+## its own way). [GSMenuSettings] turns it on.
 var leave_on_its_own: bool = false
 
 ## What Leave disconnects: anything with `disconnect_from_server(reason)` and
-## `is_connected_to_server()`. Null looks up [member leave_service] in [DotRegistry] when Leave
+## `is_connected_to_server()`. Null looks up [member leave_service] in [GSRegistry] when Leave
 ## is pressed, so a link made after the menu is still the one left.
 var leave_link: Object = null
 var leave_service: StringName = &"dot_client_link"
 
-var screen: DotMenuScreen = null
-var help: DotMenuHelp = null
-var picker: DotMenuPicker = null
-var layout_editor: DotMenuLayoutEditor = null
+var screen: GSMenuScreen = null
+var help: GSMenuHelp = null
+var picker: GSMenuPicker = null
+var layout_editor: GSMenuLayoutEditor = null
 
-## The held scoreboard. Not one of the overlays: see [DotMenuScoreboard].
-var scoreboard: DotMenuScoreboard = null
+## The held scoreboard. Not one of the overlays: see [GSMenuScoreboard].
+var scoreboard: GSMenuScoreboard = null
 
-## The connection overlay, driven by the `net_stat*` settings. See [DotMenuNetStat].
-var net_stat: DotMenuNetStat = null
+## The connection overlay, driven by the `net_stat*` settings. See [GSMenuNetStat].
+var net_stat: GSMenuNetStat = null
 
 var _fps_label: Label = null
 
-## The HUD's "H  Help" hint ([member DotMenuConfig.help_hint]); null when off. Shown while
+## The HUD's "H  Help" hint ([member GSMenuConfig.help_hint]); null when off. Shown while
 ## nothing is open, with the key as it is bound now.
 var help_hint: PanelContainer = null
 
@@ -128,17 +128,17 @@ var _picker_chosen: Callable = Callable()
 var _extra: Array[Control] = []
 
 ## The player's addon cfg editor, once [method use_mods] gave one.
-var mods_screen: DotAddonConfigEditorScreen = null
+var mods_screen: GSAddonConfigEditorScreen = null
 var mods_label := "Mods"
 var _theme_id: StringName = &""
 var _was_open := false
 var _lock_seen := false
 var _opened_msec := 0
 var _recapture_frames := 0
-var _rules := DotMenuRules.new(self)
+var _rules := GSMenuRules.new(self)
 var _ready_done := false
 ## The HUDs [method follow_hud] keeps in the theme and at the player's size.
-var _huds := DotMenuHuds.new(self)
+var _huds := GSMenuHuds.new(self)
 
 
 func _init() -> void:
@@ -147,21 +147,21 @@ func _init() -> void:
 
 ## Builds everything. Settings must be set up first: the theme and the frame-rate counter
 ## read them now.
-func setup() -> DotResult:
+func setup() -> GSResult:
 	if config == null:
-		config = DotMenuConfig.new()
+		config = GSMenuConfig.new()
 	layer = config.layer
 
 	themes = config.make_themes(themes)
 	_check_theme_setting()
 
 	if pages.is_empty():
-		pages = DotMenuStock.pages(config)
+		pages = GSMenuStock.pages(config)
 	_wire_stock_rows()
 	_ensure_help_action()
 
 	_theme_id = stored_theme()
-	kit = DotMenuKit.new(themes.named(_theme_id)) if kit == null else kit.with_palette(themes.named(_theme_id))
+	kit = GSMenuKit.new(themes.named(_theme_id)) if kit == null else kit.with_palette(themes.named(_theme_id))
 
 	_build()
 
@@ -173,7 +173,7 @@ func setup() -> DotResult:
 	_style_huds()
 	_scale_huds()
 	_ready_done = true
-	return DotResult.success(self)
+	return GSResult.success(self)
 
 
 func _build() -> void:
@@ -194,7 +194,7 @@ func _build() -> void:
 	_fps_label.visible = false
 	add_child(_fps_label)
 
-	net_stat = DotMenuNetStat.new()
+	net_stat = GSMenuNetStat.new()
 	net_stat.kit = kit
 	add_child(net_stat)
 
@@ -202,12 +202,12 @@ func _build() -> void:
 	_build_menu_button()
 
 	# Under everything else on this layer: the menu opened over a held board is on top.
-	scoreboard = DotMenuScoreboard.new()
+	scoreboard = GSMenuScoreboard.new()
 	scoreboard.name = "Scoreboard"
 	scoreboard.kit = kit
 	add_child(scoreboard)
 
-	screen = DotMenuScreen.new()
+	screen = GSMenuScreen.new()
 	screen.name = "Screen"
 	screen.kit = kit
 	screen.settings = settings
@@ -219,20 +219,20 @@ func _build() -> void:
 	screen.action_requested.connect(_on_action)
 	add_child(screen)
 
-	layout_editor = DotMenuLayoutEditor.new()
+	layout_editor = GSMenuLayoutEditor.new()
 	layout_editor.name = "LayoutEditor"
 	layout_editor.kit = kit
 	layout_editor.closed.connect(_on_closed)
 	add_child(layout_editor)
 
-	picker = DotMenuPicker.new()
+	picker = GSMenuPicker.new()
 	picker.name = "Picker"
 	picker.kit = kit
 	picker.closed.connect(_on_closed)
 	picker.chosen.connect(_on_picker_chosen)
 	add_child(picker)
 
-	help = DotMenuHelp.new()
+	help = GSMenuHelp.new()
 	help.name = "Help"
 	help.kit = kit
 	help.bindings = bindings
@@ -240,7 +240,7 @@ func _build() -> void:
 	help.help_action = help_action
 	var extra: Array = [["Esc", "Menu and settings"]]
 	if _help_off_the_table():
-		extra.push_front([DotInputBinding.describe_action(help_action), "Help and controls"])
+		extra.push_front([GSInputBinding.describe_action(help_action), "Help and controls"])
 	help.extra_keys = {_last_group(): extra}
 	help.closed.connect(_on_closed)
 	add_child(help)
@@ -264,7 +264,7 @@ func _ensure_help_action() -> void:
 	if help_action == &"" or InputMap.has_action(help_action):
 		return
 	InputMap.add_action(help_action)
-	var _bound := DotInputBinding.apply(help_action, DotMenuBindings.HELP_KEY)
+	var _bound := GSInputBinding.apply(help_action, GSMenuBindings.HELP_KEY)
 
 
 ## The HUD's help hint: a keycap and "Help" on a quiet plate, in the corner the config names.
@@ -380,7 +380,7 @@ func _wire_stock_rows() -> void:
 
 ## Says so when the `ui_theme` setting cannot hold a theme the menu offers: a player who
 ## picked it would be refused. The fix is passing the catalogue to
-## [method DotMenuConfig.apply_to_schema] before the settings load.
+## [method GSMenuConfig.apply_to_schema] before the settings load.
 func _check_theme_setting() -> void:
 	if settings == null or settings.schema == null:
 		return
@@ -392,13 +392,13 @@ func _check_theme_setting() -> void:
 		if not def.options.has(id):
 			missing.append(String(id))
 	if not missing.is_empty():
-		DotLog.warn(CHANNEL, "the ui_theme setting cannot hold every theme; pass the catalogue to DotMenuConfig.apply_to_schema", {
+		GSLog.warn(CHANNEL, "the ui_theme setting cannot hold every theme; pass the catalogue to GSMenuConfig.apply_to_schema", {
 			"missing": ", ".join(missing),
 		})
 
 
 ## The page called [param id], or null.
-func page(id: StringName) -> DotMenuPage:
+func page(id: StringName) -> GSMenuPage:
 	for p in pages:
 		if p.id == id:
 			return p
@@ -407,7 +407,7 @@ func page(id: StringName) -> DotMenuPage:
 
 ## Adds [param p] before the page called [param before], or at the end. A page with the same
 ## id is replaced in place.
-func add_page(p: DotMenuPage, before: StringName = &"") -> DotMenuPage:
+func add_page(p: GSMenuPage, before: StringName = &"") -> GSMenuPage:
 	for i in range(pages.size()):
 		if pages[i].id == p.id:
 			pages[i] = p
@@ -429,7 +429,7 @@ func remove_page(id: StringName) -> bool:
 
 
 ## The row called [param row_id] on whichever page has it, or null.
-func find_row(row_id: StringName) -> DotMenuRow:
+func find_row(row_id: StringName) -> GSMenuRow:
 	for p in pages:
 		var r := p.find_row(row_id)
 		if r != null:
@@ -471,7 +471,7 @@ func open_help(commands: Variant = null, online: Variant = null) -> void:
 	_on_opened()
 
 
-## A list to pick from. See [DotMenuPicker]. [signal picked] says what was chosen, unless
+## A list to pick from. See [GSMenuPicker]. [signal picked] says what was chosen, unless
 ## [param on_chosen] is given, which then gets it instead. [param close_action] is the key that
 ## closes this list (the key that opened it); empty is [member picker_action].
 func open_picker(items: Array, title: String = "", close_action: StringName = &"", on_chosen: Callable = Callable()) -> void:
@@ -497,11 +497,11 @@ func _on_picker_chosen(id: StringName) -> void:
 
 
 ## Turns the map menu on: M opens a picker of what [param rows_fn] returns (`func() -> Array` of `{id, name, mode, detail, thumbnail, current, tags}`),
-## and solo a choice goes to [param change_fn] (`func(id) -> DotResult`). Connected, the server is asked instead (see [DotMenuMaps]).
+## and solo a choice goes to [param change_fn] (`func(id) -> GSResult`). Connected, the server is asked instead (see [GSMenuMaps]).
 ## Puts [member maps_action] on M when no table row did, and lists it on the help screen by hand.
-func use_maps(rows_fn: Callable, change_fn: Callable) -> DotMenuMaps:
+func use_maps(rows_fn: Callable, change_fn: Callable) -> GSMenuMaps:
 	if maps == null:
-		maps = DotMenuMaps.new()
+		maps = GSMenuMaps.new()
 	maps.menu = self
 	maps.rows_fn = rows_fn
 	maps.change_fn = change_fn
@@ -509,15 +509,15 @@ func use_maps(rows_fn: Callable, change_fn: Callable) -> DotMenuMaps:
 	maps.read_command_line()
 	if modes_action != &"" and not InputMap.has_action(modes_action):
 		InputMap.add_action(modes_action)
-		var _tab := DotInputBinding.apply(modes_action, DotMenuBindings.MODES_KEY)
+		var _tab := GSInputBinding.apply(modes_action, GSMenuBindings.MODES_KEY)
 	if maps_action != &"" and not InputMap.has_action(maps_action):
 		InputMap.add_action(maps_action)
-		var _bound := DotInputBinding.apply(maps_action, DotMenuBindings.MAPS_KEY)
+		var _bound := GSInputBinding.apply(maps_action, GSMenuBindings.MAPS_KEY)
 	if help != null and maps_action != &"" and (bindings == null or bindings.row_for_action(maps_action).is_empty()):
 		var extra: Dictionary = help.extra_keys
 		var group := _last_group()
 		var lines: Array = extra.get(group, [])
-		var shown := DotInputBinding.describe_action(maps_action)
+		var shown := GSInputBinding.describe_action(maps_action)
 		if not lines.any(func(l: Variant) -> bool: return l is Array and (l as Array).size() > 1 and str((l as Array)[1]) == "Change map"):
 			lines.push_front([shown, "Change map"])
 		extra[group] = lines
@@ -531,21 +531,21 @@ func open_maps() -> void:
 		maps.open()
 
 
-## Turns the loadout menu on: B opens [DotMenuLoadoutScreen] on what [param offer_fn] returns (`func() -> Dictionary or DotResult`, may await);
-## solo a choice goes to [param choose_fn] (`func(picks: Dictionary) -> DotResult or {ok, text, now}`), and [param decorate_fn] (`func(slot_id, choice) -> Dictionary`) adds icon and stats.
-## Connected, the server is asked instead (see [DotMenuLoadout]). Puts [member loadout_action] on B when no table row did.
-func use_loadout(offer_fn: Callable, choose_fn: Callable, decorate_fn: Callable = Callable()) -> DotMenuLoadout:
+## Turns the loadout menu on: B opens [GSMenuLoadoutScreen] on what [param offer_fn] returns (`func() -> Dictionary or GSResult`, may await);
+## solo a choice goes to [param choose_fn] (`func(picks: Dictionary) -> GSResult or {ok, text, now}`), and [param decorate_fn] (`func(slot_id, choice) -> Dictionary`) adds icon and stats.
+## Connected, the server is asked instead (see [GSMenuLoadout]). Puts [member loadout_action] on B when no table row did.
+func use_loadout(offer_fn: Callable, choose_fn: Callable, decorate_fn: Callable = Callable()) -> GSMenuLoadout:
 	if loadout == null:
-		loadout = DotMenuLoadout.new()
+		loadout = GSMenuLoadout.new()
 	loadout.menu = self
 	loadout.offer_fn = offer_fn
 	loadout.choose_fn = choose_fn
 	loadout.decorate_fn = decorate_fn
 	loadout.enabled = true
 	if loadout_screen == null:
-		loadout_screen = DotMenuLoadoutScreen.new()
+		loadout_screen = GSMenuLoadoutScreen.new()
 		loadout_screen.name = "Loadout"
-		loadout_screen.kit = kit if kit != null else DotMenuKit.new()
+		loadout_screen.kit = kit if kit != null else GSMenuKit.new()
 		loadout_screen.closed.connect(_on_closed)
 		loadout_screen.committed.connect(func(picks: Dictionary) -> void: loadout.commit(picks))
 		loadout_screen.random_requested.connect(func() -> void: loadout.request_random())
@@ -553,37 +553,37 @@ func use_loadout(offer_fn: Callable, choose_fn: Callable, decorate_fn: Callable 
 		add_child(loadout_screen)
 	if loadout_action != &"" and not InputMap.has_action(loadout_action):
 		InputMap.add_action(loadout_action)
-		var _bound := DotInputBinding.apply(loadout_action, DotMenuBindings.LOADOUT_KEY)
+		var _bound := GSInputBinding.apply(loadout_action, GSMenuBindings.LOADOUT_KEY)
 	if help != null and loadout_action != &"" and (bindings == null or bindings.row_for_action(loadout_action).is_empty()):
 		var extra: Dictionary = help.extra_keys
 		var group := _last_group()
 		var lines: Array = extra.get(group, [])
 		if not lines.any(func(l: Variant) -> bool: return l is Array and (l as Array).size() > 1 and str((l as Array)[1]) == "Loadout"):
-			lines.push_front([DotInputBinding.describe_action(loadout_action), "Loadout"])
+			lines.push_front([GSInputBinding.describe_action(loadout_action), "Loadout"])
 		extra[group] = lines
 		help.extra_keys = extra
 	return loadout
 
 
-## Turns the team menu on: the period opens [DotMenuTeamScreen]. Solo, [param offer_fn] (`func() -> Dictionary`) lists the cards and [param choose_fn] (`func(id: String) -> DotResult`) switches; connected, the server is asked (see [DotMenuTeams]).
-func use_teams(offer_fn: Callable = Callable(), choose_fn: Callable = Callable()) -> DotMenuTeams:
+## Turns the team menu on: the period opens [GSMenuTeamScreen]. Solo, [param offer_fn] (`func() -> Dictionary`) lists the cards and [param choose_fn] (`func(id: String) -> GSResult`) switches; connected, the server is asked (see [GSMenuTeams]).
+func use_teams(offer_fn: Callable = Callable(), choose_fn: Callable = Callable()) -> GSMenuTeams:
 	if teams == null:
-		teams = DotMenuTeams.new()
+		teams = GSMenuTeams.new()
 	teams.menu = self
 	teams.offer_fn = offer_fn
 	teams.choose_fn = choose_fn
 	teams.enabled = true
 	if team_screen == null:
-		team_screen = DotMenuTeamScreen.new()
+		team_screen = GSMenuTeamScreen.new()
 		team_screen.name = "Teams"
-		team_screen.kit = kit if kit != null else DotMenuKit.new()
+		team_screen.kit = kit if kit != null else GSMenuKit.new()
 		team_screen.closed.connect(_on_closed)
 		team_screen.chosen.connect(func(id: String) -> void: teams.choose(id))
 		team_screen.refresh_requested.connect(func() -> void: teams.refresh())
 		add_child(team_screen)
 	if teams_action != &"" and not InputMap.has_action(teams_action):
 		InputMap.add_action(teams_action)
-		var _bound := DotInputBinding.apply(teams_action, DotMenuBindings.TEAMS_KEY)
+		var _bound := GSInputBinding.apply(teams_action, GSMenuBindings.TEAMS_KEY)
 	return teams
 
 
@@ -629,7 +629,7 @@ func open_loadout_screen(offer: Dictionary) -> void:
 	_on_opened()
 
 
-## The HUD layout editor over [param target]. See [DotMenuLayoutEditor].
+## The HUD layout editor over [param target]. See [GSMenuLayoutEditor].
 func open_layout_editor(target: Control, pieces: Dictionary = {}) -> void:
 	if layout_editor == null:
 		return
@@ -655,7 +655,7 @@ func add_overlay(overlay: Control) -> void:
 
 ## Adds a "Mods" action to Escape that opens [param editor] (files added by the caller) over the menu.
 ## Solo and listen-host only: the editor says why when the user tier is off.
-func use_mods(editor: DotAddonConfigEditorScreen, label: String = "Mods") -> void:
+func use_mods(editor: GSAddonConfigEditorScreen, label: String = "Mods") -> void:
 	mods_screen = editor
 	mods_label = label
 	editor.visible = false
@@ -725,7 +725,7 @@ func _on_closed() -> void:
 		return
 	if manage_pointer:
 		Input.mouse_mode = Input.MOUSE_MODE_CAPTURED
-		if DotPlatform.is_web():
+		if GSPlatform.is_web():
 			_recapture_frames = 12
 	_notify()
 
@@ -757,7 +757,7 @@ func leave() -> void:
 	if link != null and _connected(link):
 		link.call(&"disconnect_from_server", "Left the server")
 		return
-	if not DotPlatform.is_web():
+	if not GSPlatform.is_web():
 		get_tree().quit()
 
 
@@ -769,7 +769,7 @@ func leave_label() -> String:
 		return config.leave_text
 	if _connected(_leave_link()):
 		return "Leave server"
-	return "" if DotPlatform.is_web() else "Quit game"
+	return "" if GSPlatform.is_web() else "Quit game"
 
 
 func _refresh_leave() -> void:
@@ -783,7 +783,7 @@ func _leave_link() -> Object:
 		return leave_link
 	if leave_service == &"":
 		return null
-	return DotRegistry.get_node_service(leave_service)
+	return GSRegistry.get_node_service(leave_service)
 
 
 static func _connected(link: Object) -> bool:
@@ -943,7 +943,7 @@ func pointer_released_on_purpose() -> void:
 
 
 ## The theme in use.
-func palette() -> DotMenuPalette:
+func palette() -> GSMenuPalette:
 	return kit.palette if kit != null else themes.named(&"")
 
 
@@ -953,7 +953,7 @@ func cycle_theme() -> StringName:
 	if settings != null and settings.schema != null and settings.schema.has(&"ui_theme"):
 		var res := settings.set_value(&"ui_theme", next)
 		if not res.ok:
-			DotLog.warn(CHANNEL, "the theme was refused", {"theme": String(next), "why": res.error.message})
+			GSLog.warn(CHANNEL, "the theme was refused", {"theme": String(next), "why": res.error.message})
 	else:
 		use_theme(next)
 	return next
@@ -967,9 +967,9 @@ func use_theme(id: StringName) -> bool:
 	if kit != null and kit.palette == p:
 		return false
 	_theme_id = p.id
-	kit = kit.with_palette(p) if kit != null else DotMenuKit.new(p)
+	kit = kit.with_palette(p) if kit != null else GSMenuKit.new(p)
 	for o in _overlays():
-		# The mods editor restyles from DotFormTokens, not a kit.
+		# The mods editor restyles from GSFormTokens, not a kit.
 		if o != null and o != mods_screen and o.has_method(&"restyle"):
 			o.call(&"restyle", kit)
 	if scoreboard != null:
@@ -990,9 +990,9 @@ func use_theme(id: StringName) -> bool:
 	return true
 
 
-## Keeps [param root], a game's HUD layer, in the theme and at the player's `hud_scale`: its [Theme] is [method DotMenuPalette.hud_theme] with [param accent] laid over it,
+## Keeps [param root], a game's HUD layer, in the theme and at the player's `hud_scale`: its [Theme] is [method GSMenuPalette.hud_theme] with [param accent] laid over it,
 ## set now and on every theme change, so no game has to wire [signal theme_changed] itself. Nothing is rebuilt: a piece reads its colours when it draws.
-## With [param scaled] the HUD is drawn at `hud_scale` ([DotHud] `user_scale`, or [method DotHud.fit_control]); a root laid out by hand passes false.
+## With [param scaled] the HUD is drawn at `hud_scale` ([GSHud] `user_scale`, or [method GSHud.fit_control]); a root laid out by hand passes false.
 func follow_hud(root: Control, accent: Theme = null, scaled: bool = true) -> void:
 	_huds.follow(root, accent, scaled)
 
@@ -1030,7 +1030,7 @@ func stored_theme() -> StringName:
 
 
 ## The settings this node applies itself. Key bindings among them: the menu is where a key
-## is rebound, and a game using it without a [DotMenuApplier] would otherwise store the new
+## is rebound, and a game using it without a [GSMenuApplier] would otherwise store the new
 ## key and go on reading the old one. Applying a binding twice is harmless.
 func _on_setting_changed(key: StringName, value: Variant, _why: StringName) -> void:
 	match key:
@@ -1040,7 +1040,7 @@ func _on_setting_changed(key: StringName, value: Variant, _why: StringName) -> v
 			_scale_huds()
 		&"show_fps", &"net_stat", &"net_stat_height", &"net_stat_position", &"net_stat_style":
 			_apply_net_stat()
-		DotMenuScoreboard.SETTING:
+		GSMenuScoreboard.SETTING:
 			if scoreboard != null:
 				scoreboard.read_settings(settings)
 		_:
@@ -1064,13 +1064,13 @@ func _apply_net_stat() -> void:
 ## One switch per column the live scoreboard has and a player may hide, titled as the board
 ## titles it. Built each time the page is drawn, since a game sets its columns after the menu
 ## exists. Writes `scoreboard_hidden`, and [method _on_setting_changed] redraws an open board.
-func scoreboard_column_rows() -> Array[DotMenuRow]:
-	var out: Array[DotMenuRow] = []
-	if scoreboard == null or not _declared(DotMenuScoreboard.SETTING):
+func scoreboard_column_rows() -> Array[GSMenuRow]:
+	var out: Array[GSMenuRow] = []
+	if scoreboard == null or not _declared(GSMenuScoreboard.SETTING):
 		return out
 	for c in scoreboard.optional_columns():
 		var key := StringName(str(c.get("key", "")))
-		var shown_row := DotMenuRow.live_toggle(str(c.get("title", "")), "",
+		var shown_row := GSMenuRow.live_toggle(str(c.get("title", "")), "",
 			func() -> bool: return not scoreboard.column_hidden(c),
 			func(on: bool) -> void: _set_scoreboard_column(key, not on))
 		out.append(shown_row.named(StringName("scoreboard_col_" + String(key))))
@@ -1080,9 +1080,9 @@ func scoreboard_column_rows() -> Array[DotMenuRow]:
 func _set_scoreboard_column(key: StringName, hide: bool) -> void:
 	var choices := scoreboard.player_hidden.duplicate()
 	choices[key] = hide
-	var res := settings.set_value(DotMenuScoreboard.SETTING, DotMenuScoreboard.format_choices(choices))
+	var res := settings.set_value(GSMenuScoreboard.SETTING, GSMenuScoreboard.format_choices(choices))
 	if not res.ok:
-		DotLog.warn(CHANNEL, "the scoreboard columns were refused", {"why": res.error.message})
+		GSLog.warn(CHANNEL, "the scoreboard columns were refused", {"why": res.error.message})
 
 
 func _declared(key: StringName) -> bool:

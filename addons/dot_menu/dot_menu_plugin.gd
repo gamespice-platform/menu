@@ -6,8 +6,8 @@ extends EditorPlugin
 ## No autoloads: a server and a client in one editor session are two menus.
 
 const _TYPES := [
-	["DotMenu", "CanvasLayer", "res://addons/dot_menu/runtime/dot_menu.gd"],
-	["DotMenuApplier", "Node", "res://addons/dot_menu/runtime/dot_menu_applier.gd"],
+	["GSMenu", "CanvasLayer", "res://addons/dot_menu/runtime/dot_menu.gd"],
+	["GSMenuApplier", "Node", "res://addons/dot_menu/runtime/dot_menu_applier.gd"],
 ]
 
 

@@ -6,18 +6,18 @@ const Selftest := preload("res://examples/menu_selftest.gd")
 static func run(host: Selftest) -> void:
 	host._section("touch: a Menu button, a Close button, finger-sized rows")
 
-	var cfg := DotMenuConfig.new()
+	var cfg := GSMenuConfig.new()
 	cfg.touch = &"off"
 	host._check(not cfg.touch_ui(), "touch off draws for the pointer")
 	cfg.touch = &"on"
 	host._check(cfg.touch_ui(), "touch on draws for fingers")
-	DotPlatform.touch_override = 0
+	GSPlatform.touch_override = 0
 	cfg.touch = &"auto"
-	host._check(not cfg.touch_ui(), "auto follows DotPlatform.has_touch (none)")
-	DotPlatform.touch_override = 1
-	host._check(cfg.touch_ui(), "auto follows DotPlatform.has_touch (touch)")
+	host._check(not cfg.touch_ui(), "auto follows GSPlatform.has_touch (none)")
+	GSPlatform.touch_override = 1
+	host._check(cfg.touch_ui(), "auto follows GSPlatform.has_touch (touch)")
 
-	var menu := host._menu(DotMenuStock.DEFAULT_GROUPS, cfg)
+	var menu := host._menu(GSMenuStock.DEFAULT_GROUPS, cfg)
 	await host.get_tree().process_frame
 	host._check(menu.menu_button != null and menu.menu_button.visible, "touch shows the Menu button on the HUD")
 	host._check(menu.menu_button != null and menu.menu_button.custom_minimum_size.y >= 52, "the Menu button is finger-sized")
@@ -34,10 +34,10 @@ static func run(host: Selftest) -> void:
 	var old_size := win.size
 	win.size = Vector2i(800, 480)
 	for corner in [&"top_right", &"top_left", &"bottom_right", &"bottom_left"]:
-		var ccfg := DotMenuConfig.new()
+		var ccfg := GSMenuConfig.new()
 		ccfg.touch = &"on"
 		ccfg.menu_button_corner = corner
-		var cm := host._menu(DotMenuStock.DEFAULT_GROUPS, ccfg)
+		var cm := host._menu(GSMenuStock.DEFAULT_GROUPS, ccfg)
 		await host.get_tree().process_frame
 		await host.get_tree().process_frame
 		var b := cm.menu_button
@@ -54,8 +54,8 @@ static func run(host: Selftest) -> void:
 		host._free_menu(cm)
 	win.size = old_size
 
-	DotPlatform.touch_override = 0
+	GSPlatform.touch_override = 0
 	var desk := host._menu()
 	host._check(desk.menu_button == null, "no touch, no Menu button")
 	host._free_menu(desk)
-	DotPlatform.touch_override = -1
+	GSPlatform.touch_override = -1

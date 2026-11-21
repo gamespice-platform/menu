@@ -1,4 +1,4 @@
-class_name DotMenuLoadoutDetail
+class_name GSMenuLoadoutDetail
 extends RefCounted
 ## The loadout screen's picture frames, tags and the detail panel for the highlighted card.
 
@@ -16,7 +16,7 @@ static func shown_tags(slot: Dictionary, item: Dictionary, limit: int) -> Packed
 
 ## A picture frame: the item's icon, or its initials when it has none (an empty box reads as
 ## broken art).
-static func icon_box(kit: DotMenuKit, item: Dictionary, min_size: Vector2, framed: bool) -> Control:
+static func icon_box(kit: GSMenuKit, item: Dictionary, min_size: Vector2, framed: bool) -> Control:
 	var p := kit.palette
 	var frame := PanelContainer.new()
 	frame.mouse_filter = Control.MOUSE_FILTER_IGNORE
@@ -26,11 +26,11 @@ static func icon_box(kit: DotMenuKit, item: Dictionary, min_size: Vector2, frame
 	# and on the paper theme's light card it disappears (rendered).
 	var case := Color(0.07, 0.08, 0.11, 0.92 if p.is_light() else 0.45)
 	frame.add_theme_stylebox_override(&"panel", kit.box(case if framed or p.is_light() else Color(0, 0, 0, 0), kit.radius_small, Color(0, 0, 0, 0), 0, Vector4(6, 4, 6, 4)))
-	var tex := DotMenuPicker.thumbnail_texture(item.get("icon"))
+	var tex := GSMenuPicker.thumbnail_texture(item.get("icon"))
 	if tex != null:
 		var pic := TextureRect.new()
 		pic.texture = tex
-		DotMenuPicker.apply_pixel_filter(pic, tex, item)
+		GSMenuPicker.apply_pixel_filter(pic, tex, item)
 		pic.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
 		pic.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
 		pic.mouse_filter = Control.MOUSE_FILTER_IGNORE
@@ -52,8 +52,8 @@ static func icon_box(kit: DotMenuKit, item: Dictionary, min_size: Vector2, frame
 ## The highlighted card: a big picture, its name and line, and each statistic as a bar with what
 ## is equipped now drawn behind it, so "better or worse than what I have" is one glance.
 static func draw(screen: Control, _detail: HBoxContainer) -> void:
-	var kit: DotMenuKit = screen.kit
-	DotMenuKit.clear(_detail)
+	var kit: GSMenuKit = screen.kit
+	GSMenuKit.clear(_detail)
 	var p := kit.palette
 	var list: Array = screen.choices()
 	if list.is_empty():
@@ -99,5 +99,5 @@ static func draw(screen: Control, _detail: HBoxContainer) -> void:
 	for st: Variant in item.get("stats", []):
 		var stat := st as Dictionary
 		var label := str(stat.get("label", ""))
-		bars.add_child(DotMenuStatBar.build(kit, label, clampf(float(stat.get("value", 0.0)), 0.0, 1.0),
+		bars.add_child(GSMenuStatBar.build(kit, label, clampf(float(stat.get("value", 0.0)), 0.0, 1.0),
 			str(stat.get("text", "")), float(held_stats.get(label, -1.0)), str(held.get("id", "")) == str(item.get("id", ""))))

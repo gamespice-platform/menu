@@ -3,7 +3,7 @@ extends RefCounted
 ## The loadout menu's Random button and R key, run from menu_selftest (kept out of it to hold its size baseline).
 
 
-static func run(host: Node, screen: DotMenuLoadoutScreen, lo: DotMenuLoadout, link: Object) -> void:
+static func run(host: Node, screen: GSMenuLoadoutScreen, lo: GSMenuLoadout, link: Object) -> void:
 	# Random: offered by the server, asked for on R, never when the server did not offer it.
 	var with_random: Dictionary = host._loadout_offer()
 	with_random["random"] = {"enabled": true, "price": "50", "count": 0}

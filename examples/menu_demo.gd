@@ -3,10 +3,10 @@ extends Node3D
 ## GameSpice Menu with a world behind it: the stock pages, a game's own page, a picker, and a HUD a player can arrange. Escape opens the menu, H help, P the next theme, M the picker.
 ## Everything a game writes to use the addon is in [method _build_menu], and it is short on purpose: that length is the claim this addon makes.
 
-var settings: DotSettingsManager = null
-var keys: DotMenuBindings = null
-var menu: DotMenu = null
-var applier: DotMenuApplier = null
+var settings: GSSettingsManager = null
+var keys: GSMenuBindings = null
+var menu: GSMenu = null
+var applier: GSMenuApplier = null
 var hud: DemoHud = null
 var camera: Camera3D = null
 
@@ -21,7 +21,7 @@ func _ready() -> void:
 
 func _build_menu() -> void:
 	# 1. The keys this game reads.
-	keys = DotMenuBindings.new()
+	keys = GSMenuBindings.new()
 	keys.add_movement()
 	keys.add(&"demo_flashlight", &"bind_flashlight", "Flashlight", "F", "View")
 	var _m := keys.add_maps("Interface")
@@ -30,36 +30,36 @@ func _build_menu() -> void:
 	keys.add(&"demo_scores", &"bind_scores", "Scoreboard (hold)", "Tab", "Interface")
 
 	# 2. The settings: the stock ones, the game's own, and the developer's config over both.
-	var config := DotMenuConfig.new()
+	var config := GSMenuConfig.new()
 	config.brand_mark = "dot"
 	config.brand_name = "menu"
 	# The environment and the command line over those: GS_MENU_THEME=paper, --menu-browser-tips=on.
 	var _layered := config.load_layered()
-	var schema := DotSettingsSchema.new()
-	DotMenuStock.declare(schema)
-	schema.add(DotSettingsDef.boolean(&"show_speed", true, &"hud").with_description("Your speed under the clock."))
-	schema.add(DotSettingsDef.text(&"hud_positions", "", &"hud"))
+	var schema := GSSettingsSchema.new()
+	GSMenuStock.declare(schema)
+	schema.add(GSSettingsDef.boolean(&"show_speed", true, &"hud").with_description("Your speed under the clock."))
+	schema.add(GSSettingsDef.text(&"hud_positions", "", &"hud"))
 	keys.add_to_schema(schema)
 	var _problems := config.apply_to_schema(schema)
 
-	settings = DotMenuStock.manager(schema, "user://dot_menu_demo", &"dot_menu_demo", &"")
+	settings = GSMenuStock.manager(schema, "user://dot_menu_demo", &"dot_menu_demo", &"")
 	add_child(settings)
 	var _loaded := settings.setup()
 
 	# 3. What applies them.
-	applier = DotMenuApplier.new()
+	applier = GSMenuApplier.new()
 	applier.settings = settings
 	applier.bindings = keys
 	add_child(applier)
 	applier.bind_camera(camera)
 	var _shown := applier.on(&"show_speed", func(on: Variant, _why: StringName) -> void: hud.speed.visible = bool(on))
 	var _placed := applier.on(&"hud_positions", func(text: Variant, _why: StringName) -> void:
-		hud.positions = DotMenuLayoutEditor.decode(str(text), hud.pieces())
+		hud.positions = GSMenuLayoutEditor.decode(str(text), hud.pieces())
 		hud.place())
 	var _applied := applier.setup()
 
 	# 4. The menu, and the game's own page on it.
-	menu = DotMenu.new()
+	menu = GSMenu.new()
 	menu.settings = settings
 	menu.bindings = keys
 	menu.config = config
@@ -71,13 +71,13 @@ func _build_menu() -> void:
 	add_child(menu)
 	var _set := menu.setup()
 
-	var gameplay := DotMenuPage.make(&"gameplay", "Gameplay", "What is on the screen, and your light.")
+	var gameplay := GSMenuPage.make(&"gameplay", "Gameplay", "What is on the screen, and your light.")
 	gameplay.section("HUD") \
-		.add(DotMenuRow.toggle(&"show_speed", "Speed", "Your speed under the clock.")) \
-		.add(DotMenuRow.button("Arrange", "Drag the clock and the speed wherever you want them.", "Move HUD elements",
+		.add(GSMenuRow.toggle(&"show_speed", "Speed", "Your speed under the clock.")) \
+		.add(GSMenuRow.button("Arrange", "Drag the clock and the speed wherever you want them.", "Move HUD elements",
 			func() -> void: menu.open_layout_editor(hud, {&"clock": "Clock", &"speed": "Speed"})))
 	gameplay.section("View").add(
-		DotMenuRow.live_toggle("Flashlight", "", func() -> bool: return flashlight_on,
+		GSMenuRow.live_toggle("Flashlight", "", func() -> bool: return flashlight_on,
 			func(on: bool) -> void: flashlight_on = on)
 			.enabled_when(func() -> bool: return server_allows_flashlight)
 			.described_by(func() -> String:
@@ -92,12 +92,12 @@ func _build_menu() -> void:
 	menu.help.add_text("Modes", "A game describes its modes or its rules in a card like this one, and the keys come from its table on the left.")
 	menu.help.add_section("This demo", [["P", "The next theme"]], &"keys")
 	# The map menu: M opens these, and offline a choice changes the map (here, says so).
-	var _maps := menu.use_maps(maps, func(id: StringName) -> DotResult:
+	var _maps := menu.use_maps(maps, func(id: StringName) -> GSResult:
 		hud.speed.text = "Changed to %s" % id
-		return DotResult.success(id))
+		return GSResult.success(id))
 	menu.layout_editor.saved.connect(func(text: String) -> void: var _s := settings.set_value(&"hud_positions", text))
 	menu.picked.connect(func(id: StringName) -> void: hud.speed.text = "Picked %s" % id)
-	menu.theme_changed.connect(func(p: DotMenuPalette) -> void: hud.recolour(p))
+	menu.theme_changed.connect(func(p: GSMenuPalette) -> void: hud.recolour(p))
 	menu.action_requested.connect(func(id: StringName) -> void:
 		if id == &"leave":
 			get_tree().quit())
@@ -105,8 +105,8 @@ func _build_menu() -> void:
 
 	# Offline there is no server roster, so the board draws this game's own; online it would be
 	# `menu.scoreboard.feed_from(link)`. Kills and deaths are this game's columns.
-	menu.scoreboard.add_column({"key": &"kills", "title": "K", "kind": DotMenuScoreboard.KIND_NUMBER}, &"score")
-	menu.scoreboard.add_column({"key": &"deaths", "title": "D", "kind": DotMenuScoreboard.KIND_NUMBER}, &"score")
+	menu.scoreboard.add_column({"key": &"kills", "title": "K", "kind": GSMenuScoreboard.KIND_NUMBER}, &"score")
+	menu.scoreboard.add_column({"key": &"deaths", "title": "D", "kind": GSMenuScoreboard.KIND_NUMBER}, &"score")
 	menu.scoreboard.source = roster
 
 
@@ -279,7 +279,7 @@ class DemoHud extends Control:
 	func pieces() -> Array:
 		return [&"clock", &"speed"]
 
-	func recolour(p: DotMenuPalette) -> void:
+	func recolour(p: GSMenuPalette) -> void:
 		clock.add_theme_color_override(&"font_color", p.hud_text)
 		speed.add_theme_color_override(&"font_color", p.hud_detail)
 

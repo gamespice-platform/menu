@@ -10,9 +10,9 @@ static func run(host: Selftest) -> void:
 	vp.size = Vector2i(800, 600)
 	host.add_child(vp)
 	var screens := {
-		"help": DotMenuHelp.new(),
-		"loadout": DotMenuLoadoutScreen.new(),
-		"team": DotMenuTeamScreen.new(),
+		"help": GSMenuHelp.new(),
+		"loadout": GSMenuLoadoutScreen.new(),
+		"team": GSMenuTeamScreen.new(),
 	}
 	for key in screens:
 		var s := screens[key] as Control

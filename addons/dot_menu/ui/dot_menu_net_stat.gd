@@ -1,9 +1,9 @@
-class_name DotMenuNetStat
+class_name GSMenuNetStat
 extends Control
 
-## `net_stat`: what the connection is doing, drawn over the game in a corner. Levels 0 (off) to 3; [DotMenu] drives it from `net_stat`, `net_stat_height` and `net_stat_position`. Example: docs/examples.md.
-## Numbers come from [method sample_source], a [DotMeteredPeer] (this node's own multiplayer peer, or [member source]); a browser's WebSocket reports every arrival on channel 0, so those bars are one colour. Rates are drawn as rates, per [member bucket_sec], so the scale means the same at every frame rate.
-## Frame times are wall-clock ([DotMenuFrameClock]); prediction is read duck-typed from `dot_net_manager`. One draw call, no children, redrawn when a bar closes, so the overlay is not a cost of its own.
+## `net_stat`: what the connection is doing, drawn over the game in a corner. Levels 0 (off) to 3; [GSMenu] drives it from `net_stat`, `net_stat_height` and `net_stat_position`. Example: docs/examples.md.
+## Numbers come from [method sample_source], a [GSMeteredPeer] (this node's own multiplayer peer, or [member source]); a browser's WebSocket reports every arrival on channel 0, so those bars are one colour. Rates are drawn as rates, per [member bucket_sec], so the scale means the same at every frame rate.
+## Frame times are wall-clock ([GSMenuFrameClock]); prediction is read duck-typed from `dot_net_manager`. One draw call, no children, redrawn when a bar closes, so the overlay is not a cost of its own.
 
 enum Level { OFF = 0, NUMBERS = 1, GRAPH = 2, FULL = 3 }
 
@@ -61,14 +61,14 @@ var margin := Vector2(14.0, 14.0)
 var bucket_sec: float = 0.05
 
 ## `func() -> Object`: the meter to read. Unset is this node's own multiplayer peer when it
-## is a [DotMeteredPeer].
+## is a [GSMeteredPeer].
 var source: Callable = Callable()
 
 ## What each channel is called and drawn in. The family's four (GameSpice Core's
-## [enum DotTransport.Channel]): channel 2 also carries the games' voice.
+## [enum GSTransport.Channel]): channel 2 also carries the games' voice.
 var channel_names := PackedStringArray(["control", "state", "events · voice", "content"])
 
-var kit: DotMenuKit = null
+var kit: GSMenuKit = null
 
 ## Blue, green, amber, violet: apart from each other, and from the HUD's own ahead/behind
 ## green and red, on every stock theme's plate.
@@ -104,12 +104,12 @@ var _out_scale := 1024.0
 var _rtt_scale := 100.0
 
 ## Wall-clock frame timing; runs only while the panel is shown.
-var frames := DotMenuFrameClock.new()
+var frames := GSMenuFrameClock.new()
 
-var _painter: RefCounted = load("uid://t8ih5rf7iudm").new(self)  # DotMenuNetStatPainter, loaded (not named) so the two parsers do not hold each other
+var _painter: RefCounted = load("uid://t8ih5rf7iudm").new(self)  # GSMenuNetStatPainter, loaded (not named) so the two parsers do not hold each other
 
 ## `func() -> Object`: the client's GameSpice Net manager, or null. Unset looks one up in
-## [DotRegistry]; see the class note.
+## [GSRegistry]; see the class note.
 var net_source: Callable = Callable()
 
 ## When the open bucket closes, in microseconds.
@@ -158,16 +158,16 @@ func _on_frame(wall_us: int, physics_us: int, script_us: int, render_us: int, _s
 		_bucket_worst = PackedInt32Array([wall_us, physics_us, script_us, render_us])
 
 
-## The overlay on a layer of its own under [param host], following the three `net_stat*` settings of [param settings], for a game with no [DotMenu].
-## Declare the settings with [method DotMenuStock.declare_net_stat] first. Layer 120: over a HUD and the menu (110),
+## The overlay on a layer of its own under [param host], following the three `net_stat*` settings of [param settings], for a game with no [GSMenu].
+## Declare the settings with [method GSMenuStock.declare_net_stat] first. Layer 120: over a HUD and the menu (110),
 ## under the console (128).
-static func follow(host: Node, settings: DotSettingsManager, layer: int = 120, p_kit: DotMenuKit = null) -> DotMenuNetStat:
+static func follow(host: Node, settings: GSSettingsManager, layer: int = 120, p_kit: GSMenuKit = null) -> GSMenuNetStat:
 	var canvas := CanvasLayer.new()
 	canvas.name = "NetStatLayer"
 	canvas.layer = layer
 	host.add_child(canvas)
-	var overlay := DotMenuNetStat.new()
-	overlay.kit = p_kit if p_kit != null else DotMenuKit.new(DotMenuPalette.new())
+	var overlay := GSMenuNetStat.new()
+	overlay.kit = p_kit if p_kit != null else GSMenuKit.new(GSMenuPalette.new())
 	canvas.add_child(overlay)
 	var _level := overlay.read_settings(settings)
 	if settings != null:
@@ -179,7 +179,7 @@ static func follow(host: Node, settings: DotSettingsManager, layer: int = 120, p
 	return overlay
 
 
-var _followed: DotSettingsManager = null
+var _followed: GSSettingsManager = null
 
 
 func _on_followed_changed(key: StringName, _value: Variant, _why: StringName) -> void:
@@ -189,8 +189,8 @@ func _on_followed_changed(key: StringName, _value: Variant, _why: StringName) ->
 
 ## Takes level, height and corner from [param settings], each only where its schema
 ## declares it. Returns the level. The one place the three settings are read, for
-## [DotMenu] and [method follow] alike.
-func read_settings(settings: DotSettingsManager) -> int:
+## [GSMenu] and [method follow] alike.
+func read_settings(settings: GSSettingsManager) -> int:
 	if settings == null or settings.schema == null or not settings.schema.has(&"net_stat"):
 		level = Level.OFF
 		return level
@@ -221,25 +221,25 @@ func sample_source() -> Object:
 		return source.call()
 	if not is_inside_tree() or multiplayer == null:
 		return null
-	return DotMeteredPeer.of(multiplayer.multiplayer_peer)
+	return GSMeteredPeer.of(multiplayer.multiplayer_peer)
 
 
 ## Redraws in [param p_kit]'s palette.
-func restyle(p_kit: DotMenuKit) -> void:
+func restyle(p_kit: GSMenuKit) -> void:
 	kit = p_kit
 	_plate = null
 	queue_redraw()
 
 
 ## The client's GameSpice Net manager, or null: [member net_source], else the one published in
-## [DotRegistry] under [code]dot_net_manager[/code] (any scope) that is not a server's.
+## [GSRegistry] under [code]dot_net_manager[/code] (any scope) that is not a server's.
 func net_manager() -> Object:
 	if net_source.is_valid():
 		return net_source.call()
-	for n in DotRegistry.names():
+	for n in GSRegistry.names():
 		if not n.begins_with("dot_net_manager"):
 			continue
-		var m := DotRegistry.get_service(StringName(n))
+		var m := GSRegistry.get_service(StringName(n))
 		if m != null and m.has_method(&"perf_counters") and not bool(m.get(&"is_server")):
 			return m
 	return null
@@ -480,8 +480,8 @@ func _relayout() -> void:
 	queue_redraw()
 
 
-func _palette() -> DotMenuPalette:
-	return kit.palette if kit != null else DotMenuPalette.new()
+func _palette() -> GSMenuPalette:
+	return kit.palette if kit != null else GSMenuPalette.new()
 
 
 func _font() -> Font:

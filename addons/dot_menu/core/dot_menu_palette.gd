@@ -1,12 +1,12 @@
 @tool
-class_name DotMenuPalette
+class_name GSMenuPalette
 extends Resource
 
 ## One theme: every colour a menu and a HUD are drawn in, under one id. A whole palette, not an accent swap, so light and high-contrast themes can move surfaces and text; no screen draws a literal.
 ## The HUD's half ([member hud_plate] and the eleven after it) is here too. [method from_dictionary] reads `"#rrggbb"`, `"#rrggbbaa"`, `[r, g, b]` or `[r, g, b, a]`;
 ## a key left out keeps the value of [param base], so an accent-only theme stays three lines long.
 
-## The id stored in the `ui_theme` setting. Unique within a [DotMenuThemes].
+## The id stored in the `ui_theme` setting. Unique within a [GSMenuThemes].
 @export var id: StringName = &"midnight"
 
 ## What the menu calls it.
@@ -102,10 +102,10 @@ func flame() -> PackedColorArray:
 
 
 ## The [Theme] a HUD drawn in this palette sets on its root, so GameSpice UI's glance pieces and plain Labels take their colours from it.
-## [param accent] is the game's own [Theme] whose [DotHudPiece] colours (usually `highlight`, `plate_edge`) are laid over the palette's; leave plate, text and ink alone
-## or light themes cannot change them. A fresh [Theme] every call, for [DotUiTheme]'s reason.
+## [param accent] is the game's own [Theme] whose [GSHudPiece] colours (usually `highlight`, `plate_edge`) are laid over the palette's; leave plate, text and ink alone
+## or light themes cannot change them. A fresh [Theme] every call, for [GSUiTheme]'s reason.
 func hud_theme(accent: Theme = null) -> Theme:
-	var t := DotHudPiece.theme_from({
+	var t := GSHudPiece.theme_from({
 		&"plate": hud_plate, &"plate_edge": hud_edge, &"text": hud_text, &"dim": hud_detail,
 		&"low": hud_behind, &"good": hud_ahead, &"highlight": hud_highlight, &"ink": hud_ink,
 		&"keycap": hud_keycap, &"keycap_text": hud_keycap_text, &"keycap_edge": hud_keycap_edge,
@@ -140,8 +140,8 @@ static func ink_on(fill: Color) -> Color:
 
 
 ## A copy under a new id. What a theme that starts from another one is built with.
-func derive(new_id: StringName, new_name: String) -> DotMenuPalette:
-	var p := duplicate(true) as DotMenuPalette
+func derive(new_id: StringName, new_name: String) -> GSMenuPalette:
+	var p := duplicate(true) as GSMenuPalette
 	p.id = new_id
 	p.display_name = new_name
 	return p
@@ -164,14 +164,14 @@ func to_dictionary() -> Dictionary:
 
 
 ## A palette from data, on top of [param base] (or the stock default when null).
-## Returns a [DotResult] rather than a half-built palette: a colour nobody can read is a
+## Returns a [GSResult] rather than a half-built palette: a colour nobody can read is a
 ## mistake its author wants to hear about, with the key named.
-static func from_dictionary(data: Dictionary, base: DotMenuPalette = null) -> DotResult:
-	var p: DotMenuPalette = base.duplicate(true) if base != null else DotMenuPalette.new()
+static func from_dictionary(data: Dictionary, base: GSMenuPalette = null) -> GSResult:
+	var p: GSMenuPalette = base.duplicate(true) if base != null else GSMenuPalette.new()
 
 	var raw_id := str(data.get("id", ""))
 	if raw_id == "":
-		return DotResult.fail(DotError.CODE_INVALID, "A theme needs an id.")
+		return GSResult.fail(GSError.CODE_INVALID, "A theme needs an id.")
 	p.id = StringName(raw_id)
 	p.display_name = str(data.get("name", data.get("display_name", raw_id.capitalize())))
 
@@ -181,8 +181,8 @@ static func from_dictionary(data: Dictionary, base: DotMenuPalette = null) -> Do
 			continue
 		var c: Variant = parse_color(data[key])
 		if c == null:
-			return DotResult.fail(
-				DotError.CODE_INVALID,
+			return GSResult.fail(
+				GSError.CODE_INVALID,
 				"Theme '%s': '%s' is not a colour (%s)." % [raw_id, key, str(data[key])]
 			)
 		p.set(field, c)
@@ -193,8 +193,8 @@ static func from_dictionary(data: Dictionary, base: DotMenuPalette = null) -> Do
 			continue
 		var n: Variant = data[key2]
 		if not (n is float or n is int):
-			return DotResult.fail(
-				DotError.CODE_INVALID,
+			return GSResult.fail(
+				GSError.CODE_INVALID,
 				"Theme '%s': '%s' is not a number (%s)." % [raw_id, key2, str(n)]
 			)
 		p.set(field, clampf(float(n), 0.0, 1.0))
@@ -204,13 +204,13 @@ static func from_dictionary(data: Dictionary, base: DotMenuPalette = null) -> Do
 		for k in (more as Dictionary):
 			var c2: Variant = parse_color((more as Dictionary)[k])
 			if c2 == null:
-				return DotResult.fail(
-					DotError.CODE_INVALID,
+				return GSResult.fail(
+					GSError.CODE_INVALID,
 					"Theme '%s': extra colour '%s' is not a colour." % [raw_id, str(k)]
 				)
 			p.extra[StringName(str(k))] = c2
 
-	return DotResult.success(p)
+	return GSResult.success(p)
 
 
 ## `"#rgb"`, `"#rrggbb"`, `"#rrggbbaa"`, a named colour, `[r, g, b]`, `[r, g, b, a]`, or a

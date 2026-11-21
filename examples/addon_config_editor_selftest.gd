@@ -1,6 +1,6 @@
 extends Node
 
-## Exercises [DotAddonConfigEditorScreen]: open, apply to the user tier, reset, tier off, unknown file.
+## Exercises [GSAddonConfigEditorScreen]: open, apply to the user tier, reset, tier off, unknown file.
 
 const SECTIONS := 6
 const CHECKS := 30
@@ -12,7 +12,7 @@ var _section_count := 0
 
 
 func _ready() -> void:
-	DotLog.set_level(DotLog.Level.FATAL)
+	GSLog.set_level(GSLog.Level.FATAL)
 	_run.call_deferred()
 
 
@@ -25,7 +25,7 @@ func _run() -> void:
 	await _test_undo()
 	await _test_escape_port()
 	clean()
-	DotAddonConfig.set_user_tier(false)
+	GSAddonConfig.set_user_tier(false)
 	_line("")
 	_line("%d sections, %d passed, %d failed" % [_section_count, _passed, _failed])
 	if _section_count != SECTIONS or _passed + _failed != CHECKS:
@@ -37,17 +37,17 @@ func _run() -> void:
 
 static func schema() -> Array:
 	return [
-		DotProfileSet.field("volume", "float", 1.0, {"min": 0.0, "max": 2.0, "group": "Sound", "unit": "x", "description": "Master gain of the demo."}),
-		DotProfileSet.field("voices", "int", 8, {"min": 1, "max": 64, "group": "Sound"}),
-		DotProfileSet.field("mode", "string", "normal", {"enum": ["quiet", "normal", "loud"], "group": "Sound"}),
-		DotProfileSet.field("subtitles", "bool", false, {"group": "Accessibility", "description": "Draw captions."}),
-		DotProfileSet.field("caption_size", "int", 18, {"min": 10, "max": 48, "group": "Accessibility", "unit": "px"}),
+		GSProfileSet.field("volume", "float", 1.0, {"min": 0.0, "max": 2.0, "group": "Sound", "unit": "x", "description": "Master gain of the demo."}),
+		GSProfileSet.field("voices", "int", 8, {"min": 1, "max": 64, "group": "Sound"}),
+		GSProfileSet.field("mode", "string", "normal", {"enum": ["quiet", "normal", "loud"], "group": "Sound"}),
+		GSProfileSet.field("subtitles", "bool", false, {"group": "Accessibility", "description": "Draw captions."}),
+		GSProfileSet.field("caption_size", "int", 18, {"min": 10, "max": 48, "group": "Accessibility", "unit": "px"}),
 	]
 
 
 static func write_files() -> void:
 	clean()
-	var dir := DotAddonConfig.write_dir_for(ADDON)
+	var dir := GSAddonConfig.write_dir_for(ADDON)
 	DirAccess.make_dir_recursive_absolute(dir)
 	var f := FileAccess.open(dir.path_join("tuning.yml"), FileAccess.WRITE)
 	f.store_string("volume: 0.8\nvoices: 16\n")
@@ -55,17 +55,17 @@ static func write_files() -> void:
 
 
 static func clean() -> void:
-	for dir in [DotAddonConfig.write_dir_for(ADDON), DotAddonConfig.user_dir_for(ADDON)]:
+	for dir in [GSAddonConfig.write_dir_for(ADDON), GSAddonConfig.user_dir_for(ADDON)]:
 		if DirAccess.dir_exists_absolute(dir):
 			for f in DirAccess.get_files_at(dir):
 				DirAccess.remove_absolute(dir.path_join(f))
 			DirAccess.remove_absolute(dir)
 
 
-func _editor() -> DotAddonConfigEditorScreen:
+func _editor() -> GSAddonConfigEditorScreen:
 	write_files()
-	DotAddonConfig.set_user_tier(true)
-	var ed := DotAddonConfigEditorScreen.new()
+	GSAddonConfig.set_user_tier(true)
+	var ed := GSAddonConfigEditorScreen.new()
 	ed.tokens.animate = false
 	ed.custom_minimum_size = Vector2(1000, 600)
 	ed.size = Vector2(1000, 600)
@@ -86,10 +86,10 @@ func _test_open_and_apply() -> void:
 	var res := ed.apply()
 	await get_tree().process_frame
 	_check(res.ok, "apply succeeds")
-	var paths := DotAddonConfig.user_paths(ADDON, "tuning.yml")
+	var paths := GSAddonConfig.user_paths(ADDON, "tuning.yml")
 	_check(paths.get("volume") == 1.5 and paths.get("subtitles") == true, "only the changes reach the user file")
 	_check(not paths.has("voices"), "an untouched key is not copied into the user file")
-	var cfg := DotAddonConfig.load_dir(ADDON, {})
+	var cfg := GSAddonConfig.load_dir(ADDON, {})
 	_check(cfg.ok and cfg.value["volume"] == 1.5 and cfg.value["voices"] == 16, "the game's loader sees the override over the shipped file")
 	ed.queue_free()
 
@@ -104,7 +104,7 @@ func _test_reset() -> void:
 	var btn: Button = ed._reset_btn
 	_check(not btn.disabled, "reset is enabled once a user file exists")
 	var res := ed.reset_file()
-	_check(res.ok and not FileAccess.file_exists(DotAddonConfig.user_file(ADDON, "tuning.yml")), "reset deletes the user file")
+	_check(res.ok and not FileAccess.file_exists(GSAddonConfig.user_file(ADDON, "tuning.yml")), "reset deletes the user file")
 	_check(is_equal_approx(ed.form.values()["volume"], 0.8), "the form shows the shipped value again")
 	_check(btn.disabled, "reset is disabled with nothing to reset")
 	ed.queue_free()
@@ -115,15 +115,15 @@ func _test_tier_off() -> void:
 	var ed := _editor()
 	await get_tree().process_frame
 	var _o := ed.open(ADDON, "tuning.yml")
-	DotAddonConfig.set_user_tier(false)
+	GSAddonConfig.set_user_tier(false)
 	var _a := ed.form.set_value("voices", 32)
 	var res := ed.apply()
 	await get_tree().process_frame
-	_check(not DotAddonConfig.user_paths(ADDON, "tuning.yml").has("voices"), "nothing is written while the tier is off")
+	_check(not GSAddonConfig.user_paths(ADDON, "tuning.yml").has("voices"), "nothing is written while the tier is off")
 	_check(res.ok, "the form accepts its own apply; the tier refuses the write")
-	DotAddonConfig.set_user_tier(true)
-	var cfg := DotAddonConfig.load_dir(ADDON, {})
-	DotAddonConfig.set_user_tier(false)
+	GSAddonConfig.set_user_tier(true)
+	var cfg := GSAddonConfig.load_dir(ADDON, {})
+	GSAddonConfig.set_user_tier(false)
 	_check(cfg.value["voices"] == 16, "the loader stays on the shipped value")
 	ed.queue_free()
 
@@ -133,7 +133,7 @@ func _test_failures() -> void:
 	var ed := _editor()
 	await get_tree().process_frame
 	var res := ed.open("nope", "x.yml")
-	_check(not res.ok and res.error.code == DotError.CODE_INVALID, "an unknown file is CODE_INVALID")
+	_check(not res.ok and res.error.code == GSError.CODE_INVALID, "an unknown file is CODE_INVALID")
 	_check(not ed.apply().ok and not ed.reset_file().ok, "apply and reset with nothing open fail")
 	_check(ed.describe().contains("1 files"), "describe counts the files")
 	ed.queue_free()
@@ -160,7 +160,7 @@ func _test_undo() -> void:
 func _test_escape_port() -> void:
 	_section("Escape menu port")
 	var ed := _editor()
-	var menu := DotMenu.new()
+	var menu := GSMenu.new()
 	add_child(menu)
 	menu.settings = null
 	var _s := menu.setup()

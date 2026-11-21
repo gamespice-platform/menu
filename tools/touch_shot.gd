@@ -6,7 +6,7 @@ const OUT := "res://screenshots"
 
 
 func _initialize() -> void:
-	DotPlatform.touch_override = 1
+	GSPlatform.touch_override = 1
 	root.size = Vector2i(390, 844)
 	_run.call_deferred()
 
@@ -16,8 +16,8 @@ func _run() -> void:
 	var demo := (load("res://examples/menu_demo.tscn") as PackedScene).instantiate()
 	root.add_child(demo)
 	await _frames(6)
-	var menu: DotMenu = demo.get("menu")
-	(demo.get("settings") as DotSettingsManager).reset_all()
+	var menu: GSMenu = demo.get("menu")
+	(demo.get("settings") as GSSettingsManager).reset_all()
 	await _shot("touch_hud")
 	menu.open(&"video")
 	await _shot("touch_video")

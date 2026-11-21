@@ -1,6 +1,6 @@
 extends RefCounted
 
-## DotMenuStats columns and DotMenuStatsPanel, run from menu_selftest.
+## GSMenuStats columns and GSMenuStatsPanel, run from menu_selftest.
 
 const SNAP := {
 	"server": {"name": "S"}, "you": 2,
@@ -22,10 +22,10 @@ static func run(host: Node) -> void:
 	vp.size = Vector2i(1280, 720)
 	vp.disable_3d = true
 	host.add_child(vp)
-	var board := DotMenuScoreboard.new()
+	var board := GSMenuScoreboard.new()
 	vp.add_child(board)
-	var stats := DotMenuStats.install(board)
-	host._check(DotMenuStats.install(board) == stats, "installing twice gives the same node")
+	var stats := GSMenuStats.install(board)
+	host._check(GSMenuStats.install(board) == stats, "installing twice gives the same node")
 	board.source = func() -> Dictionary: return SNAP
 	board.open()
 	for i in 4:
@@ -39,7 +39,7 @@ static func run(host: Node) -> void:
 	stats.enabled = true
 	host._check(&"lt_kills" in board.columns.map(func(c: Dictionary) -> Variant: return c.get("key")), "and on brings them back")
 
-	var panel := DotMenuStatsPanel.new()
+	var panel := GSMenuStatsPanel.new()
 	vp.add_child(panel)
 	panel.show_snapshot(SNAP)
 	panel.show_for(0.0)

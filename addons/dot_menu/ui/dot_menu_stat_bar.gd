@@ -1,10 +1,10 @@
-class_name DotMenuStatBar
+class_name GSMenuStatBar
 extends RefCounted
 ## The stat bar of the loadout screen's detail card.
 
 
 ## One stat: a label, a bar, and a tick where the equipped item stands.
-static func build(kit: DotMenuKit, label: String, value: float, text: String, held: float, same: bool) -> Control:
+static func build(kit: GSMenuKit, label: String, value: float, text: String, held: float, same: bool) -> Control:
 	var p := kit.palette
 	var row := HBoxContainer.new()
 	row.add_theme_constant_override(&"separation", 10)

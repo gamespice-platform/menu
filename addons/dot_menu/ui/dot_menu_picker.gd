@@ -1,4 +1,4 @@
-class_name DotMenuPicker
+class_name GSMenuPicker
 extends Control
 
 ## A numbered list to pick one thing from, a page at a time: maps, a team, a class, a vote. Example: docs/examples.md.
@@ -16,7 +16,7 @@ signal tab_clicked(id: StringName)
 ## Rows per page. Seven, so 8 and 9 stay the page keys.
 const PAGE_SIZE := 7
 
-var kit: DotMenuKit = null
+var kit: GSMenuKit = null
 
 var items: Array = []
 var page: int = 0
@@ -53,8 +53,8 @@ var _built := false
 
 func _ready() -> void:
 	if kit == null:
-		kit = DotMenuKit.new()
-	DotMenuKit.fill_parent(self)
+		kit = GSMenuKit.new()
+	GSMenuKit.fill_parent(self)
 	mouse_filter = Control.MOUSE_FILTER_STOP
 	visible = false
 
@@ -68,11 +68,11 @@ func _ensure_built() -> void:
 	_build()
 
 
-func restyle(new_kit: DotMenuKit) -> void:
+func restyle(new_kit: GSMenuKit) -> void:
 	kit = new_kit
 	if not _built:
 		return
-	DotMenuKit.clear(self)
+	GSMenuKit.clear(self)
 	_build()
 	if visible:
 		_rebuild()
@@ -84,12 +84,12 @@ func _build() -> void:
 
 	var back := ColorRect.new()
 	back.color = Color(p.backdrop, 0.55)
-	DotMenuKit.fill_parent(back)
+	GSMenuKit.fill_parent(back)
 	back.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	add_child(back)
 
 	var centre := CenterContainer.new()
-	DotMenuKit.fill_parent(centre)
+	GSMenuKit.fill_parent(centre)
 	centre.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	add_child(centre)
 
@@ -204,7 +204,7 @@ func key(keycode: Key) -> bool:
 func _rebuild() -> void:
 	if _rows == null:
 		return
-	DotMenuKit.clear(_rows)
+	GSMenuKit.clear(_rows)
 
 	_title.text = title_text
 	_instructions.text = instructions
@@ -227,7 +227,7 @@ func _rebuild() -> void:
 
 
 func _draw_tabs() -> void:
-	DotMenuKit.clear(_tab_strip)
+	GSMenuKit.clear(_tab_strip)
 	_tab_strip.visible = tabs.size() > 1
 	if not _tab_strip.visible:
 		return
@@ -307,7 +307,7 @@ func _row(row: int, it: Dictionary) -> Control:
 	var line := HBoxContainer.new()
 	line.add_theme_constant_override(&"separation", 10)
 	line.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	DotMenuKit.fill_parent(line)
+	GSMenuKit.fill_parent(line)
 	line.offset_left = 10
 	line.offset_right = -10
 	button.add_child(line)

@@ -1,6 +1,6 @@
 extends Control
 
-## The offer half of [DotMenuLoadoutScreen] (its base script): what the server offered, the draft, and the
+## The offer half of [GSMenuLoadoutScreen] (its base script): what the server offered, the draft, and the
 ## questions asked of them (slots, locks, Random, the budget). No drawing; the screen is in dot_menu_loadout_screen.gd.
 
 ## The offer it was opened with.

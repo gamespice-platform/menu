@@ -4,7 +4,7 @@ const Selftest := preload("res://examples/menu_selftest.gd")
 
 ## The Tab scoreboard, run from menu_selftest.
 
-## Anything shaped like GameSpice Server's DotClientLink, for the board's feed.
+## Anything shaped like GameSpice Server's GSClientLink, for the board's feed.
 class FakeLink extends RefCounted:
 	signal scoreboard_received(snapshot: Dictionary)
 	var asked: Array = []
@@ -17,8 +17,8 @@ class FakeLink extends RefCounted:
 static func run(host: Selftest) -> void:
 	host._section("The scoreboard: held, themed, and the game's to change")
 
-	host._check(DotMenuScoreboard.duration(245) == "4:05" and DotMenuScoreboard.duration(3729) == "1:02:09"
-		and DotMenuScoreboard.duration(-1) == "-", "time connected reads as a clock")
+	host._check(GSMenuScoreboard.duration(245) == "4:05" and GSMenuScoreboard.duration(3729) == "1:02:09"
+		and GSMenuScoreboard.duration(-1) == "-", "time connected reads as a clock")
 
 	var menu := host._menu()
 	menu.bindings.add(&"test_scores", &"bind_scores", "Scoreboard", "Tab", "Interface")
@@ -45,7 +45,7 @@ static func run(host: Selftest) -> void:
 	await host.get_tree().process_frame
 
 
-static func _held(host: Selftest, menu: DotMenu, board: DotMenuScoreboard, link: FakeLink) -> void:
+static func _held(host: Selftest, menu: GSMenu, board: GSMenuScoreboard, link: FakeLink) -> void:
 	var tab := host._key(KEY_TAB)
 	host._check(menu.handle_event(tab) and board.is_open(), "Tab held shows it")
 	host._check(not menu.any_open(), "and it is not an overlay: the player keeps moving and the pointer stays")
@@ -81,10 +81,10 @@ static func _held(host: Selftest, menu: DotMenu, board: DotMenuScoreboard, link:
 	host._check(link.asked == [true, false], "and stops the server sending")
 
 
-static func _custom(host: Selftest, board: DotMenuScoreboard, link: FakeLink) -> void:
-	board.add_column({"key": &"kills", "title": "K", "kind": DotMenuScoreboard.KIND_NUMBER}, &"score")
-	board.add_column({"key": &"rank", "title": "Rank", "kind": DotMenuScoreboard.KIND_CUSTOM,
-		"build": func(kit: DotMenuKit, row: Dictionary) -> Control: return kit.label("#%d" % int(row.get("rank", 0)))})
+static func _custom(host: Selftest, board: GSMenuScoreboard, link: FakeLink) -> void:
+	board.add_column({"key": &"kills", "title": "K", "kind": GSMenuScoreboard.KIND_NUMBER}, &"score")
+	board.add_column({"key": &"rank", "title": "Rank", "kind": GSMenuScoreboard.KIND_CUSTOM,
+		"build": func(kit: GSMenuKit, row: Dictionary) -> Control: return kit.label("#%d" % int(row.get("rank", 0)))})
 	board.decorate = func(row: Dictionary) -> void:
 		row["kills"] = int(row.get("score", 0)) / 5
 		row["rank"] = 9
@@ -109,7 +109,7 @@ static func _custom(host: Selftest, board: DotMenuScoreboard, link: FakeLink) ->
 
 	board.source = func() -> Dictionary:
 		return {"players": [{"id": "me", "name": "Solo", "score": 3, "seconds": 30, "ping": -1}], "you": "me"}
-	board.build_row = func(kit: DotMenuKit, row: Dictionary, _cols: Array) -> Control:
+	board.build_row = func(kit: GSMenuKit, row: Dictionary, _cols: Array) -> Control:
 		return kit.label("ROW %s" % row["name"])
 	board.open()
 	await host.get_tree().process_frame
@@ -119,12 +119,12 @@ static func _custom(host: Selftest, board: DotMenuScoreboard, link: FakeLink) ->
 	host._check(board.rows().size() == 1, "and a source wins over the feed")
 
 
-static func _hidden(host: Selftest, menu: DotMenu, board: DotMenuScoreboard) -> void:
+static func _hidden(host: Selftest, menu: GSMenu, board: GSMenuScoreboard) -> void:
 	# --- Columns a player hides ---
 	board.build_row = Callable()
 	board.source = func() -> Dictionary:
 		return {"players": [{"id": "me", "name": "Solo", "score": 3, "seconds": 30, "ping": 77, "kills": 9, "rank": 4}], "you": "me"}
-	board.add_column({"key": &"best", "title": "Best", "kind": DotMenuScoreboard.KIND_NUMBER, "hidden": true}, &"ping")
+	board.add_column({"key": &"best", "title": "Best", "kind": GSMenuScoreboard.KIND_NUMBER, "hidden": true}, &"ping")
 	board.open()
 	await host.get_tree().process_frame
 	var texts := host._texts(board)
@@ -143,8 +143,8 @@ static func _hidden(host: Selftest, menu: DotMenu, board: DotMenuScoreboard) -> 
 	board.open()
 
 
-static func _choices(host: Selftest, menu: DotMenu, board: DotMenuScoreboard) -> void:
-	var ping_off := menu.settings.set_value(DotMenuScoreboard.SETTING, "ping,seconds")
+static func _choices(host: Selftest, menu: GSMenu, board: GSMenuScoreboard) -> void:
+	var ping_off := menu.settings.set_value(GSMenuScoreboard.SETTING, "ping,seconds")
 	await host.get_tree().process_frame
 	var texts := host._texts(board)
 	host._check(ping_off.ok and not texts.has("Ping") and not texts.has("77") and not texts.has("Time") and not texts.has("0:30"),
@@ -153,42 +153,42 @@ static func _choices(host: Selftest, menu: DotMenu, board: DotMenuScoreboard) ->
 		"and the rest still lays out")
 	host._check(board.visible_columns().size() == board.columns.size() - 3, "visible_columns is the subset (ping, seconds, best)")
 
-	var _nm := menu.settings.set_value(DotMenuScoreboard.SETTING, "name,score")
+	var _nm := menu.settings.set_value(GSMenuScoreboard.SETTING, "name,score")
 	await host.get_tree().process_frame
 	texts = host._texts(board)
 	host._check(texts.has("Player") and texts.has("Solo") and not texts.has("Score"), "the name column cannot be hidden")
-	var _all := menu.settings.set_value(DotMenuScoreboard.SETTING, "avatar,name,score,seconds,ping,kills,rank,nonsense")
+	var _all := menu.settings.set_value(GSMenuScoreboard.SETTING, "avatar,name,score,seconds,ping,kills,rank,nonsense")
 	await host.get_tree().process_frame
 	host._check(board.visible_columns().size() == 1 and host._texts(board).has("Solo"), "any subset draws, an unknown key is ignored")
 
-	var _show := menu.settings.set_value(DotMenuScoreboard.SETTING, "+best")
+	var _show := menu.settings.set_value(GSMenuScoreboard.SETTING, "+best")
 	await host.get_tree().process_frame
 	texts = host._texts(board)
 	host._check(texts.has("Best") and texts.has("Ping"), "the player's choice overrides the game's default-hidden")
-	var _toggle := menu.settings.set_value(DotMenuScoreboard.SETTING, "")
+	var _toggle := menu.settings.set_value(GSMenuScoreboard.SETTING, "")
 	menu.scoreboard_column_rows()[0].setter.call(false)
-	host._check(DotMenuScoreboard.parse_choices(menu.settings.get_string(DotMenuScoreboard.SETTING, "")).size() == 1,
+	host._check(GSMenuScoreboard.parse_choices(menu.settings.get_string(GSMenuScoreboard.SETTING, "")).size() == 1,
 		"a Settings switch writes the setting")
 
 
-static func _persisted(host: Selftest, board: DotMenuScoreboard) -> void:
-	var req := DotMenuScoreboard.column_required({"key": &"score", "required": true})
-	host._check(req and DotMenuScoreboard.column_required({"key": &"name"}) and not DotMenuScoreboard.column_required({"key": &"name", "required": false}),
+static func _persisted(host: Selftest, board: GSMenuScoreboard) -> void:
+	var req := GSMenuScoreboard.column_required({"key": &"score", "required": true})
+	host._check(req and GSMenuScoreboard.column_required({"key": &"name"}) and not GSMenuScoreboard.column_required({"key": &"name", "required": false}),
 		"required defaults on for the name column only")
-	var rt := DotMenuScoreboard.parse_choices(DotMenuScoreboard.format_choices({&"ping": true, &"best": false}))
+	var rt := GSMenuScoreboard.parse_choices(GSMenuScoreboard.format_choices({&"ping": true, &"best": false}))
 	host._check(rt == {&"ping": true, &"best": false}, "the stored text round-trips")
 
 	# Persisted: a second manager over the same store sees the choice.
-	var store := DotSettingsStoreMemory.new()
-	var m1 := DotMenuStock.manager(host._schema(DotMenuStock.DEFAULT_GROUPS), "", &"menu_persist", &"", store)
+	var store := GSSettingsStoreMemory.new()
+	var m1 := GSMenuStock.manager(host._schema(GSMenuStock.DEFAULT_GROUPS), "", &"menu_persist", &"", store)
 	host.add_child(m1)
 	var _s1 := m1.setup()
-	var _w := m1.set_value(DotMenuScoreboard.SETTING, "ping,+best")
+	var _w := m1.set_value(GSMenuScoreboard.SETTING, "ping,+best")
 	var _f := m1.flush()
-	var m2 := DotMenuStock.manager(host._schema(DotMenuStock.DEFAULT_GROUPS), "", &"menu_persist", &"", store)
+	var m2 := GSMenuStock.manager(host._schema(GSMenuStock.DEFAULT_GROUPS), "", &"menu_persist", &"", store)
 	host.add_child(m2)
 	var _s2 := m2.setup()
-	host._check(m2.get_string(DotMenuScoreboard.SETTING, "") == "ping,+best", "the choice survives a restart")
+	host._check(m2.get_string(GSMenuScoreboard.SETTING, "") == "ping,+best", "the choice survives a restart")
 	m1.queue_free()
 	m2.queue_free()
 	board.player_hidden = {}

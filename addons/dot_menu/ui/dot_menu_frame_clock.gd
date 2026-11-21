@@ -1,4 +1,4 @@
-class_name DotMenuFrameClock
+class_name GSMenuFrameClock
 extends RefCounted
 
 ## Wall-clock frame times split into physics, script, render and the wait before the next frame. Example: docs/examples.md.

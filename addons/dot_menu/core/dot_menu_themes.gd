@@ -1,4 +1,4 @@
-class_name DotMenuThemes
+class_name GSMenuThemes
 extends RefCounted
 
 ## Every theme a player can pick, in the order the menu offers them and a key cycles them. Example: docs/examples.md.
@@ -7,23 +7,23 @@ extends RefCounted
 
 const CHANNEL := "menu.themes"
 
-var _palettes: Array[DotMenuPalette] = []
+var _palettes: Array[GSMenuPalette] = []
 
 
 ## The eight stock themes. [b]Midnight[/b] is the default, a dark HUD on deep plates;
 ## [b]Arcade[/b] is the first FC HUD's bright look; [b]Paper[/b] is light; [b]High
 ## contrast[/b] is for a player who cannot read grey on grey; [b]Gamespice[/b] is the web shell's.
-static func stock() -> DotMenuThemes:
-	var t := DotMenuThemes.new()
+static func stock() -> GSMenuThemes:
+	var t := GSMenuThemes.new()
 	for data in STOCK:
-		var res := DotMenuPalette.from_dictionary(data)
+		var res := GSMenuPalette.from_dictionary(data)
 		# The stock data is this file's; a failure here is a typo in it and the suite says so.
 		if res.ok:
 			t.add(res.value)
 	return t
 
 
-## The stock palettes as data, in the format [method DotMenuPalette.from_dictionary] reads,
+## The stock palettes as data, in the format [method GSMenuPalette.from_dictionary] reads,
 ## so they are also the worked example of a theme file.
 const STOCK: Array[Dictionary] = [
 	{
@@ -137,7 +137,7 @@ const STOCK: Array[Dictionary] = [
 		"hud_keycap_edge": [1, 1, 1, 0.9], "hud_team_fill": 0.3,
 	},
 	{
-		# The Gamespice site's tokens (GameSpice UI DotUiGamespice): bg #140d0b, accent #f2542d, flame #ffc83d > #f2542d > #b8193c.
+		# The Gamespice site's tokens (GameSpice UI GSUiGamespice): bg #140d0b, accent #f2542d, flame #ffc83d > #f2542d > #b8193c.
 		"id": "gamespice", "name": "Gamespice",
 		"backdrop": [0.078, 0.05, 0.042, 0.66], "surface": [0.124, 0.087, 0.076, 0.97],
 		"sidebar": [0.098, 0.066, 0.057, 1.0], "card": [1, 0.92, 0.88, 0.04],
@@ -158,7 +158,7 @@ const STOCK: Array[Dictionary] = [
 
 ## The theme the platform hosting the game asks for, from the project setting
 ## [code]dot_menu/theme/platform_default[/code]; empty when none. A web shell sets it so every
-## game it runs opens in the shell's look; [method DotMenuConfig.make_themes] puts it first.
+## game it runs opens in the shell's look; [method GSMenuConfig.make_themes] puts it first.
 static func platform_default() -> StringName:
 	return StringName(str(ProjectSettings.get_setting(PLATFORM_SETTING, "")))
 
@@ -168,7 +168,7 @@ const PLATFORM_SETTING := "dot_menu/theme/platform_default"
 
 ## Adds [param palette], or replaces the theme that has its id in place — so a game can
 ## restyle a stock theme without moving it in the list.
-func add(palette: DotMenuPalette) -> DotMenuThemes:
+func add(palette: GSMenuPalette) -> GSMenuThemes:
 	if palette == null:
 		return self
 	for i in range(_palettes.size()):
@@ -179,32 +179,32 @@ func add(palette: DotMenuPalette) -> DotMenuThemes:
 	return self
 
 
-## Adds a theme from data. See [method DotMenuPalette.from_dictionary]; [code]"base"[/code]
+## Adds a theme from data. See [method GSMenuPalette.from_dictionary]; [code]"base"[/code]
 ## names a theme already here to start from, which is how a theme that changes only the
 ## accent stays three lines long.
-func add_dictionary(data: Dictionary) -> DotResult:
-	var base: DotMenuPalette = null
+func add_dictionary(data: Dictionary) -> GSResult:
+	var base: GSMenuPalette = null
 	if data.has("base"):
 		base = find(StringName(str(data["base"])))
 		if base == null:
-			return DotResult.fail(
-				DotError.CODE_INVALID,
+			return GSResult.fail(
+				GSError.CODE_INVALID,
 				"Theme '%s' starts from '%s', which is not a theme." % [str(data.get("id", "")), str(data["base"])]
 			)
-	var res := DotMenuPalette.from_dictionary(data, base)
+	var res := GSMenuPalette.from_dictionary(data, base)
 	if res.ok:
 		var _added := add(res.value)
 	return res
 
 
 ## Adds every theme in a JSON file: `{"themes": [ {...}, ... ]}` or a bare array. Returns the ids added.
-## A missing file is not an error, for [DotConfig]'s reason ("no themes file" is the first
+## A missing file is not an error, for [GSConfig]'s reason ("no themes file" is the first
 ## launch); a file that exists and does not parse is.
-func load_json(path: String) -> DotResult:
+func load_json(path: String) -> GSResult:
 	if path == "" or not FileAccess.file_exists(path):
-		return DotResult.success(PackedStringArray())
+		return GSResult.success(PackedStringArray())
 
-	var read := DotPaths.read_json(path)
+	var read := GSPaths.read_json(path)
 	if not read.ok:
 		return read.wrap("Could not read themes '%s'." % path)
 
@@ -212,19 +212,19 @@ func load_json(path: String) -> DotResult:
 	if list is Dictionary:
 		list = (list as Dictionary).get("themes", [])
 	if not (list is Array):
-		return DotResult.fail(DotError.CODE_PARSE, "Themes '%s' must hold an array of themes." % path)
+		return GSResult.fail(GSError.CODE_PARSE, "Themes '%s' must hold an array of themes." % path)
 
 	var added := PackedStringArray()
 	for entry in (list as Array):
 		if not (entry is Dictionary):
-			return DotResult.fail(DotError.CODE_PARSE, "Themes '%s': every theme is an object." % path)
+			return GSResult.fail(GSError.CODE_PARSE, "Themes '%s': every theme is an object." % path)
 		var res := add_dictionary(entry as Dictionary)
 		if not res.ok:
 			return res.wrap("Themes '%s'." % path)
-		added.append(String((res.value as DotMenuPalette).id))
+		added.append(String((res.value as GSMenuPalette).id))
 
-	DotLog.debug(CHANNEL, "themes loaded", {"path": path, "ids": ", ".join(added)})
-	return DotResult.success(added)
+	GSLog.debug(CHANNEL, "themes loaded", {"path": path, "ids": ", ".join(added)})
+	return GSResult.success(added)
 
 
 ## Keeps only the themes in [param ids], in their current order. Empty keeps everything.
@@ -233,12 +233,12 @@ func load_json(path: String) -> DotResult:
 func keep_only(ids: PackedStringArray) -> int:
 	if ids.is_empty():
 		return _palettes.size()
-	var kept: Array[DotMenuPalette] = []
+	var kept: Array[GSMenuPalette] = []
 	for p in _palettes:
 		if ids.has(String(p.id)):
 			kept.append(p)
 	if kept.is_empty():
-		DotLog.warn(CHANNEL, "no listed theme exists; every theme is kept", {"ids": ", ".join(ids)})
+		GSLog.warn(CHANNEL, "no listed theme exists; every theme is kept", {"ids": ", ".join(ids)})
 		return _palettes.size()
 	_palettes = kept
 	return kept.size()
@@ -265,7 +265,7 @@ func remove(id: StringName) -> bool:
 	return false
 
 
-func find(id: StringName) -> DotMenuPalette:
+func find(id: StringName) -> GSMenuPalette:
 	for p in _palettes:
 		if p.id == id:
 			return p
@@ -273,11 +273,11 @@ func find(id: StringName) -> DotMenuPalette:
 
 
 ## The theme called [param id], or the default for an id nobody knows.
-func named(id: StringName) -> DotMenuPalette:
+func named(id: StringName) -> GSMenuPalette:
 	var p := find(id)
 	if p != null:
 		return p
-	return _palettes[0] if not _palettes.is_empty() else DotMenuPalette.new()
+	return _palettes[0] if not _palettes.is_empty() else GSMenuPalette.new()
 
 
 ## The theme after [param id], round the end. What the theme key does.

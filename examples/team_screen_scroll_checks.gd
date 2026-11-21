@@ -9,7 +9,7 @@ static func run(host: Node) -> void:
 	vp.size = Vector2i(1280, 720)
 	vp.disable_3d = true
 	host.add_child(vp)
-	var screen := DotMenuTeamScreen.new()
+	var screen := GSMenuTeamScreen.new()
 	vp.add_child(screen)
 	var teams: Array = []
 	for i in range(40):
@@ -21,7 +21,7 @@ static func run(host: Node) -> void:
 	var scroll := screen.find_child("Scroll", true, false) as ScrollContainer
 	host._check(grid != null and grid.get_child_count() == 41, "40 teams and Spectate make 41 cards")
 	host._check(scroll != null and grid.columns * 202 <= 1280 * 0.9, "the columns fit the width (%d)" % grid.columns)
-	host._check(scroll.size.y <= 720 * DotMenuTeamScreen.MAX_HEIGHT_FRACTION + 1.0 \
+	host._check(scroll.size.y <= 720 * GSMenuTeamScreen.MAX_HEIGHT_FRACTION + 1.0 \
 		and grid.get_combined_minimum_size().y > scroll.size.y + 1.0, "the card area is capped (%.0f) and scrolls" % scroll.size.y)
 	host._check(scroll.get_global_rect().end.y <= 720.0, "the window stays on screen")
 	for i in 40:

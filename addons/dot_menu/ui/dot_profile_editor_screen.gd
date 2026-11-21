@@ -1,7 +1,7 @@
-class_name DotProfileEditorScreen
+class_name GSProfileEditorScreen
 extends PanelContainer
 
-## Lists profile kinds and ids and edits one in a [DotUiForm] with Apply, Revert and Reset. Example: docs/examples.md.
+## Lists profile kinds and ids and edits one in a [GSUiForm] with Apply, Revert and Reset. Example: docs/examples.md.
 ## The save and reset targets are callables, so the same screen can edit the runtime layer for an admin.
 
 signal profile_opened(kind: String, id: String)
@@ -9,19 +9,19 @@ signal profile_opened(kind: String, id: String)
 signal saved(kind: String, id: String, changes: Dictionary)
 signal reset_done(kind: String, id: String)
 
-## `func(set: DotProfileSet, id: String, changes: Dictionary) -> DotResult`. Default: the user tier.
+## `func(set: GSProfileSet, id: String, changes: Dictionary) -> GSResult`. Default: the user tier.
 var save_target: Callable = Callable()
-## `func(set: DotProfileSet, id: String) -> DotResult` drops the saved edits. Default: the user tier.
+## `func(set: GSProfileSet, id: String) -> GSResult` drops the saved edits. Default: the user tier.
 var reset_target: Callable = Callable()
-## `func(set: DotProfileSet, id: String) -> bool`: is there a saved edit to reset? Default: a user file.
+## `func(set: GSProfileSet, id: String) -> bool`: is there a saved edit to reset? Default: a user file.
 var has_override: Callable = Callable()
 ## Where Apply writes, shown under the title.
 var target_label := "Your mods on this device"
 ## Below this width the lists collapse into two dropdowns above the form.
 var compact_below := 720.0
-var tokens: DotFormTokens = DotFormTokens.dark()
+var tokens: GSFormTokens = GSFormTokens.dark()
 
-var form: DotUiForm = null
+var form: GSUiForm = null
 
 var _sets := {}
 var _labels := {}
@@ -45,8 +45,8 @@ func _init() -> void:
 	resized.connect(_on_resized)
 
 
-## Adds a kind (a [DotProfileSet]) under [param label]; the set's rel_path is the kind's name.
-func add_set(set: DotProfileSet, label: String = "") -> void:
+## Adds a kind (a [GSProfileSet]) under [param label]; the set's rel_path is the kind's name.
+func add_set(set: GSProfileSet, label: String = "") -> void:
 	var kind := set.rel_path
 	_sets[kind] = set
 	_labels[kind] = label if label != "" else kind.capitalize()
@@ -60,7 +60,7 @@ func kinds() -> PackedStringArray:
 
 ## Ids the list shows for [param kind].
 func ids(kind: String) -> PackedStringArray:
-	return (_sets[kind] as DotProfileSet).list_ids() if _sets.has(kind) else PackedStringArray()
+	return (_sets[kind] as GSProfileSet).list_ids() if _sets.has(kind) else PackedStringArray()
 
 
 func current_kind() -> String:
@@ -72,10 +72,10 @@ func current_id() -> String:
 
 
 ## Opens one profile in the form. Fails when the kind is unknown or the profile does not load.
-func open(kind: String, id: String) -> DotResult:
+func open(kind: String, id: String) -> GSResult:
 	if not _sets.has(kind):
-		return DotResult.fail(DotError.CODE_INVALID, "no profile kind '%s'" % kind)
-	var set: DotProfileSet = _sets[kind]
+		return GSResult.fail(GSError.CODE_INVALID, "no profile kind '%s'" % kind)
+	var set: GSProfileSet = _sets[kind]
 	var loaded := set.load_profile(id)
 	if not loaded.ok:
 		_say(loaded.error.message, true)
@@ -85,22 +85,22 @@ func open(kind: String, id: String) -> DotResult:
 	_show_form(set, loaded.value)
 	_mark_selection()
 	profile_opened.emit(kind, id)
-	return DotResult.success(null)
+	return GSResult.success(null)
 
 
 ## Saves the form's changes through [member save_target]. Value: the changes written.
-func apply() -> DotResult:
+func apply() -> GSResult:
 	if form == null:
-		return DotResult.fail(DotError.CODE_STATE, "no profile is open")
+		return GSResult.fail(GSError.CODE_STATE, "no profile is open")
 	return form.apply()
 
 
 ## Drops the saved edits of the open profile through [member reset_target] and reloads it.
-func reset_profile() -> DotResult:
+func reset_profile() -> GSResult:
 	if form == null:
-		return DotResult.fail(DotError.CODE_STATE, "no profile is open")
-	var set: DotProfileSet = _sets[_kind]
-	var res: DotResult = reset_target.call(set, _id) if reset_target.is_valid() else set.reset_user(_id)
+		return GSResult.fail(GSError.CODE_STATE, "no profile is open")
+	var set: GSProfileSet = _sets[_kind]
+	var res: GSResult = reset_target.call(set, _id) if reset_target.is_valid() else set.reset_user(_id)
 	if not res.ok:
 		_say(res.error.message, true)
 		return res
@@ -113,10 +113,10 @@ func reset_profile() -> DotResult:
 	_say("\u2713  Back to the defaults", false)
 	_refresh_reset()
 	reset_done.emit(_kind, _id)
-	return DotResult.success(null)
+	return GSResult.success(null)
 
 
-func restyle(t: DotFormTokens) -> void:
+func restyle(t: GSFormTokens) -> void:
 	tokens = t
 	_build()
 	if _kind != "" and _id != "":
@@ -124,7 +124,7 @@ func restyle(t: DotFormTokens) -> void:
 
 
 func describe() -> String:
-	return "DotProfileEditorScreen: %d kinds, open %s/%s, %s" % [_sets.size(), _kind, _id, "compact" if _compact else "wide"]
+	return "GSProfileEditorScreen: %d kinds, open %s/%s, %s" % [_sets.size(), _kind, _id, "compact" if _compact else "wide"]
 
 
 func _build() -> void:
@@ -300,13 +300,13 @@ func _mark_selection() -> void:
 		_fill_ids(_kind)
 
 
-func _show_form(set: DotProfileSet, profile: DotProfile) -> void:
+func _show_form(set: GSProfileSet, profile: GSProfile) -> void:
 	for c in _pane.get_children():
 		_pane.remove_child(c)
 		c.queue_free()
 	_empty = null
 	_pane.add_child(_build_header())
-	form = DotUiForm.new()
+	form = GSUiForm.new()
 	form.tokens = tokens
 	form.title = _id.capitalize()
 	form.compact_below = compact_below
@@ -401,8 +401,8 @@ func _polish_form() -> void:
 
 
 func _on_applied(changes: Dictionary) -> void:
-	var set: DotProfileSet = _sets[_kind]
-	var res: DotResult = save_target.call(set, _id, changes) if save_target.is_valid() else set.save_user(_id, changes)
+	var set: GSProfileSet = _sets[_kind]
+	var res: GSResult = save_target.call(set, _id, changes) if save_target.is_valid() else set.save_user(_id, changes)
 	if not res.ok:
 		_say(res.error.message, true)
 		var keep: Dictionary = form.values()
@@ -423,7 +423,7 @@ func _on_reset_pressed() -> void:
 func _refresh_reset() -> void:
 	if _reset_btn == null:
 		return
-	var set: DotProfileSet = _sets[_kind]
+	var set: GSProfileSet = _sets[_kind]
 	var has: bool = has_override.call(set, _id) if has_override.is_valid() else FileAccess.file_exists(set.user_file(_id))
 	_reset_btn.disabled = not has
 

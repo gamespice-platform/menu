@@ -1,11 +1,11 @@
-class_name DotMenuStatsPanel
+class_name GSMenuStatsPanel
 extends Control
 
-## The local player's statistics as a card: each stat's figure this session and the lifetime total, themed by the kit. Reads the same Tab-board snapshot [DotMenuStats] does (`stat_columns` plus the player's own row), so it needs no stats API of its own.
+## The local player's statistics as a card: each stat's figure this session and the lifetime total, themed by the kit. Reads the same Tab-board snapshot [GSMenuStats] does (`stat_columns` plus the player's own row), so it needs no stats API of its own.
 ## [method show_for] opens it for a few seconds (an end-of-round screen); [method toggle] is for a key. It never takes the mouse or keyboard.
 
 
-var kit: DotMenuKit = null
+var kit: GSMenuKit = null
 
 ## Heading over the table.
 var title_text: String = "Your stats"
@@ -28,8 +28,8 @@ var _until := 0.0
 
 func _ready() -> void:
 	if kit == null:
-		kit = DotMenuKit.new()
-	DotMenuKit.fill_parent(self)
+		kit = GSMenuKit.new()
+	GSMenuKit.fill_parent(self)
 	mouse_filter = Control.MOUSE_FILTER_IGNORE
 	visible = false
 	theme = kit.theme()
@@ -97,7 +97,7 @@ func redraw() -> void:
 		_card.queue_free()
 		_card = null
 	var row := my_row()
-	var listed: Array = snapshot.get(DotMenuStats.COLUMNS_KEY, [])
+	var listed: Array = snapshot.get(GSMenuStats.COLUMNS_KEY, [])
 	var p := kit.palette
 	_card = PanelContainer.new()
 	_card.name = "Card"
@@ -110,7 +110,7 @@ func redraw() -> void:
 	s.content_margin_bottom = 18
 	_card.add_theme_stylebox_override(&"panel", s)
 	var centre := CenterContainer.new()
-	DotMenuKit.fill_parent(centre)
+	GSMenuKit.fill_parent(centre)
 	centre.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	centre.add_child(_card)
 	_card.add_child(_body(row, listed))
@@ -144,8 +144,8 @@ func _body(row: Dictionary, listed: Array) -> Control:
 			continue
 		var key := str((entry as Dictionary).get("key", ""))
 		grid.add_child(kit.label(str((entry as Dictionary).get("title", key)), kit.size_body, p.text))
-		for field in [DotMenuStats.SESSION, DotMenuStats.LIFETIME]:
-			var v := kit.label(str(row.get(field + key, "-")), kit.size_body, p.accent if field == DotMenuStats.LIFETIME else p.text)
+		for field in [GSMenuStats.SESSION, GSMenuStats.LIFETIME]:
+			var v := kit.label(str(row.get(field + key, "-")), kit.size_body, p.accent if field == GSMenuStats.LIFETIME else p.text)
 			v.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
 			grid.add_child(v)
 	box.add_child(grid)

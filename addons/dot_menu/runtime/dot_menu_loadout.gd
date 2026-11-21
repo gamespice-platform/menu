@@ -1,7 +1,7 @@
-class_name DotMenuLoadout
+class_name GSMenuLoadout
 extends RefCounted
 
-## The loadout menu: B opens [DotMenuLoadoutScreen] on what the player may carry, and closing it with changes saves them. Solo the game is asked directly; on a server the SERVER decides. Example: docs/examples.md.
+## The loadout menu: B opens [GSMenuLoadoutScreen] on what the player may carry, and closing it with changes saves them. Solo the game is asked directly; on a server the SERVER decides. Example: docs/examples.md.
 ## Connected, B sends `/loadout` through the client link's chat and opens on the `loadout_menu` notice; closing sends `/loadout slot=item ...` and the answer is a toast.
 ## Remembered per account on the client ([method remember_as], [method restore]) because a server forgets loadouts on restart. Nothing here names GameSpice Loadout or GameSpice Server.
 
@@ -16,16 +16,16 @@ const REMEMBER_FILE := "user://dot_menu/loadouts.json"
 ## A choice was saved. [param result] is `{ok, text, now}`.
 signal saved(picks: Dictionary, result: Dictionary)
 
-## A line for the player, also shown as [method DotMenu.toast] unless [member toast] is off.
+## A line for the player, also shown as [method GSMenu.toast] unless [member toast] is off.
 signal said(text: String)
 ## "Get in store" was pressed on a locked item. When nobody is connected, [param url] is opened.
 signal store_requested(item_id: StringName, url: String)
 
-## `func() -> Variant` (may await): the offer, solo. A [Dictionary], or a DotResult holding one.
+## `func() -> Variant` (may await): the offer, solo. A [Dictionary], or a GSResult holding one.
 var offer_fn: Callable = Callable()
 
 ## `func(picks: Dictionary) -> Variant` (may await): save [param picks] (slot id to item id), solo.
-## A DotResult, a `{ok, text, now}` dictionary, or anything else for "saved".
+## A GSResult, a `{ok, text, now}` dictionary, or anything else for "saved".
 var choose_fn: Callable = Callable()
 
 ## `func(slot_id: String, choice: Dictionary) -> Dictionary`: what to add to a choice: `icon` (a
@@ -43,11 +43,11 @@ var store_fn: Callable = Callable()
 ## Whether B opens anything. A game whose mode hands out the weapons (gun game) turns it off.
 var enabled: bool = true
 
-## The menu it draws in. Set by [method DotMenu.use_loadout].
-var menu: CanvasLayer = null  # a DotMenu (untyped: see dot_menu_huds.gd)
+## The menu it draws in. Set by [method GSMenu.use_loadout].
+var menu: CanvasLayer = null  # a GSMenu (untyped: see dot_menu_huds.gd)
 
 ## What is asked when connected: anything with `send_chat(text)` and `notice_received`. Null looks
-## up [member link_service] in [DotRegistry] when B is pressed.
+## up [member link_service] in [GSRegistry] when B is pressed.
 var link: Object = null
 var link_service: StringName = &"dot_client_link"
 var command_prefix: String = "/"
@@ -100,7 +100,7 @@ func prepare() -> void:
 	if not enabled or menu == null or menu.loadout_screen == null or _connected(_link()) or not offer_fn.is_valid():
 		return
 	var data := _dictionary(await offer_fn.call())
-	var screen: DotMenuLoadoutScreen = menu.loadout_screen
+	var screen: GSMenuLoadoutScreen = menu.loadout_screen
 	if data.is_empty() or screen == null or screen.is_open():
 		return
 	last_offer = decorate(data)
@@ -109,13 +109,13 @@ func prepare() -> void:
 	screen.prepare(last_offer)
 
 
-## Opens the screen on [param data] (`DotLoadoutManager.offer_for`'s shape), decorated. Public so a
+## Opens the screen on [param data] (`GSLoadoutManager.offer_for`'s shape), decorated. Public so a
 ## game with its own wire for the offer, or a suite, can open it.
 func open_offer(data: Dictionary) -> void:
 	if menu == null:
 		return
 	last_offer = decorate(data)
-	var screen: DotMenuLoadoutScreen = menu.loadout_screen
+	var screen: GSMenuLoadoutScreen = menu.loadout_screen
 	if screen == null:
 		return
 	screen.title_text = title
@@ -322,7 +322,7 @@ func restore() -> bool:
 	last_result = result
 	if not bool(result.get("ok", false)):
 		_say("Your saved loadout: " + str(result.get("text", "")))
-	DotLog.debug(CHANNEL, "remembered loadout restored", {"picks": _choice_text(picks), "ok": result.get("ok", false)})
+	GSLog.debug(CHANNEL, "remembered loadout restored", {"picks": _choice_text(picks), "ok": result.get("ok", false)})
 	return bool(result.get("ok", false))
 
 
@@ -338,11 +338,11 @@ func _remember(picks: Dictionary) -> void:
 		var _made := DirAccess.make_dir_recursive_absolute(dir)
 	var f := FileAccess.open(REMEMBER_FILE, FileAccess.WRITE)
 	if f == null:
-		DotLog.warn(CHANNEL, "could not remember the loadout", {"path": REMEMBER_FILE, "error": FileAccess.get_open_error()})
+		GSLog.warn(CHANNEL, "could not remember the loadout", {"path": REMEMBER_FILE, "error": FileAccess.get_open_error()})
 		return
 	f.store_string(JSON.stringify(all, "\t", true))
 	f.close()
-	DotWeb.sync_filesystem()
+	GSWeb.sync_filesystem()
 
 
 static func _read_file() -> Dictionary:
@@ -416,7 +416,7 @@ func _link() -> Object:
 		return link
 	if link_service == &"":
 		return null
-	return DotRegistry.get_node_service(link_service)
+	return GSRegistry.get_node_service(link_service)
 
 
 static func _connected(l: Object) -> bool:

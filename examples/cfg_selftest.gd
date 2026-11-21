@@ -14,7 +14,7 @@ var _sections := 0
 
 
 func _ready() -> void:
-	DotLog.set_level(DotLog.Level.ERROR)
+	GSLog.set_level(GSLog.Level.ERROR)
 	_run.call_deferred()
 
 
@@ -23,28 +23,28 @@ func _run() -> void:
 	var addon_dir := "user://cfg/addons/" + FOLDER
 	var server_dir := "user://cfg/server/addons/" + FOLDER
 	_clean(addon_dir, server_dir)
-	DotCfgLegacy.reset()
+	GSCfgLegacy.reset()
 
 	_write(LEGACY.path_join("admin_menu.yml"), "title: old\n")
-	var res := DotMenuCfg.load_admin_menu(LEGACY)
+	var res := GSMenuCfg.load_admin_menu(LEGACY)
 	_check(res.ok and (res.value as Dictionary).get("title") == "old", "only the flat file: it is still read")
-	_check(DotCfgLegacy.warned_count() == 1, "and warned once")
-	DotMenuCfg.load_admin_menu(LEGACY)
-	_check(DotCfgLegacy.warned_count() == 1, "a second load does not warn again")
+	_check(GSCfgLegacy.warned_count() == 1, "and warned once")
+	GSMenuCfg.load_admin_menu(LEGACY)
+	_check(GSCfgLegacy.warned_count() == 1, "a second load does not warn again")
 
 	_write(addon_dir.path_join("admin_menu.yml"), "title: new\nitems:\n  a: 1\n  b: 2\n")
-	var tree: Dictionary = DotMenuCfg.load_admin_menu(LEGACY).value
+	var tree: Dictionary = GSMenuCfg.load_admin_menu(LEGACY).value
 	_check(tree.get("title") == "new", "the new path wins over the flat file")
 
 	_write(server_dir.path_join("admin_menu.yml"), "items:\n  b: 9\n")
-	tree = DotMenuCfg.load_admin_menu(LEGACY).value
+	tree = GSMenuCfg.load_admin_menu(LEGACY).value
 	_check(tree["items"]["b"] == 9 and tree["items"]["a"] == 1, "the operator's server layer wins, key by key")
 
 	_write(server_dir.path_join("admin_menu.yml"), "items: [broken\n")
-	_check(not DotMenuCfg.load_admin_menu(LEGACY).ok, "a bad file fails")
+	_check(not GSMenuCfg.load_admin_menu(LEGACY).ok, "a bad file fails")
 
 	_clean(addon_dir, server_dir)
-	DotCfgLegacy.reset()
+	GSCfgLegacy.reset()
 	_sections += 1
 	print("%d sections, %d passed, %d failed" % [_sections, _passed, _failed])
 	if _sections != SECTIONS or _passed + _failed != CHECKS:
@@ -55,9 +55,9 @@ func _run() -> void:
 
 
 func _clean(addon_dir: String, server_dir: String) -> void:
-	DotPaths.remove_tree(addon_dir)
-	DotPaths.remove_tree(server_dir)
-	DotPaths.remove_tree(LEGACY)
+	GSPaths.remove_tree(addon_dir)
+	GSPaths.remove_tree(server_dir)
+	GSPaths.remove_tree(LEGACY)
 
 
 func _write(path: String, text: String) -> void:

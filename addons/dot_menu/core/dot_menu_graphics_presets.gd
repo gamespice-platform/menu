@@ -1,9 +1,9 @@
-class_name DotMenuGraphicsPresets
+class_name GSMenuGraphicsPresets
 extends RefCounted
 
 ## The Video page's Quality presets: Low, Medium, High, Ultra and Custom. A preset writes every key in
 ## [constant TABLE]; changing one of those keys by hand turns the preset to Custom. [code]high[/code] is every
-## key's own default, so a player who never opens the page sees nothing change. [DotMenuApplier] does both.
+## key's own default, so a player who never opens the page sees nothing change. [GSMenuApplier] does both.
 
 const KEY := &"graphics_preset"
 const CUSTOM := &"custom"
@@ -13,7 +13,7 @@ const NAMES: Array[StringName] = [&"low", &"medium", &"high", &"ultra", &"custom
 ## Reason a preset write carries, so the applier does not take it for a hand edit.
 const REASON := &"preset"
 
-## Value per preset, per key. Applied by GameSpice FX's DotFxGraphics and DotFxRenderQuality (render_scale, aniso, aa) and
+## Value per preset, per key. Applied by GameSpice FX's GSFxGraphics and GSFxRenderQuality (render_scale, aniso, aa) and
 ## the menu's own fx configs (fx_quality).
 const TABLE := {
 	&"low": {

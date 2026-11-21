@@ -5,8 +5,8 @@ const Selftest := preload("res://examples/menu_selftest.gd")
 ## The help key and leaving a server, run from menu_selftest.
 
 ## A game's help: the goal and a modes card, which only the game can say.
-class FilledSettings extends DotMenuSettings:
-	func _fill_help(h: DotMenuHelp) -> void:
+class FilledSettings extends GSMenuSettings:
+	func _fill_help(h: GSMenuHelp) -> void:
 		h.about = "Reach the far side first."
 		h.add_text("Modes", "Race: first across wins. Relay: the team's total.")
 
@@ -26,23 +26,23 @@ class FakeLeaveLink extends Node:
 static func run(host: Selftest) -> void:
 	host._section("H is help in every game, and Leave is stock")
 
-	var fresh := DotMenu.new()
-	host._check(fresh.help_action == DotMenuBindings.HELP_ACTION, "a menu's help key is dot_menu_help unless the game says otherwise")
+	var fresh := GSMenu.new()
+	host._check(fresh.help_action == GSMenuBindings.HELP_ACTION, "a menu's help key is dot_menu_help unless the game says otherwise")
 	fresh.free()
 
-	# A game with no table: DotMenuSettings gives it one with the help key, on H.
-	if InputMap.has_action(DotMenuBindings.HELP_ACTION):
-		InputMap.erase_action(DotMenuBindings.HELP_ACTION)
+	# A game with no table: GSMenuSettings gives it one with the help key, on H.
+	if InputMap.has_action(GSMenuBindings.HELP_ACTION):
+		InputMap.erase_action(GSMenuBindings.HELP_ACTION)
 	var node := FilledSettings.new()
 	node.app_namespace = &"menu_help_test"
-	node.config = DotMenuConfig.new()
+	node.config = GSMenuConfig.new()
 	node.config.brand_name = "Test Run"
 	node.config.escape_grace_ms = 0
 	host.add_child(node)
-	var res := node.setup(DotSettingsStoreMemory.new())
-	var row := node.bindings.row_for_action(DotMenuBindings.HELP_ACTION) if node.bindings != null else {}
+	var res := node.setup(GSSettingsStoreMemory.new())
+	var row := node.bindings.row_for_action(GSMenuBindings.HELP_ACTION) if node.bindings != null else {}
 	host._check(res.ok and not row.is_empty() and str(row["default"]) == "H", "a game with no key table gets one holding the help key, on H")
-	host._check(node.settings.schema.has(DotMenuBindings.HELP_SETTING), "stored as bind_help, so the Controls page can rebind it")
+	host._check(node.settings.schema.has(GSMenuBindings.HELP_SETTING), "stored as bind_help, so the Controls page can rebind it")
 	var hint := node.menu.help_hint
 	host._check(hint != null and hint.visible and host._texts(hint).has("H") and host._texts(hint).has("Help"),
 		"the HUD shows the help key in a corner while nothing is open")
@@ -72,7 +72,7 @@ static func _leave(host: Selftest, node: FilledSettings) -> void:
 	# The window is built on the first open, so the button is looked up after it.
 	node.open()
 	var leave := node.menu.screen.find_child("Action_leave", true, false) as Button
-	host._check(leave != null and leave.visible and leave.text == ("" if DotPlatform.is_web() else "Quit game"),
+	host._check(leave != null and leave.visible and leave.text == ("" if GSPlatform.is_web() else "Quit game"),
 		"Leave is in the stock menu, and solo on a desktop it quits")
 	host._check(node.menu.screen.find_child("Action_help", true, false) != null, "so is Help & commands")
 	node.close()
@@ -90,27 +90,27 @@ static func _leave(host: Selftest, node: FilledSettings) -> void:
 
 static func _taken_key(host: Selftest) -> void:
 	# A table with something on H already: help goes to the next free key, never onto H twice.
-	var keys := DotMenuBindings.new()
+	var keys := GSMenuBindings.new()
 	keys.add(&"test_heal", &"bind_heal", "Medkit", "H", "Hands")
-	var taken := DotMenuSettings.new()
+	var taken := GSMenuSettings.new()
 	taken.app_namespace = &"menu_help_taken_test"
 	taken.bindings = keys
 	host.add_child(taken)
-	var _t := taken.setup(DotSettingsStoreMemory.new(), false)
-	host._check(keys.key_for(DotMenuBindings.HELP_ACTION) == "F1" and keys.defaults_on("H").size() == 1,
+	var _t := taken.setup(GSSettingsStoreMemory.new(), false)
+	host._check(keys.key_for(GSMenuBindings.HELP_ACTION) == "F1" and keys.defaults_on("H").size() == 1,
 		"a table that already has H gets help on F1, and H stays on one row")
 	taken.queue_free()
 
 
 static func _own_row(host: Selftest) -> void:
 	# A game whose help row is its own action keeps it, and the menu opens on that.
-	var own := DotMenuBindings.new()
+	var own := GSMenuBindings.new()
 	own.add(&"test_own_help", &"bind_help", "Help", "H", "Interface")
-	var own_node := DotMenuSettings.new()
+	var own_node := GSMenuSettings.new()
 	own_node.app_namespace = &"menu_help_own_test"
 	own_node.bindings = own
 	host.add_child(own_node)
-	var _o := own_node.setup(DotSettingsStoreMemory.new())
+	var _o := own_node.setup(GSSettingsStoreMemory.new())
 	host._check(own.rows.filter(func(r: Dictionary) -> bool: return r["setting"] == &"bind_help").size() == 1
 		and own_node.menu.help_action == &"test_own_help", "a game's own help row is kept, and is the menu's help key")
 	own_node.queue_free()
@@ -118,9 +118,9 @@ static func _own_row(host: Selftest) -> void:
 
 static func _bare_menu(host: Selftest) -> void:
 	# A menu built by hand with no table still gets H.
-	if InputMap.has_action(DotMenuBindings.HELP_ACTION):
-		InputMap.erase_action(DotMenuBindings.HELP_ACTION)
-	var bare := DotMenu.new()
+	if InputMap.has_action(GSMenuBindings.HELP_ACTION):
+		InputMap.erase_action(GSMenuBindings.HELP_ACTION)
+	var bare := GSMenu.new()
 	bare.manage_pointer = false
 	host.add_child(bare)
 	var _b := bare.setup()
@@ -134,9 +134,9 @@ static func _bare_menu(host: Selftest) -> void:
 	host._check(host._texts(bare.help).has("How to play Later"), "a heading set after the screen was built is the one drawn")
 	bare.help.close()
 	host._check(bare.leave_label() == "Leave", "a menu that leaves the game's way keeps the config's word")
-	var quiet := DotMenu.new()
+	var quiet := GSMenu.new()
 	quiet.manage_pointer = false
-	quiet.config = DotMenuConfig.new()
+	quiet.config = GSMenuConfig.new()
 	quiet.config.help_hint = &"off"
 	host.add_child(quiet)
 	var _q := quiet.setup()

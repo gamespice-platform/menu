@@ -6,14 +6,14 @@ var _failed := 0
 var _section_count := 0
 
 
-func _schema(groups: Array[StringName] = DotMenuStock.DEFAULT_GROUPS) -> DotSettingsSchema:
-	var s := DotSettingsSchema.new()
-	DotMenuStock.declare(s, groups)
+func _schema(groups: Array[StringName] = GSMenuStock.DEFAULT_GROUPS) -> GSSettingsSchema:
+	var s := GSSettingsSchema.new()
+	GSMenuStock.declare(s, groups)
 	return s
 
 
-func _keys() -> DotMenuBindings:
-	var k := DotMenuBindings.new()
+func _keys() -> GSMenuBindings:
+	var k := GSMenuBindings.new()
 	k.add_movement()
 	k.add(&"test_flashlight", &"bind_flashlight", "Flashlight", "F", "View")
 	k.add(&"test_help", &"bind_help", "Help", "H", "Interface")
@@ -21,8 +21,8 @@ func _keys() -> DotMenuBindings:
 	return k
 
 
-func _manager(schema: DotSettingsSchema) -> DotSettingsManager:
-	var m := DotMenuStock.manager(schema, "", &"menu_test", &"", DotSettingsStoreMemory.new())
+func _manager(schema: GSSettingsSchema) -> GSSettingsManager:
+	var m := GSMenuStock.manager(schema, "", &"menu_test", &"", GSSettingsStoreMemory.new())
 	m.persist = false
 	add_child(m)
 	var res := m.setup()
@@ -31,16 +31,16 @@ func _manager(schema: DotSettingsSchema) -> DotSettingsManager:
 	return m
 
 
-func _menu(groups: Array[StringName] = DotMenuStock.DEFAULT_GROUPS, cfg: DotMenuConfig = null) -> DotMenu:
+func _menu(groups: Array[StringName] = GSMenuStock.DEFAULT_GROUPS, cfg: GSMenuConfig = null) -> GSMenu:
 	var keys := _keys()
 	var schema := _schema(groups)
 	keys.add_to_schema(schema)
 	var st := _manager(schema)
 	keys.apply_all(st)
-	var menu := DotMenu.new()
+	var menu := GSMenu.new()
 	menu.settings = st
 	menu.bindings = keys
-	menu.config = cfg if cfg != null else DotMenuConfig.new()
+	menu.config = cfg if cfg != null else GSMenuConfig.new()
 	menu.config.escape_grace_ms = 0
 	menu.manage_pointer = false
 	menu.help_action = &"test_help"
@@ -52,7 +52,7 @@ func _menu(groups: Array[StringName] = DotMenuStock.DEFAULT_GROUPS, cfg: DotMenu
 	return menu
 
 
-func _free_menu(menu: DotMenu) -> void:
+func _free_menu(menu: GSMenu) -> void:
 	var st := menu.settings
 	menu.queue_free()
 	if st != null:
@@ -76,7 +76,7 @@ func _find_all(root: Node, type: String, prefix: String = "") -> Array[Node]:
 	return out
 
 
-func _row_control(menu: DotMenu, row_id: String) -> Node:
+func _row_control(menu: GSMenu, row_id: String) -> Node:
 	return menu.screen.find_child("Row_%s" % row_id, true, false)
 
 
@@ -119,7 +119,7 @@ class FakeHands extends Node:
 	var horizontal := 0.0
 
 	func _init() -> void:
-		add_to_group(DotMenuApplier.VIEW_MODEL_GROUP)
+		add_to_group(GSMenuApplier.VIEW_MODEL_GROUP)
 
 	func set_hands_fov_at_4_3(v: float) -> void:
 		horizontal = v
@@ -186,7 +186,7 @@ func _line(text: String) -> void:
 	print(text)
 
 
-## Anything shaped like GameSpice Voice's DotVoiceManager, as far as the applier and the menu care.
+## Anything shaped like GameSpice Voice's GSVoiceManager, as far as the applier and the menu care.
 class FakeVoice extends Node:
 	signal server_enabled_changed(enabled: bool)
 	var server_enabled := true
@@ -209,20 +209,20 @@ func _test_voice() -> void:
 
 	var schema := _schema()
 	_check(schema.has(&"voice_mode") and schema.has(&"voice_input_device"), "the default groups declare voice_mode and voice_input_device")
-	_check(DotMenuStock.audio_page().find_row(&"voice_mode") != null and DotMenuStock.audio_page().find_row(&"voice_input_device") != null,
+	_check(GSMenuStock.audio_page().find_row(&"voice_mode") != null and GSMenuStock.audio_page().find_row(&"voice_input_device") != null,
 		"and the Audio page has a row for each")
 
-	var vpage := DotMenuStock.video_page()
-	DotMenuStock.add_gore_row(vpage)
+	var vpage := GSMenuStock.video_page()
+	GSMenuStock.add_gore_row(vpage)
 	_check(vpage.find_section(&"image").find_row(&"gore") != null, "add_gore_row puts the gore toggle in the Image section")
-	DotMenuStock.add_gore_row(null)
+	GSMenuStock.add_gore_row(null)
 
-	var node := DotMenuSettings.new()
+	var node := GSMenuSettings.new()
 	node.app_namespace = &"menu_voice_test"
-	node.schema = DotMenuStock.declare(DotSettingsSchema.new())
+	node.schema = GSMenuStock.declare(GSSettingsSchema.new())
 	node.bindings = _keys()
 	add_child(node)
-	var res := node.setup(DotSettingsStoreMemory.new())
+	var res := node.setup(GSSettingsStoreMemory.new())
 	_check(res.ok and not node.bindings.row_for_action(&"dot_voice_talk").is_empty(),
 		"a game with the voice settings gets the Push to talk key in its table")
 	_check(node.settings.schema.has(&"bind_voice_talk") and InputMap.has_action(&"dot_voice_talk"),
@@ -235,7 +235,7 @@ func _test_voice() -> void:
 	var voice := FakeVoice.new()
 	add_child(voice)
 	_check(voice.open_mic_calls.is_empty(), "an unpublished voice is told nothing")
-	DotRegistry.register(DotMenuApplier.VOICE_SERVICE, voice)
+	GSRegistry.register(GSMenuApplier.VOICE_SERVICE, voice)
 	_check(voice.open_mic_calls == [false] and voice.devices == ["Default"],
 		"published as dot_voice_client, it is bound and told the stored mode and device (%s %s)" % [str(voice.open_mic_calls), str(voice.devices)])
 	var _set := node.settings.set_value(&"voice_mode", &"open_mic")
@@ -254,11 +254,11 @@ func _test_voice() -> void:
 	_check(node.menu.screen.extra_hidden_rows.has("voice_mode") and not node.menu.screen.extra_hidden_rows.has("field_of_view"),
 		"leaving a server's rules keeps the voice rows hidden for their own reason")
 
-	var taken := DotMenuBindings.new()
+	var taken := GSMenuBindings.new()
 	taken.add(&"test_checkpoint", &"bind_checkpoint", "Go to checkpoint", "V", "Running")
 	_check(taken.free_key(["V", "K", "B"]) == "K", "a game whose V is taken gets the talk key on the next free one")
 
-	DotRegistry.unregister_instance(DotMenuApplier.VOICE_SERVICE, voice)
+	GSRegistry.unregister_instance(GSMenuApplier.VOICE_SERVICE, voice)
 	voice.queue_free()
 	node.queue_free()
 	await get_tree().process_frame

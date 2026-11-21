@@ -1,22 +1,22 @@
-class_name DotAddonConfigEditorScreen
+class_name GSAddonConfigEditorScreen
 extends PanelContainer
 
-## Edits the player's own override of addon cfg files (`user://cfg/user/addons/`) in a [DotUiForm]. Example: docs/examples.md.
-## Only a solo or listen-host process has the tier ([method DotAddonConfig.set_user_tier]); elsewhere Apply
+## Edits the player's own override of addon cfg files (`user://cfg/user/addons/`) in a [GSUiForm]. Example: docs/examples.md.
+## Only a solo or listen-host process has the tier ([method GSAddonConfig.set_user_tier]); elsewhere Apply
 ## reports why and writes nothing.
 
 signal file_opened(addon: String, file: String)
 signal saved(addon: String, file: String, changes: Dictionary)
 signal reset_done(addon: String, file: String)
-## An overlay use ([method DotMenu.use_mods]) was closed.
+## An overlay use ([method GSMenu.use_mods]) was closed.
 signal closed
 
 ## Where Apply writes, shown under the title.
 var target_label := "Your mods on this device"
 var compact_below := 720.0
-var tokens: DotFormTokens = DotFormTokens.dark()
+var tokens: GSFormTokens = GSFormTokens.dark()
 
-var form: DotUiForm = null
+var form: GSUiForm = null
 
 var _files: Array[Dictionary] = []
 var _addon := ""
@@ -35,13 +35,13 @@ var _as_overlay := false
 
 
 
-## Adds an editable file: [param schema] is the [method DotProfileSet.field] array describing its top-level keys.
+## Adds an editable file: [param schema] is the [method GSProfileSet.field] array describing its top-level keys.
 func add_file(addon: String, file: String, schema: Array, label: String = "") -> void:
 	_files.append({"addon": addon, "file": file, "schema": schema, "label": label if label != "" else file.get_basename().capitalize()})
 	_build()
 
 
-## Shows the screen as an overlay; hidden until then when used through [method DotMenu.use_mods].
+## Shows the screen as an overlay; hidden until then when used through [method GSMenu.use_mods].
 func open_screen() -> void:
 	visible = true
 	_as_overlay = true
@@ -60,9 +60,9 @@ func is_open() -> bool:
 
 
 ## Takes back the last edit in the open form (before Apply). Fails when there is none.
-func undo() -> DotResult:
+func undo() -> GSResult:
 	if form == null or _history.is_empty():
-		return DotResult.fail(DotError.CODE_STATE, "nothing to undo")
+		return GSResult.fail(GSError.CODE_STATE, "nothing to undo")
 	var last: Dictionary = _history.pop_back()
 	_before[last["key"]] = last["old"]
 	_undoing = true
@@ -86,10 +86,10 @@ func current_file() -> String:
 
 
 ## Opens one added file in the form. Fails when it was never added.
-func open(addon: String, file: String) -> DotResult:
+func open(addon: String, file: String) -> GSResult:
 	var entry := _entry(addon, file)
 	if entry.is_empty():
-		return DotResult.fail(DotError.CODE_INVALID, "no editable file %s/%s" % [addon, file])
+		return GSResult.fail(GSError.CODE_INVALID, "no editable file %s/%s" % [addon, file])
 	_addon = addon
 	_file = file
 	_history.clear()
@@ -97,21 +97,21 @@ func open(addon: String, file: String) -> DotResult:
 	for key in _buttons:
 		(_buttons[key] as Button).set_pressed_no_signal(key == "%s/%s" % [addon, file])
 	file_opened.emit(addon, file)
-	return DotResult.success(null)
+	return GSResult.success(null)
 
 
 ## Saves the form's changes to the user tier. Value: the changes written.
-func apply() -> DotResult:
+func apply() -> GSResult:
 	if form == null:
-		return DotResult.fail(DotError.CODE_STATE, "no file is open")
+		return GSResult.fail(GSError.CODE_STATE, "no file is open")
 	return form.apply()
 
 
 ## Deletes the user copy of the open file and shows the values below it.
-func reset_file() -> DotResult:
+func reset_file() -> GSResult:
 	if form == null:
-		return DotResult.fail(DotError.CODE_STATE, "no file is open")
-	var res := DotAddonConfig.reset_user(_addon, _file)
+		return GSResult.fail(GSError.CODE_STATE, "no file is open")
+	var res := GSAddonConfig.reset_user(_addon, _file)
 	if not res.ok:
 		_say(res.error.message, true)
 		return res
@@ -122,10 +122,10 @@ func reset_file() -> DotResult:
 	_say("Back to the defaults", false)
 	_refresh_reset()
 	reset_done.emit(_addon, _file)
-	return DotResult.success(null)
+	return GSResult.success(null)
 
 
-func restyle(t: DotFormTokens) -> void:
+func restyle(t: GSFormTokens) -> void:
 	tokens = t
 	_build()
 	if _file != "":
@@ -133,7 +133,7 @@ func restyle(t: DotFormTokens) -> void:
 
 
 func describe() -> String:
-	return "DotAddonConfigEditorScreen: %d files, open %s/%s, user tier %s" % [_files.size(), _addon, _file, "on" if DotAddonConfig.user_tier_enabled else "off"]
+	return "GSAddonConfigEditorScreen: %d files, open %s/%s, user tier %s" % [_files.size(), _addon, _file, "on" if GSAddonConfig.user_tier_enabled else "off"]
 
 
 func _entry(addon: String, file: String) -> Dictionary:
@@ -147,10 +147,10 @@ func _values(entry: Dictionary) -> Dictionary:
 	var out := {}
 	for f in entry["schema"]:
 		out[f["name"]] = f["default"]
-	for path in DotAddonConfig.file_layers(entry["addon"], entry["file"]):
-		var parsed := DotYaml.parse_file(path)
+	for path in GSAddonConfig.file_layers(entry["addon"], entry["file"]):
+		var parsed := GSYaml.parse_file(path)
 		if parsed.ok and parsed.value is Dictionary:
-			DotAddonConfig.merge(out, parsed.value)
+			GSAddonConfig.merge(out, parsed.value)
 	return out
 
 
@@ -217,7 +217,7 @@ func _show_form(entry: Dictionary) -> void:
 	_note = Label.new()
 	_note.theme_type_variation = &"FormCaption"
 	_note.visible = false
-	if not DotAddonConfig.user_tier_enabled:
+	if not GSAddonConfig.user_tier_enabled:
 		_say("Mods are off in this session (a server or an online game owns these values)", true)
 	_note.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	col.add_child(_note)
@@ -245,7 +245,7 @@ func _show_form(entry: Dictionary) -> void:
 	back.pressed.connect(close)
 	bar.add_child(back)
 	_close_btn = back
-	form = DotUiForm.new()
+	form = GSUiForm.new()
 	form.tokens = tokens
 	form.title = entry["label"]
 	form.compact_below = compact_below
@@ -280,7 +280,7 @@ func _refresh_undo() -> void:
 
 func _on_applied(changes: Dictionary) -> void:
 	var entry := _entry(_addon, _file)
-	var res := DotAddonConfig.save_user(_addon, _file, changes, entry["schema"])
+	var res := GSAddonConfig.save_user(_addon, _file, changes, entry["schema"])
 	if not res.ok:
 		_say(res.error.message, true)
 		return
@@ -299,7 +299,7 @@ func _on_file_pressed(addon: String, file: String) -> void:
 
 func _refresh_reset() -> void:
 	if _reset_btn != null:
-		_reset_btn.disabled = not FileAccess.file_exists(DotAddonConfig.user_file(_addon, _file))
+		_reset_btn.disabled = not FileAccess.file_exists(GSAddonConfig.user_file(_addon, _file))
 
 
 func _say(text: String, bad: bool) -> void:

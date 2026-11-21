@@ -3,7 +3,7 @@ extends RefCounted
 ## The "Every spawn" toggle next to Random, and the cost label shown only when a server prices something.
 
 
-static func _pt_labels(screen: DotMenuLoadoutScreen) -> int:
+static func _pt_labels(screen: GSMenuLoadoutScreen) -> int:
 	var n := 0
 	for l in screen.find_children("*", "Label", true, false):
 		if (l as Label).text.ends_with(" pt"):
@@ -11,7 +11,7 @@ static func _pt_labels(screen: DotMenuLoadoutScreen) -> int:
 	return n
 
 
-static func run(host: Node, screen: DotMenuLoadoutScreen, lo: DotMenuLoadout, link: Object) -> void:
+static func run(host: Node, screen: GSMenuLoadoutScreen, lo: GSMenuLoadout, link: Object) -> void:
 	var offer: Dictionary = host._loadout_offer()
 	offer["random"] = {"enabled": true, "price": "", "count": 0, "spawn": 1, "spawn_on": false}
 	lo.open_offer(offer)
@@ -61,7 +61,7 @@ static func run(host: Node, screen: DotMenuLoadoutScreen, lo: DotMenuLoadout, li
 
 
 ## Ticking Every spawn locks everything else until it is unticked; the earlier picks come back; a reload with the flag saved opens locked.
-static func _locking(host: Node, screen: DotMenuLoadoutScreen, lo: DotMenuLoadout, link: Object, offer: Dictionary) -> void:
+static func _locking(host: Node, screen: GSMenuLoadoutScreen, lo: GSMenuLoadout, link: Object, offer: Dictionary) -> void:
 	offer["budget"] = 0
 	offer["priced"] = false
 	offer["saved"] = [{"index": 0, "name": "Main", "selected": true, "saved": true}, {"index": 1, "name": "Alt", "selected": false, "saved": true}]

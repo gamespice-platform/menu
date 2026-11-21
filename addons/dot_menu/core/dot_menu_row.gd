@@ -1,8 +1,8 @@
-class_name DotMenuRow
+class_name GSMenuRow
 extends RefCounted
 
 ## One line of a menu page: a title, a sentence under it, and the control on the right. Example: docs/examples.md.
-## A setting row is a view of the setting, never a copy (no Apply button); range and options come from its [DotSettingsDef]. A row whose setting the schema does not declare is not drawn.
+## A setting row is a view of the setting, never a copy (no Apply button); range and options come from its [GSSettingsDef]. A row whose setting the schema does not declare is not drawn.
 ## A "live" row is state somebody else owns (a server's rule), read through [member getter] and written through [member setter].
 
 enum Kind {
@@ -12,7 +12,7 @@ enum Kind {
 	SLIDER,
 	## One of a list. `options` is `[[value, label], ...]`.
 	SELECT,
-	## One key binding from a [DotMenuBindings] row. Drawn by the screen.
+	## One key binding from a [GSMenuBindings] row. Drawn by the screen.
 	BINDING,
 	## A button that calls [member on_press].
 	BUTTON,
@@ -34,7 +34,7 @@ const FORMAT_PERCENT_OR_OFF := &"percent_or_off"
 var kind: Kind = Kind.TOGGLE
 
 ## The setting this row is a view of. Empty on a live row. Also the row's id when [member id]
-## is empty: what [method DotMenuPage.find_row] and the config's `rows_hidden` name.
+## is empty: what [method GSMenuPage.find_row] and the config's `rows_hidden` name.
 var key: StringName = &""
 
 ## A name for a row that has no setting, so a game or a config can find or hide it.
@@ -73,10 +73,10 @@ var describe_with: Callable = Callable()
 var button_text: String = ""
 var on_press: Callable = Callable()
 
-## CUSTOM: `func(kit: DotMenuKit) -> Control`.
+## CUSTOM: `func(kit: GSMenuKit) -> Control`.
 var build: Callable = Callable()
 
-## BINDING: the [DotMenuBindings] row, as that class stores it.
+## BINDING: the [GSMenuBindings] row, as that class stores it.
 var binding_row: Dictionary = {}
 
 ## Where the row is drawn: &"" everywhere, &"web" only in a browser, &"native" only outside.
@@ -87,17 +87,17 @@ var platform: StringName = &""
 var danger: bool = false
 
 
-static func toggle(p_key: StringName, p_title: String, p_description: String = "") -> DotMenuRow:
+static func toggle(p_key: StringName, p_title: String, p_description: String = "") -> GSMenuRow:
 	return _make(Kind.TOGGLE, p_key, p_title, p_description)
 
 
-static func slider(p_key: StringName, p_title: String, p_description: String = "") -> DotMenuRow:
+static func slider(p_key: StringName, p_title: String, p_description: String = "") -> GSMenuRow:
 	return _make(Kind.SLIDER, p_key, p_title, p_description)
 
 
 static func select(
 	p_key: StringName, p_title: String, p_description: String = "", p_options: Array = []
-) -> DotMenuRow:
+) -> GSMenuRow:
 	var r := _make(Kind.SELECT, p_key, p_title, p_description)
 	r.options = p_options
 	return r
@@ -105,7 +105,7 @@ static func select(
 
 static func live_toggle(
 	p_title: String, p_description: String, p_getter: Callable, p_setter: Callable
-) -> DotMenuRow:
+) -> GSMenuRow:
 	var r := _make(Kind.TOGGLE, &"", p_title, p_description)
 	r.getter = p_getter
 	r.setter = p_setter
@@ -114,7 +114,7 @@ static func live_toggle(
 
 static func live_select(
 	p_title: String, p_description: String, p_options: Array, p_getter: Callable, p_setter: Callable
-) -> DotMenuRow:
+) -> GSMenuRow:
 	var r := _make(Kind.SELECT, &"", p_title, p_description)
 	r.options = p_options
 	r.getter = p_getter
@@ -125,7 +125,7 @@ static func live_select(
 static func live_slider(
 	p_title: String, p_description: String, low: float, high: float, p_step: float,
 	p_getter: Callable, p_setter: Callable
-) -> DotMenuRow:
+) -> GSMenuRow:
 	var r := _make(Kind.SLIDER, &"", p_title, p_description)
 	r.min_value = low
 	r.max_value = high
@@ -137,31 +137,31 @@ static func live_slider(
 
 static func button(
 	p_title: String, p_description: String, p_text: String, p_on_press: Callable
-) -> DotMenuRow:
+) -> GSMenuRow:
 	var r := _make(Kind.BUTTON, &"", p_title, p_description)
 	r.button_text = p_text
 	r.on_press = p_on_press
 	return r
 
 
-static func note(text: String) -> DotMenuRow:
+static func note(text: String) -> GSMenuRow:
 	return _make(Kind.NOTE, &"", "", text)
 
 
-static func custom(p_title: String, p_description: String, p_build: Callable) -> DotMenuRow:
+static func custom(p_title: String, p_description: String, p_build: Callable) -> GSMenuRow:
 	var r := _make(Kind.CUSTOM, &"", p_title, p_description)
 	r.build = p_build
 	return r
 
 
-static func binding(row: Dictionary) -> DotMenuRow:
+static func binding(row: Dictionary) -> GSMenuRow:
 	var r := _make(Kind.BINDING, StringName(row.get("setting", &"")), str(row.get("label", "")), "")
 	r.binding_row = row
 	return r
 
 
-static func _make(k: Kind, p_key: StringName, p_title: String, p_description: String) -> DotMenuRow:
-	var r := DotMenuRow.new()
+static func _make(k: Kind, p_key: StringName, p_title: String, p_description: String) -> GSMenuRow:
+	var r := GSMenuRow.new()
 	r.kind = k
 	r.key = p_key
 	r.title = p_title
@@ -169,64 +169,64 @@ static func _make(k: Kind, p_key: StringName, p_title: String, p_description: St
 	return r
 
 
-func named(p_id: StringName) -> DotMenuRow:
+func named(p_id: StringName) -> GSMenuRow:
 	id = p_id
 	return self
 
 
-func described(text: String) -> DotMenuRow:
+func described(text: String) -> GSMenuRow:
 	description = text
 	return self
 
 
-func with_range(low: float, high: float, p_step: float = NAN) -> DotMenuRow:
+func with_range(low: float, high: float, p_step: float = NAN) -> GSMenuRow:
 	min_value = low
 	max_value = high
 	step = p_step
 	return self
 
 
-func with_options(p_options: Array) -> DotMenuRow:
+func with_options(p_options: Array) -> GSMenuRow:
 	options = p_options
 	return self
 
 
-func formatted(p_format: Variant) -> DotMenuRow:
+func formatted(p_format: Variant) -> GSMenuRow:
 	format = p_format
 	return self
 
 
-func enabled_when(test: Callable) -> DotMenuRow:
+func enabled_when(test: Callable) -> GSMenuRow:
 	enabled_if = test
 	return self
 
 
-func shown_when(test: Callable) -> DotMenuRow:
+func shown_when(test: Callable) -> GSMenuRow:
 	visible_if = test
 	return self
 
 
-func described_by(source: Callable) -> DotMenuRow:
+func described_by(source: Callable) -> GSMenuRow:
 	describe_with = source
 	return self
 
 
-func only_on_web() -> DotMenuRow:
+func only_on_web() -> GSMenuRow:
 	platform = &"web"
 	return self
 
 
-func only_native() -> DotMenuRow:
+func only_native() -> GSMenuRow:
 	platform = &"native"
 	return self
 
 
-func dangerous() -> DotMenuRow:
+func dangerous() -> GSMenuRow:
 	danger = true
 	return self
 
 
-## What a page, a config and [method DotMenuPage.find_row] call this row.
+## What a page, a config and [method GSMenuPage.find_row] call this row.
 func row_id() -> StringName:
 	return id if id != &"" else key
 
@@ -241,10 +241,10 @@ func is_setting() -> bool:
 
 ## Whether this row is drawn at all, here and now. [param settings] may be null, which
 ## draws only rows that need no setting.
-func is_shown(settings: DotSettingsManager) -> bool:
-	if platform == &"web" and not DotPlatform.is_web():
+func is_shown(settings: GSSettingsManager) -> bool:
+	if platform == &"web" and not GSPlatform.is_web():
 		return false
-	if platform == &"native" and DotPlatform.is_web():
+	if platform == &"native" and GSPlatform.is_web():
 		return false
 	if is_setting() or kind == Kind.BINDING:
 		if settings == null or settings.schema == null or not settings.schema.has(key):
@@ -265,19 +265,19 @@ func text_under() -> String:
 ## The slider's bounds and step: the row's own, or the setting's. A step of zero (a
 ## continuous setting) becomes a hundredth of the range, which is what a slider dragged by a
 ## person can actually choose between.
-func slider_range(def: DotSettingsDef) -> Vector3:
+func slider_range(def: GSSettingsDef) -> Vector3:
 	var low := min_value if not is_nan(min_value) else (def.min_value if def != null else 0.0)
 	var high := max_value if not is_nan(max_value) else (def.max_value if def != null else 1.0)
 	var s := step
 	if is_nan(s):
 		s = def.step if def != null else 0.0
 		if s <= 0.0:
-			s = 1.0 if def != null and def.kind == DotSettingsDef.Kind.INT else (high - low) / 100.0
+			s = 1.0 if def != null and def.kind == GSSettingsDef.Kind.INT else (high - low) / 100.0
 	return Vector3(low, high, s)
 
 
 ## The options: the row's own, or the setting's labelled by [method label_for_option].
-func option_list(def: DotSettingsDef) -> Array:
+func option_list(def: GSSettingsDef) -> Array:
 	if not options.is_empty() or def == null:
 		return options
 	var out: Array = []

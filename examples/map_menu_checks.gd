@@ -29,18 +29,18 @@ class FakeNotice extends RefCounted:
 static func run(host: Selftest) -> void:
 	host._section("M is the map menu: solo changes, a server decides")
 
-	# Every DotMenuSettings game gets the key, on M.
-	for a in [DotMenuBindings.MAPS_ACTION, DotMenuBindings.HELP_ACTION]:
+	# Every GSMenuSettings game gets the key, on M.
+	for a in [GSMenuBindings.MAPS_ACTION, GSMenuBindings.HELP_ACTION]:
 		if InputMap.has_action(a):
 			InputMap.erase_action(a)
-	var node := DotMenuSettings.new()
+	var node := GSMenuSettings.new()
 	node.app_namespace = &"menu_maps_test"
-	node.config = DotMenuConfig.new()
+	node.config = GSMenuConfig.new()
 	node.config.escape_grace_ms = 0
 	host.add_child(node)
-	var _s := node.setup(DotSettingsStoreMemory.new())
-	var row := node.bindings.row_for_action(DotMenuBindings.MAPS_ACTION)
-	host._check(not row.is_empty() and str(row["default"]) == "M" and node.settings.schema.has(DotMenuBindings.MAPS_SETTING),
+	var _s := node.setup(GSSettingsStoreMemory.new())
+	var row := node.bindings.row_for_action(GSMenuBindings.MAPS_ACTION)
+	host._check(not row.is_empty() and str(row["default"]) == "M" and node.settings.schema.has(GSMenuBindings.MAPS_SETTING),
 		"every game's table has the map key, on M, stored as bind_maps")
 	host._check(not node.menu.handle_event(host._key(KEY_M)) and not node.menu.any_open(), "and M does nothing until the game hands it a list")
 
@@ -51,9 +51,9 @@ static func run(host: Selftest) -> void:
 	for i in 9:
 		rows.append({"id": "course_%d" % i, "name": "Course %d" % i, "mode": "Race" if i % 2 == 0 else "Relay",
 			"current": i == 1, "thumbnail": ImageTexture.create_from_image(Image.create(16, 9, false, Image.FORMAT_RGB8)) if i == 0 else ""})
-	var maps := node.use_maps(func() -> Array: return rows, func(id: StringName) -> DotResult:
+	var maps := node.use_maps(func() -> Array: return rows, func(id: StringName) -> GSResult:
 		changed.append(id)
-		return DotResult.success(id))
+		return GSResult.success(id))
 	host._check(maps != null and node.menu.handle_event(host._key(KEY_M)) and node.menu.picker.is_open(), "solo, M opens the picker")
 	await host.get_tree().process_frame
 	var texts := host._texts(node.menu.picker)
@@ -75,7 +75,7 @@ static func run(host: Selftest) -> void:
 	await host.get_tree().process_frame
 
 
-static func _solo(host: Selftest, node: DotMenuSettings, maps: DotMenuMaps, changed: Array, game_picks: Array) -> void:
+static func _solo(host: Selftest, node: GSMenuSettings, maps: GSMenuMaps, changed: Array, game_picks: Array) -> void:
 	maps.open()
 	var _k := node.menu.handle_event(host._key(KEY_3))
 	await host.get_tree().process_frame
@@ -86,9 +86,9 @@ static func _solo(host: Selftest, node: DotMenuSettings, maps: DotMenuMaps, chan
 	host._check(not node.menu.picker.is_open() and changed.size() == 1, "M again closes it, changing nothing")
 
 
-static func _refusal_and_toasts(host: Selftest, node: DotMenuSettings, rows: Array) -> void:
-	var refuse := node.use_maps(func() -> Array: return rows, func(_id: StringName) -> DotResult:
-		return DotResult.fail(DotError.CODE_STATE, "A round is being decided."))
+static func _refusal_and_toasts(host: Selftest, node: GSMenuSettings, rows: Array) -> void:
+	var refuse := node.use_maps(func() -> Array: return rows, func(_id: StringName) -> GSResult:
+		return GSResult.fail(GSError.CODE_STATE, "A round is being decided."))
 	refuse.open()
 	var _k4 := node.menu.handle_event(host._key(KEY_1))
 	await host.get_tree().process_frame
@@ -104,14 +104,14 @@ static func _refusal_and_toasts(host: Selftest, node: DotMenuSettings, rows: Arr
 	host._check(node.menu.toast_text() == "second", "an older toast's timer does not hide a newer one")
 
 
-static func _connected(host: Selftest, node: DotMenuSettings, maps: DotMenuMaps, changed: Array) -> void:
+static func _connected(host: Selftest, node: GSMenuSettings, maps: GSMenuMaps, changed: Array) -> void:
 	# Connected: the server is asked, and its answer decides.
 	var link := FakeMapLink.new()
 	host.add_child(link)
 	maps.link = link
-	maps.change_fn = func(id: StringName) -> DotResult:
+	maps.change_fn = func(id: StringName) -> GSResult:
 		changed.append(id)
-		return DotResult.success(id)
+		return GSResult.success(id)
 	var _k5 := node.menu.handle_event(host._key(KEY_M))
 	host._check(link.sent == ["/mapmenu"] and not node.menu.picker.is_open(), "online, M asks the server rather than opening a list of its own")
 	link.answer({"maps": [{"id": "dm_atrium", "name": "Atrium", "current": true}, {"id": "dm_yard", "name": "Yard"}],

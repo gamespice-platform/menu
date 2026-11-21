@@ -9,7 +9,7 @@ static func run(host: Node) -> void:
 	vp.size = Vector2i(1280, 720)
 	vp.disable_3d = true
 	host.add_child(vp)
-	var board := DotMenuScoreboard.new()
+	var board := GSMenuScoreboard.new()
 	vp.add_child(board)
 	var rows: Array = []
 	for i in range(15):
@@ -20,7 +20,7 @@ static func run(host: Node) -> void:
 		await host.get_tree().process_frame
 	var window := board.find_child("Window", true, false) as Control
 	var scroll := board.find_child("Scroll", true, false) as ScrollContainer
-	var cap := 720.0 * DotMenuScoreboard.MAX_HEIGHT_FRACTION
+	var cap := 720.0 * GSMenuScoreboard.MAX_HEIGHT_FRACTION
 	host._check(scroll != null and window != null and scroll.horizontal_scroll_mode == ScrollContainer.SCROLL_MODE_DISABLED,
 		"the rows sit in a vertical-only scroll container")
 	host._check(window != null and window.size.y <= cap + 1.0, "15 rows at 720 high: panel %.0f <= cap %.0f" % [window.size.y, cap])

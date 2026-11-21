@@ -1,8 +1,8 @@
-class_name DotMenuStats
+class_name GSMenuStats
 extends Node
 
-## Puts a game's per-player statistics on its Tab board: one lifetime column per stat the server lists in the snapshot's `stat_columns` (GameSpice Game's `DotGameStatsBoard` builds them), the optional ones hidden until the player turns them on.
-## Child of a [DotMenuScoreboard]; it follows the snapshot, so a game that replaces `board.columns` afterwards keeps the stat columns. [member enabled] is what the `cl_stats_ui` cvar sets.
+## Puts a game's per-player statistics on its Tab board: one lifetime column per stat the server lists in the snapshot's `stat_columns` (GameSpice Game's `GSGameStatsBoard` builds them), the optional ones hidden until the player turns them on.
+## Child of a [GSMenuScoreboard]; it follows the snapshot, so a game that replaces `board.columns` afterwards keeps the stat columns. [member enabled] is what the `cl_stats_ui` cvar sets.
 
 
 ## Row field prefixes: this session's figure, and the lifetime total. Text, already formatted by the server.
@@ -10,7 +10,7 @@ const SESSION := "st_"
 const LIFETIME := "lt_"
 const COLUMNS_KEY := "stat_columns"
 
-var board: DotMenuScoreboard = null
+var board: GSMenuScoreboard = null
 
 ## Off removes the columns and hides the panel.
 var enabled: bool = true:
@@ -23,12 +23,12 @@ var _keys: Array[StringName] = []
 var _seen: Dictionary = {}
 
 
-## Adds a [DotMenuStats] under [param on] and returns it.
-static func install(on: DotMenuScoreboard) -> DotMenuStats:
-	var existing := on.get_node_or_null("Stats") as DotMenuStats
+## Adds a [GSMenuStats] under [param on] and returns it.
+static func install(on: GSMenuScoreboard) -> GSMenuStats:
+	var existing := on.get_node_or_null("Stats") as GSMenuStats
 	if existing != null:
 		return existing
-	var made := DotMenuStats.new()
+	var made := GSMenuStats.new()
 	made.name = "Stats"
 	made.board = on
 	on.add_child(made)
@@ -60,7 +60,7 @@ func _sync() -> void:
 		var key := StringName(LIFETIME + str((entry as Dictionary).get("key", "")))
 		board.add_column({
 			"key": key, "title": str((entry as Dictionary).get("title", key)),
-			"kind": DotMenuScoreboard.KIND_TEXT,
+			"kind": GSMenuScoreboard.KIND_TEXT,
 			"hidden": str((entry as Dictionary).get("column", "")) != "default",
 		}, &"ping")
 		_keys.append(key)

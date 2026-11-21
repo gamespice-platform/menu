@@ -1,14 +1,14 @@
 extends CanvasLayer
 
-## The toast half of [DotMenu] (its base script): the short line at the top of the screen, and the
+## The toast half of [GSMenu] (its base script): the short line at the top of the screen, and the
 ## kit and loadout screen it is drawn with and placed by. Everything else is in dot_menu.gd.
 
 ## The kit everything is drawn with now. Replaced, not changed, on a theme change.
-var kit: DotMenuKit = null
+var kit: GSMenuKit = null
 
-## The loadout menu, and its screen. Null until [method use_loadout]. See [DotMenuLoadout].
-var loadout: DotMenuLoadout = null
-var loadout_screen: DotMenuLoadoutScreen = null
+## The loadout menu, and its screen. Null until [method use_loadout]. See [GSMenuLoadout].
+var loadout: GSMenuLoadout = null
+var loadout_screen: GSMenuLoadoutScreen = null
 
 ## The short line [method toast] shows; null until the first one.
 var toast_plate: PanelContainer = null

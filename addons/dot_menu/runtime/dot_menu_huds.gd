@@ -1,8 +1,8 @@
-class_name DotMenuHuds
+class_name GSMenuHuds
 extends RefCounted
-## The HUD roots a game hands [DotMenu] through `follow_hud`: themed and scaled on every change.
+## The HUD roots a game hands [GSMenu] through `follow_hud`: themed and scaled on every change.
 
-var _menu: CanvasLayer  # a DotMenu, held untyped so this file and dot_menu.gd do not keep each other's parsers alive
+var _menu: CanvasLayer  # a GSMenu, held untyped so this file and dot_menu.gd do not keep each other's parsers alive
 var _entries: Array[Dictionary] = []
 
 
@@ -56,7 +56,7 @@ func _style(entry: Dictionary) -> void:
 	var root := (entry["root"] as WeakRef).get_ref() as Control
 	if root == null:
 		return
-	var p: DotMenuPalette = _menu.palette() if (_menu.kit != null or _menu.themes != null) else DotMenuPalette.new()
+	var p: GSMenuPalette = _menu.palette() if (_menu.kit != null or _menu.themes != null) else GSMenuPalette.new()
 	root.theme = p.hud_theme(entry["accent"] as Theme)
 
 
@@ -84,4 +84,4 @@ func _scale(entry: Dictionary) -> void:
 		root.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 		entry["fitted"] = false
 		return
-	DotHud.fit_control(root, vp.get_visible_rect().size, k)
+	GSHud.fit_control(root, vp.get_visible_rect().size, k)

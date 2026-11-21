@@ -1,6 +1,6 @@
 extends SceneTree
 
-## Renders DotProfileEditorScreen to screenshots/: desktop dark and light, phone.
+## Renders GSProfileEditorScreen to screenshots/: desktop dark and light, phone.
 ##
 ##   xvfb-run -a godot --path . --resolution 1280x800 --script tools/profile_editor_shot.gd
 
@@ -13,24 +13,24 @@ func _initialize() -> void:
 
 
 func _run() -> void:
-	DotProfileEditorDemo.write_files()
-	DotProfileSet.set_user_tier(true)
-	await _scene("profile_editor_dark", Vector2i(1280, 800), DotFormTokens.dark())
-	await _scene("profile_editor_light", Vector2i(1280, 800), DotFormTokens.light())
-	await _scene("profile_editor_phone", Vector2i(420, 860), DotFormTokens.dark())
-	DotProfileEditorDemo.clean()
+	GSProfileEditorDemo.write_files()
+	GSProfileSet.set_user_tier(true)
+	await _scene("profile_editor_dark", Vector2i(1280, 800), GSFormTokens.dark())
+	await _scene("profile_editor_light", Vector2i(1280, 800), GSFormTokens.light())
+	await _scene("profile_editor_phone", Vector2i(420, 860), GSFormTokens.dark())
+	GSProfileEditorDemo.clean()
 	quit(0)
 
 
-func _scene(name: String, size: Vector2i, tokens: DotFormTokens) -> void:
+func _scene(name: String, size: Vector2i, tokens: GSFormTokens) -> void:
 	root.get_window().size = size
 	await _frames(3)
 	tokens.animate = false
-	var ed := DotProfileEditorScreen.new()
+	var ed := GSProfileEditorScreen.new()
 	ed.tokens = tokens
 	ed.set_anchors_preset(Control.PRESET_FULL_RECT)
 	root.add_child(ed)
-	for s in DotProfileEditorDemo.sets():
+	for s in GSProfileEditorDemo.sets():
 		ed.add_set(s, "NPCs" if s.rel_path == "npc" else "Weapons")
 	await _frames(3)
 	var _o := ed.open("npc", "zombie")

@@ -17,13 +17,13 @@ func _run() -> void:
 	var demo := (load("res://examples/menu_demo.tscn") as PackedScene).instantiate()
 	root.add_child(demo)
 	await _frames(6)
-	var menu: DotMenu = demo.get("menu")
-	var settings: DotSettingsManager = demo.get("settings")
+	var menu: GSMenu = demo.get("menu")
+	var settings: GSSettingsManager = demo.get("settings")
 	settings.reset_all()
 	var _t := settings.set_value(&"ui_theme", &"gamespice")
 	for s in SIZES:
 		# A phone is a touch screen; the desktop frame is drawn for keyboard and gamepad.
-		DotPlatform.touch_override = 1 if s.x < 1000 else 0
+		GSPlatform.touch_override = 1 if s.x < 1000 else 0
 		root.size = s
 		await _frames(3)
 		menu.open(&"general")

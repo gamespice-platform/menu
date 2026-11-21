@@ -1,11 +1,11 @@
-class_name DotMenuKit
+class_name GSMenuKit
 extends RefCounted
 
 ## How a menu looks: one palette, one [Theme], and the pieces every screen is assembled from. Example: docs/examples.md.
 ## Everything is a StyleBoxFlat and a colour (no texture, no font file) so a pack stays small. An instance rebuilt on a theme change, not static colours,
-## because static palettes would be shared by a server and a client in one process. See [method DotMenuScreen.restyle].
+## because static palettes would be shared by a server and a client in one process. See [method GSMenuScreen.restyle].
 
-var palette: DotMenuPalette = null
+var palette: GSMenuPalette = null
 
 ## The face everything is set in. Null is the engine's own.
 var font: Font = null
@@ -32,13 +32,13 @@ var _bold: Font = null
 var touch_target: int = 0
 
 
-func _init(p_palette: DotMenuPalette = null) -> void:
-	palette = p_palette if p_palette != null else DotMenuPalette.new()
+func _init(p_palette: GSMenuPalette = null) -> void:
+	palette = p_palette if p_palette != null else GSMenuPalette.new()
 
 
 ## A kit like this one in another palette: same sizes and fonts.
-func with_palette(p: DotMenuPalette) -> DotMenuKit:
-	var k := DotMenuKit.new(p)
+func with_palette(p: GSMenuPalette) -> GSMenuKit:
+	var k := GSMenuKit.new(p)
 	k.font = font
 	k.embolden = embolden
 	k.bold_font = bold_font
@@ -97,7 +97,7 @@ func surface_box() -> StyleBoxFlat:
 
 
 ## The ring a focused control wears, for keyboard and gamepad players. [param alpha] is its
-## strength in a flat theme; a theme with [member DotMenuPalette.glow] draws it at full strength,
+## strength in a flat theme; a theme with [member GSMenuPalette.glow] draws it at full strength,
 ## set outside the control so it does not cover a filled button's edge.
 func focus_ring(alpha: float = 0.7) -> StyleBoxFlat:
 	var g := palette.glow
@@ -107,7 +107,7 @@ func focus_ring(alpha: float = 0.7) -> StyleBoxFlat:
 	return s
 
 
-## A thin bar in the theme's flame gradient ([method DotMenuPalette.flame]), or null when the
+## A thin bar in the theme's flame gradient ([method GSMenuPalette.flame]), or null when the
 ## theme has none. [param height] in pixels.
 func flame_strip(height: int = 3) -> Control:
 	var stops := palette.flame()
@@ -297,10 +297,10 @@ func primary_button(text: String) -> Button:
 	b.add_theme_stylebox_override(&"hover", hover)
 	b.add_theme_stylebox_override(&"pressed", box(p.accent, radius_small, none, 0, pad))
 	b.add_theme_stylebox_override(&"focus", focus_ring(0.8))
-	var ink := DotMenuPalette.ink_on(p.accent_deep)
+	var ink := GSMenuPalette.ink_on(p.accent_deep)
 	b.add_theme_color_override(&"font_color", ink)
 	b.add_theme_color_override(&"font_hover_color", ink)
-	b.add_theme_color_override(&"font_pressed_color", DotMenuPalette.ink_on(p.accent))
+	b.add_theme_color_override(&"font_pressed_color", GSMenuPalette.ink_on(p.accent))
 	b.add_theme_color_override(&"font_focus_color", ink)
 	b.add_theme_font_override(&"font", bold())
 	return b

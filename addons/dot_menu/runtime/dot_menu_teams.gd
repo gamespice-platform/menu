@@ -1,7 +1,7 @@
-class_name DotMenuTeams
+class_name GSMenuTeams
 extends RefCounted
 
-## The team menu: the period key opens [DotMenuTeamScreen] with a card per team and Spectate. Solo it reads [member offer_fn]; on a server the SERVER decides: this sends `/teams` through the client link's chat, reads the `team_menu` notice, and a choice sends `/teams <id>` (`auto`, `play` or `spectate`).
+## The team menu: the period key opens [GSMenuTeamScreen] with a card per team and Spectate. Solo it reads [member offer_fn]; on a server the SERVER decides: this sends `/teams` through the client link's chat, reads the `team_menu` notice, and a choice sends `/teams <id>` (`auto`, `play` or `spectate`).
 ## Nothing here names dot-server or dot-team; the data is `{teams: [{id, name, colour, count, max, closed, current}], ffa, spectating, spectate_ok, enabled, wait, result}`.
 
 const CHANNEL := "menu.teams"
@@ -13,13 +13,13 @@ signal said(text: String)
 
 ## `func() -> Dictionary`, for solo: the data above.
 var offer_fn: Callable = Callable()
-## `func(id: String) -> DotResult`, for solo: switch now.
+## `func(id: String) -> GSResult`, for solo: switch now.
 var choose_fn: Callable = Callable()
 
 var enabled: bool = true
 ## With nothing wired (no server link, no [member offer_fn]) the menu still opens as a free-for-all: Play and Spectate. False keeps the old toast.
 var default_when_unwired: bool = true
-var menu: CanvasLayer = null  # a DotMenu (untyped: see dot_menu_huds.gd)
+var menu: CanvasLayer = null  # a GSMenu (untyped: see dot_menu_huds.gd)
 var link: Object = null
 var link_service: StringName = &"dot_client_link"
 var command_prefix: String = "/"
@@ -89,7 +89,7 @@ func choose(id: String) -> void:
 		_say("This game cannot change teams.")
 		return
 	var res: Variant = choose_fn.call(id)
-	var result: DotResult = res if res is DotResult else DotResult.success(id)
+	var result: GSResult = res if res is GSResult else GSResult.success(id)
 	if result.ok:
 		_done(true, "")
 	else:
@@ -145,7 +145,7 @@ func receive(data: Dictionary) -> void:
 
 func _done(ok: bool, message: String) -> void:
 	if not ok:
-		DotLog.info(CHANNEL, "team change refused", {"why": message})
+		GSLog.info(CHANNEL, "team change refused", {"why": message})
 	if ok:
 		if menu != null and menu.team_screen != null:
 			menu.team_screen.close()
@@ -170,7 +170,7 @@ func _link() -> Object:
 		return link
 	if link_service == &"":
 		return null
-	return DotRegistry.get_node_service(link_service)
+	return GSRegistry.get_node_service(link_service)
 
 
 static func _connected(l: Object) -> bool:

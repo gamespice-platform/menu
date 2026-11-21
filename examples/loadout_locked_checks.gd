@@ -10,7 +10,7 @@ class StoreCatcher extends RefCounted:
 		got.append([item_id, url])
 
 
-static func run(host: Node, screen: DotMenuLoadoutScreen, lo: DotMenuLoadout, link: Object) -> void:
+static func run(host: Node, screen: GSMenuLoadoutScreen, lo: GSMenuLoadout, link: Object) -> void:
 	var offer: Dictionary = host._loadout_offer()
 	var primary := (offer["slots"] as Array)[0] as Dictionary
 	for c: Variant in primary["choices"]:

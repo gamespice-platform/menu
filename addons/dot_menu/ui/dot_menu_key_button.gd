@@ -1,14 +1,14 @@
-class_name DotMenuKeyButton
+class_name GSMenuKeyButton
 extends Button
 
 ## One key binding as a button: shows the key, and on a click listens for the next one.
 ## Listens in [method Node._input] so the key pressed to bind does not also do what it currently does. Escape cancels, keys are stored by physical position
-## (`DotInputBinding`), and the left mouse button is refused because it is how the player clicked this button.
+## (`GSInputBinding`), and the left mouse button is refused because it is how the player clicked this button.
 
-## The binding a player chose, as `DotInputBinding` text.
+## The binding a player chose, as `GSInputBinding` text.
 signal captured(text: String)
 
-var kit: DotMenuKit = null
+var kit: GSMenuKit = null
 
 var binding: String = "":
 	set(value):
@@ -21,7 +21,7 @@ var listening: bool = false
 var prompt: String = "Press a key  ·  Esc cancels"
 
 ## Whether Delete (or Backspace) while listening sets the row to nothing, emitting
-## `DotMenuBindings.NONE`. Only an extra key ([method DotMenuBindings.add_extra]) is: an
+## `GSMenuBindings.NONE`. Only an extra key ([method GSMenuBindings.add_extra]) is: an
 ## action's own row with no key is a control the player cannot use. Set before it is drawn.
 var clearable: bool = false:
 	set(value):
@@ -35,8 +35,8 @@ var _hint: Label = null
 var _opened_on_frame: int = -1
 
 
-func _init(p_kit: DotMenuKit = null) -> void:
-	kit = p_kit if p_kit != null else DotMenuKit.new()
+func _init(p_kit: GSMenuKit = null) -> void:
+	kit = p_kit if p_kit != null else GSMenuKit.new()
 	flat = true
 	focus_mode = Control.FOCUS_ALL
 	custom_minimum_size = Vector2(150, 34)
@@ -48,7 +48,7 @@ func _ready() -> void:
 	var row := HBoxContainer.new()
 	row.alignment = BoxContainer.ALIGNMENT_END
 	row.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	DotMenuKit.fill_parent(row)
+	GSMenuKit.fill_parent(row)
 	add_child(row)
 
 	_hint = kit.label("", kit.size_small, kit.palette.accent)
@@ -90,14 +90,14 @@ func _input(event: InputEvent) -> void:
 			return
 
 		if clearable and (key.physical_keycode == KEY_DELETE or key.physical_keycode == KEY_BACKSPACE):
-			_finish(DotMenuBindings.NONE)
+			_finish(GSMenuBindings.NONE)
 			return
 
 		# A modifier on its own is a binding ("Ctrl" is Duck). Pressed with another key it
 		# is part of that key; this is the moment it went down, so it is the key itself.
 		var bare := InputEventKey.new()
 		bare.physical_keycode = key.physical_keycode
-		_finish(DotInputBinding.to_text(bare))
+		_finish(GSInputBinding.to_text(bare))
 		return
 
 	if event is InputEventMouseButton and event.pressed:
@@ -113,13 +113,13 @@ func _input(event: InputEvent) -> void:
 			_stop()
 			return
 
-		_finish(DotInputBinding.to_text(button))
+		_finish(GSInputBinding.to_text(button))
 
 
 func _finish(text: String) -> void:
 	listening = false
 	_refresh()
-	if text != DotInputBinding.UNBOUND:
+	if text != GSInputBinding.UNBOUND:
 		captured.emit(text)
 
 

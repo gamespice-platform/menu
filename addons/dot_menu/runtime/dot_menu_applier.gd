@@ -1,9 +1,9 @@
-class_name DotMenuApplier
+class_name GSMenuApplier
 extends Node
 
 ## Pushes every setting at whatever it controls, once after load and on every change after. Example: docs/examples.md.
 ## Everything is pushed at [method setup] and when something new is bound: a value read from disk has not CHANGED, so applying only from `changed` would ignore every saved setting.
-## Duck-typed so GameSpice Menu depends on none of what it drives; `chat_window` is left to [method on], and `ui_theme`, `hud_scale`, `show_fps`, `net_stat*` to [DotMenu].
+## Duck-typed so GameSpice Menu depends on none of what it drives; `chat_window` is left to [method on], and `ui_theme`, `hud_scale`, `show_fps`, `net_stat*` to [GSMenu].
 
 const CHANNEL := "menu.apply"
 
@@ -21,8 +21,8 @@ const VOLUMES := {
 	&"ambience_volume": [&"ambience", &"Ambience"],
 }
 
-## Every stock key this applies, and which of them [DotMenu] applies instead. The suite holds
-## [constant DotMenuStock.KEYS] to these two lists and [constant LEFT_TO_THE_GAME], so a stock
+## Every stock key this applies, and which of them [GSMenu] applies instead. The suite holds
+## [constant GSMenuStock.KEYS] to these two lists and [constant LEFT_TO_THE_GAME], so a stock
 ## setting nothing applies fails a check instead of shipping as a switch that does nothing.
 const APPLIES: Array[StringName] = [
 	&"master_volume", &"sfx_volume", &"ui_volume", &"music_volume", &"voice_volume", &"ambience_volume",
@@ -38,8 +38,8 @@ const APPLIED_BY_MENU: Array[StringName] = [
 ]
 
 ## Stock keys only the game can apply, through [method on]. See the class note.
-## The render quality keys are applied by GameSpice FX's DotFxRenderQuality, and the Advanced video keys by its
-## DotFxGraphics (DotGameClient wires both through `DotFxRenderQuality.follow(settings)`).
+## The render quality keys are applied by GameSpice FX's GSFxRenderQuality, and the Advanced video keys by its
+## GSFxGraphics (GSGameClient wires both through `GSFxRenderQuality.follow(settings)`).
 const LEFT_TO_THE_GAME: Array[StringName] = [
 	&"chat_window", &"slide_volume", &"aniso", &"aa", &"mip_bias", &"sharpness",
 	&"shadow_quality", &"shadow_distance", &"view_distance", &"prop_distance", &"lod_bias", &"particle_quality",
@@ -52,19 +52,19 @@ const LEFT_TO_THE_GAME: Array[StringName] = [
 const VIEW_MODEL_GROUP := &"dot_view_model"
 
 ## The registry name a client publishes its own player's voice under (GameSpice Voice's
-## `DotVoiceManager.CLIENT_SERVICE`, as text: GameSpice Menu does not depend on GameSpice Voice).
+## `GSVoiceManager.CLIENT_SERVICE`, as text: GameSpice Menu does not depend on GameSpice Voice).
 const VOICE_SERVICE := &"dot_voice_client"
 
-## A bound voice said whether its server allows voice (`sv_voice_enable`). [DotMenuSettings]
+## A bound voice said whether its server allows voice (`sv_voice_enable`). [GSMenuSettings]
 ## hides the voice rows on false.
 signal voice_available_changed(available: bool)
 
 ## Emitted after a key has been applied, with why (&"applied" at boot, else the reason
-## [signal DotSettingsManager.changed] gave).
+## [signal GSSettingsManager.changed] gave).
 signal applied(key: StringName, value: Variant, why: StringName)
 
-var settings: DotSettingsManager = null
-var bindings: DotMenuBindings = null
+var settings: GSSettingsManager = null
+var bindings: GSMenuBindings = null
 
 ## fps_max, vsync, window_mode and render_scale. Off for a host that owns its window — an
 ## editor plugin, a launcher showing a game inside it.
@@ -102,10 +102,10 @@ var _connected := false
 
 
 ## Connects to the settings and applies every value now.
-func setup() -> DotResult:
+func setup() -> GSResult:
 	if settings == null:
-		DotLog.warn(CHANNEL, "setup refused: no settings bound", {"applier": str(get_path()) if is_inside_tree() else name})
-		return DotResult.fail(DotError.CODE_STATE, "DotMenuApplier has no settings.")
+		GSLog.warn(CHANNEL, "setup refused: no settings bound", {"applier": str(get_path()) if is_inside_tree() else name})
+		return GSResult.fail(GSError.CODE_STATE, "GSMenuApplier has no settings.")
 	if not _connected:
 		settings.changed.connect(_on_changed)
 		_connected = true
@@ -113,15 +113,15 @@ func setup() -> DotResult:
 			get_tree().node_added.connect(_on_node_added)
 		# The voice is found, not handed over: a game's chat client publishes its manager
 		# and this binds it whichever of the two is built first. A game wires nothing.
-		var bus := DotRegistry.signals()
+		var bus := GSRegistry.signals()
 		if not bus.service_registered.is_connected(_on_service_registered):
 			bus.service_registered.connect(_on_service_registered)
-	var found := DotRegistry.get_service(VOICE_SERVICE)
+	var found := GSRegistry.get_service(VOICE_SERVICE)
 	if found != null:
 		bind_voice(found)
 	_follow_window()
 	apply_all()
-	return DotResult.success(self)
+	return GSResult.success(self)
 
 
 func _on_service_registered(service: StringName, instance: Object) -> void:
@@ -132,7 +132,7 @@ func _on_service_registered(service: StringName, instance: Object) -> void:
 func _exit_tree() -> void:
 	if _connected and settings != null and settings.changed.is_connected(_on_changed):
 		settings.changed.disconnect(_on_changed)
-	var bus := DotRegistry.signals()
+	var bus := GSRegistry.signals()
 	if bus.service_registered.is_connected(_on_service_registered):
 		bus.service_registered.disconnect(_on_service_registered)
 	if is_inside_tree() and get_tree().node_added.is_connected(_on_node_added):
@@ -147,7 +147,7 @@ func apply_all() -> void:
 	if settings == null or settings.schema == null:
 		return
 	# Two rows stored on one key (a default that moved under a saved document) are put right
-	# before anything reaches the InputMap; see DotMenuBindings.settle.
+	# before anything reaches the InputMap; see GSMenuBindings.settle.
 	if bindings != null:
 		var _settled := bindings.settle(settings)
 	for key in settings.schema.keys():
@@ -156,7 +156,7 @@ func apply_all() -> void:
 
 ## Calls [param handler] `(value, why)` whenever [param key] is applied, and once now if the
 ## settings are already loaded. Several handlers per key run in the order they were added.
-func on(key: StringName, handler: Callable) -> DotMenuApplier:
+func on(key: StringName, handler: Callable) -> GSMenuApplier:
 	if not _handlers.has(key):
 		_handlers[key] = []
 	(_handlers[key] as Array).append(handler)
@@ -167,7 +167,7 @@ func on(key: StringName, handler: Callable) -> DotMenuApplier:
 
 ## Calls [param handler] `(key, value, why)` for every key applied. For a game's own keys
 ## that it would rather `match` on in one place.
-func on_any(handler: Callable) -> DotMenuApplier:
+func on_any(handler: Callable) -> GSMenuApplier:
 	_any.append(handler)
 	return self
 
@@ -238,9 +238,9 @@ func _on_changed(key: StringName, value: Variant, why: StringName) -> void:
 
 
 func _apply(key: StringName, value: Variant, why: StringName) -> void:
-	if key == DotMenuGraphicsPresets.KEY:
+	if key == GSMenuGraphicsPresets.KEY:
 		_apply_preset(StringName(str(value)), why)
-	elif (DotMenuGraphicsPresets.TABLE[DotMenuGraphicsPresets.DEFAULT] as Dictionary).has(key):
+	elif (GSMenuGraphicsPresets.TABLE[GSMenuGraphicsPresets.DEFAULT] as Dictionary).has(key):
 		_preset_key_changed(key, value, why)
 	if VOLUMES.has(key):
 		_apply_volumes()
@@ -360,7 +360,7 @@ func _apply_fx() -> void:
 			cfg.set(&"shake_scale", settings.get_float(&"shake_scale", 1.0))
 		if _has(&"allow_flashes") and "allow_flashes" in cfg:
 			cfg.set(&"allow_flashes", settings.get_bool(&"allow_flashes", true))
-		# Duck-typed: GameSpice FX's config says reduce_motion, GameSpice UI's DotWinnerReveal reduced_motion.
+		# Duck-typed: GameSpice FX's config says reduce_motion, GameSpice UI's GSWinnerReveal reduced_motion.
 		if _has(&"reduce_motion"):
 			var still := settings.get_bool(&"reduce_motion", false)
 			if "reduce_motion" in cfg:
@@ -385,12 +385,12 @@ func _apply_look() -> void:
 
 func _apply_view_models() -> void:
 	if is_inside_tree() and _has(&"viewmodel_fov"):
-		get_tree().call_group(VIEW_MODEL_GROUP, &"set_hands_fov_at_4_3", settings.get_float(&"viewmodel_fov", float(DotMenuStock.VIEWMODEL_FOV)))
+		get_tree().call_group(VIEW_MODEL_GROUP, &"set_hands_fov_at_4_3", settings.get_float(&"viewmodel_fov", float(GSMenuStock.VIEWMODEL_FOV)))
 
 
 func _on_node_added(node: Node) -> void:
 	if node.is_in_group(VIEW_MODEL_GROUP) and _has(&"viewmodel_fov"):
-		node.call(&"set_hands_fov_at_4_3", settings.get_float(&"viewmodel_fov", float(DotMenuStock.VIEWMODEL_FOV)))
+		node.call(&"set_hands_fov_at_4_3", settings.get_float(&"viewmodel_fov", float(GSMenuStock.VIEWMODEL_FOV)))
 
 
 func _apply_fov() -> void:
@@ -436,14 +436,14 @@ func _apply_window_mode(mode: StringName, why: StringName) -> void:
 	if DisplayServer.get_name() == "headless":
 		return
 
-	if DotPlatform.is_web():
+	if GSPlatform.is_web():
 		if why == &"applied":
 			return
 		if mode == &"windowed":
 			DisplayServer.window_set_mode(DisplayServer.WINDOW_MODE_WINDOWED)
 			return
 		DisplayServer.window_set_mode(DisplayServer.WINDOW_MODE_FULLSCREEN)
-		DotWeb.lock_keyboard()
+		GSWeb.lock_keyboard()
 		return
 
 	match mode:
@@ -461,23 +461,23 @@ func _apply_window_mode(mode: StringName, why: StringName) -> void:
 ## A preset chosen by the player writes its values. At boot nothing is written: the stored values already
 ## are what the player last had, preset or not.
 func _apply_preset(preset: StringName, why: StringName) -> void:
-	if why == &"applied" or why == DotMenuGraphicsPresets.REASON:
+	if why == &"applied" or why == GSMenuGraphicsPresets.REASON:
 		return
-	var values := DotMenuGraphicsPresets.values_of(preset)
+	var values := GSMenuGraphicsPresets.values_of(preset)
 	for k in values:
 		if _has(k):
-			var _r := settings.set_value(k, values[k], DotMenuGraphicsPresets.REASON)
+			var _r := settings.set_value(k, values[k], GSMenuGraphicsPresets.REASON)
 
 
 ## A hand edit of a key the preset sets makes the preset Custom, unless it is the preset's own value.
 func _preset_key_changed(key: StringName, value: Variant, why: StringName) -> void:
-	if why == &"applied" or why == DotMenuGraphicsPresets.REASON or not _has(DotMenuGraphicsPresets.KEY):
+	if why == &"applied" or why == GSMenuGraphicsPresets.REASON or not _has(GSMenuGraphicsPresets.KEY):
 		return
-	var preset := StringName(settings.get_string(DotMenuGraphicsPresets.KEY))
-	var values := DotMenuGraphicsPresets.values_of(preset)
-	if values.is_empty() or DotMenuGraphicsPresets.same(value, values.get(key)):
+	var preset := StringName(settings.get_string(GSMenuGraphicsPresets.KEY))
+	var values := GSMenuGraphicsPresets.values_of(preset)
+	if values.is_empty() or GSMenuGraphicsPresets.same(value, values.get(key)):
 		return
-	var _r := settings.set_value(DotMenuGraphicsPresets.KEY, DotMenuGraphicsPresets.CUSTOM, DotMenuGraphicsPresets.REASON)
+	var _r := settings.set_value(GSMenuGraphicsPresets.KEY, GSMenuGraphicsPresets.CUSTOM, GSMenuGraphicsPresets.REASON)
 
 
 ## The stretch aspect: off (the default) fills the window whatever its shape, on keeps the project's shape with
@@ -505,7 +505,7 @@ static func parse_size(text: String) -> Vector2i:
 ## Sizes a windowed native window and centres it on its screen; "" leaves it. A size the window itself
 ## reported (why `window`) is already the window's.
 func _apply_window_size(text: String, why: StringName) -> void:
-	if why == &"window" or DisplayServer.get_name() == "headless" or DotPlatform.is_web():
+	if why == &"window" or DisplayServer.get_name() == "headless" or GSPlatform.is_web():
 		return
 	if DisplayServer.window_get_mode() != DisplayServer.WINDOW_MODE_WINDOWED:
 		return
@@ -539,7 +539,7 @@ func _on_window_resized() -> void:
 	if _has(&"keep_aspect"):
 		_apply_aspect(settings.get_bool(&"keep_aspect"))
 	if _resize_timer != null and _resize_timer.is_inside_tree() and _has(&"window_size") \
-			and DisplayServer.get_name() != "headless" and not DotPlatform.is_web():
+			and DisplayServer.get_name() != "headless" and not GSPlatform.is_web():
 		_resize_timer.start(maxf(remember_window_after, 0.05))
 
 

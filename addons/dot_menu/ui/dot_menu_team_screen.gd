@@ -1,4 +1,4 @@
-class_name DotMenuTeamScreen
+class_name GSMenuTeamScreen
 extends Control
 
 ## The team menu: one card per team (a row or a grid, whatever the server lists), then Spectate. Free-for-all lists only Play and Spectate.
@@ -19,7 +19,7 @@ const WINDOW_PAD := 56 + 16
 ## Asks the server again, every [member refresh_sec] while open, so the counts stay live.
 signal refresh_requested()
 
-var kit: DotMenuKit = null
+var kit: GSMenuKit = null
 ## The action that opened this, so the same key closes it.
 var toggle_action: StringName = &""
 var title_text: String = "Choose your team"
@@ -44,8 +44,8 @@ var _built := false
 
 func _ready() -> void:
 	if kit == null:
-		kit = DotMenuKit.new()
-	DotMenuKit.fill_parent(self)
+		kit = GSMenuKit.new()
+	GSMenuKit.fill_parent(self)
 	mouse_filter = Control.MOUSE_FILTER_STOP
 	visible = false
 	_build()
@@ -57,11 +57,11 @@ func _on_size_changed() -> void:
 		_rebuild()
 
 
-func restyle(new_kit: DotMenuKit) -> void:
+func restyle(new_kit: GSMenuKit) -> void:
 	kit = new_kit
 	if not _built:
 		return
-	DotMenuKit.clear(self)
+	GSMenuKit.clear(self)
 	_build()
 	if visible:
 		_rebuild()
@@ -72,11 +72,11 @@ func _build() -> void:
 	theme = kit.theme()
 	var back := ColorRect.new()
 	back.color = Color(p.backdrop, 0.6)
-	DotMenuKit.fill_parent(back)
+	GSMenuKit.fill_parent(back)
 	back.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	add_child(back)
 	var centre := CenterContainer.new()
-	DotMenuKit.fill_parent(centre)
+	GSMenuKit.fill_parent(centre)
 	centre.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	add_child(centre)
 	_window = PanelContainer.new()
@@ -264,7 +264,7 @@ func _rebuild() -> void:
 	if _grid == null:
 		return
 	var keep := _scroll.scroll_vertical
-	DotMenuKit.clear(_grid)
+	GSMenuKit.clear(_grid)
 	_title.text = title_text
 	var ffa := bool(last_data.get("ffa", false))
 	var wait := float(last_data.get("wait", 0.0))
@@ -286,7 +286,7 @@ func _rebuild() -> void:
 	if is_inside_tree():
 		_reveal_focus(keep)
 	var keys := "1-%d or click  ·  arrows and Enter  ·  " % mini(entries.size(), 9)
-	var toggle := DotInputBinding.describe_action(toggle_action) if toggle_action != &"" and InputMap.has_action(toggle_action) else ""
+	var toggle := GSInputBinding.describe_action(toggle_action) if toggle_action != &"" and InputMap.has_action(toggle_action) else ""
 	_footer.text = keys + ((toggle + " or Esc closes") if toggle != "" else "Esc closes") + \
 		(("   " + last_result) if last_result != "" else "")
 
@@ -325,7 +325,7 @@ func _card(index: int, e: Dictionary) -> Control:
 	var col := VBoxContainer.new()
 	col.add_theme_constant_override(&"separation", 4)
 	col.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	DotMenuKit.fill_parent(col)
+	GSMenuKit.fill_parent(col)
 	col.offset_left = 14
 	col.offset_right = -14
 	col.offset_top = 12

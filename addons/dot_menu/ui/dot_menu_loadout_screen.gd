@@ -1,4 +1,4 @@
-class_name DotMenuLoadoutScreen
+class_name GSMenuLoadoutScreen
 extends "dot_menu_loadout_offer.gd"
 
 ## The loadout screen: slots down the left, the slot's choices as cards with a picture, and the highlighted card's statistics against what is equipped. Example: docs/examples.md.
@@ -27,7 +27,7 @@ const DESIGN := Vector2(1160, 660)
 ## Cards a row.
 const COLUMNS := 4
 
-var kit: DotMenuKit = null
+var kit: GSMenuKit = null
 var _random_button: Button = null
 var _spawn_toggle: Button = null
 
@@ -35,7 +35,7 @@ var _spawn_toggle: Button = null
 var toggle_action: StringName = &""
 
 
-var _saved: DotMenuLoadoutSaved
+var _saved: GSMenuLoadoutSaved
 
 
 ## The heading.
@@ -64,19 +64,19 @@ var _status_text := ""
 
 func _ready() -> void:
 	if kit == null:
-		kit = DotMenuKit.new()
-	DotMenuKit.fill_parent(self)
+		kit = GSMenuKit.new()
+	GSMenuKit.fill_parent(self)
 	mouse_filter = Control.MOUSE_FILTER_STOP
 	visible = false
 	_build()
 	_watch_viewport()
 
 
-func restyle(new_kit: DotMenuKit) -> void:
+func restyle(new_kit: GSMenuKit) -> void:
 	kit = new_kit
 	if not _built:
 		return
-	DotMenuKit.clear(self)
+	GSMenuKit.clear(self)
 	_build()
 	if visible:
 		_rebuild()
@@ -151,7 +151,7 @@ func _build() -> void:
 	_points = kit.label("", kit.size_small, p.muted, true)
 	_points.name = "Points"
 	side_col.add_child(_points)
-	side_col.add_child(DotMenuKit.gap(4))
+	side_col.add_child(GSMenuKit.gap(4))
 	_tabs = VBoxContainer.new()
 	_tabs.name = "Slots"
 	_tabs.add_theme_constant_override(&"separation", 6)
@@ -173,7 +173,7 @@ func _build() -> void:
 	_sub = kit.paragraph("", kit.size_small, p.muted)
 	_sub.name = "Subtitle"
 	col.add_child(_sub)
-	_saved = DotMenuLoadoutSaved.new()
+	_saved = GSMenuLoadoutSaved.new()
 	_saved.setup(kit)
 	_saved.requested.connect(manage)
 	col.add_child(_saved)
@@ -228,9 +228,9 @@ func _build_foot(col: VBoxContainer) -> void:
 
 ## The key line, with the close key as it is bound now.
 func _fill_keys(line: HBoxContainer) -> void:
-	DotMenuKit.clear(line)
+	GSMenuKit.clear(line)
 	line.add_theme_constant_override(&"separation", 6)
-	var close_key := DotInputBinding.describe_action(toggle_action) if toggle_action != &"" and InputMap.has_action(toggle_action) else ""
+	var close_key := GSInputBinding.describe_action(toggle_action) if toggle_action != &"" and InputMap.has_action(toggle_action) else ""
 	for pair: Array in [["↑↓←→", "choose"], ["Enter", "equip"], ["Q E", "slot"], ["Backspace", "undo"],
 			["R", "random"], ["T", "every spawn"],
 			[("%s / Esc" % close_key) if close_key != "" else "Esc", "done"]]:
@@ -501,7 +501,7 @@ func _rebuild() -> void:
 	# Everything below is a function of this state: a rebuild over the state already drawn (B pressed again on the same offer,
 	# a hover that did not move) would free and make ~220 nodes to draw the same thing, so it draws nothing.
 	var state: Array = [offer, draft, _original, slot_index, card_index, _hover, _status_text, title_text, subtitle, toggle_action,
-		DotInputBinding.describe_action(toggle_action) if toggle_action != &"" and InputMap.has_action(toggle_action) else "",
+		GSInputBinding.describe_action(toggle_action) if toggle_action != &"" and InputMap.has_action(toggle_action) else "",
 		_spawn_toggle != null and _spawn_toggle.button_pressed]
 	if state == _drawn:
 		if _hover < 0 and card_index >= 0 and card_index < _grid.get_child_count():
@@ -536,12 +536,12 @@ func _rebuild() -> void:
 	_fill_keys(_keys)
 	_status.add_theme_color_override(&"font_color", p.warn)
 
-	DotMenuKit.clear(_tabs)
+	GSMenuKit.clear(_tabs)
 	var all := slots()
 	for i in all.size():
 		_tabs.add_child(_tab(i, all[i] as Dictionary))
 
-	DotMenuKit.clear(_grid)
+	GSMenuKit.clear(_grid)
 	var list := choices()
 	if list.is_empty():
 		_grid.add_child(kit.paragraph("Nothing can go in this slot here."))
@@ -552,7 +552,7 @@ func _rebuild() -> void:
 	if _hover < 0 and card_index >= 0 and card_index < _grid.get_child_count():
 		_scroll_to.call_deferred(_grid.get_child(card_index))
 
-	DotMenuLoadoutDetail.draw(self, _detail)
+	GSMenuLoadoutDetail.draw(self, _detail)
 
 
 func _tab(index: int, slot: Dictionary) -> Control:
@@ -575,7 +575,7 @@ func _tab(index: int, slot: Dictionary) -> Control:
 	var line := HBoxContainer.new()
 	line.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	line.add_theme_constant_override(&"separation", 10)
-	DotMenuKit.fill_parent(line)
+	GSMenuKit.fill_parent(line)
 	line.offset_left = 10
 	line.offset_right = -10
 	b.add_child(line)
@@ -585,7 +585,7 @@ func _tab(index: int, slot: Dictionary) -> Control:
 	line.add_child(cap)
 	var held_id := str(draft.get(str(slot.get("id", "")), ""))
 	var held := _choice(slot, held_id)
-	line.add_child(DotMenuLoadoutDetail.icon_box(kit, held, Vector2(64, 40), false))
+	line.add_child(GSMenuLoadoutDetail.icon_box(kit, held, Vector2(64, 40), false))
 	var words := VBoxContainer.new()
 	words.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	words.alignment = BoxContainer.ALIGNMENT_CENTER
@@ -644,13 +644,13 @@ func _card(index: int, item: Dictionary) -> Control:
 	var col := VBoxContainer.new()
 	col.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	col.add_theme_constant_override(&"separation", 4)
-	DotMenuKit.fill_parent(col)
+	GSMenuKit.fill_parent(col)
 	col.offset_left = 12
 	col.offset_right = -12
 	col.offset_top = 10
 	col.offset_bottom = -10
 	b.add_child(col)
-	var pic := DotMenuLoadoutDetail.icon_box(kit, item, Vector2(0, 82), true)
+	var pic := GSMenuLoadoutDetail.icon_box(kit, item, Vector2(0, 82), true)
 	pic.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	col.add_child(pic)
 	var line := HBoxContainer.new()
@@ -682,7 +682,7 @@ func _card(index: int, item: Dictionary) -> Control:
 	elif locked:
 		under = "set by the server"
 	else:
-		under = "  ·  ".join(DotMenuLoadoutDetail.shown_tags(current_slot(), item, 3))
+		under = "  ·  ".join(GSMenuLoadoutDetail.shown_tags(current_slot(), item, 3))
 	var u := kit.label(under, kit.size_small - 2, under_colour, equipped)
 	u.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	u.text_overrun_behavior = TextServer.OVERRUN_TRIM_ELLIPSIS

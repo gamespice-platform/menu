@@ -18,8 +18,8 @@ func _run() -> void:
 	root.add_child(_demo)
 	await _frames(6)
 
-	var menu: DotMenu = _demo.get("menu")
-	var settings: DotSettingsManager = _demo.get("settings")
+	var menu: GSMenu = _demo.get("menu")
+	var settings: GSSettingsManager = _demo.get("settings")
 	# Fresh every run, so the pictures do not depend on what the last one left on disk.
 	settings.reset_all()
 	await _frames(2)
@@ -55,7 +55,7 @@ func _run() -> void:
 	# A key listening for its next press.
 	menu.open(&"controls")
 	await _frames(2)
-	var listen := menu.screen.find_child("Row_bind_jump", true, false) as DotMenuKeyButton
+	var listen := menu.screen.find_child("Row_bind_jump", true, false) as GSMenuKeyButton
 	if listen != null:
 		listen.listen()
 	await _shot("controls_listening")
@@ -74,7 +74,7 @@ func _run() -> void:
 	menu.maps.open_rows(_demo.call("maps"), false, "this server", "generic", true)
 	await _shot("maps_vote")
 	menu.picker.close()
-	var many := DotMenuTeamScreen.new()
+	var many := GSMenuTeamScreen.new()
 	_demo.add_child(many)
 	var teams: Array = []
 	for i in 40:
@@ -111,7 +111,7 @@ func _run() -> void:
 	quit(0)
 
 
-func _loadout_shots(menu: DotMenu, settings: DotSettingsManager) -> void:
+func _loadout_shots(menu: GSMenu, settings: GSSettingsManager) -> void:
 	var offer: Dictionary = _demo.call("loadout_offer")
 	var _lo := menu.use_loadout(func() -> Dictionary: return offer, func(_p: Dictionary) -> Dictionary:
 		return {"ok": true, "text": "Loadout saved: you get it when you next spawn."})
@@ -139,7 +139,7 @@ func _loadout_shots(menu: DotMenu, settings: DotSettingsManager) -> void:
 	await _frames(3)
 
 
-func _scoreboard_shots(menu: DotMenu, settings: DotSettingsManager) -> void:
+func _scoreboard_shots(menu: GSMenu, settings: GSSettingsManager) -> void:
 	menu.scoreboard.open()
 	await _shot("scoreboard_teams")
 	menu.scoreboard.close()
@@ -186,12 +186,12 @@ func _scoreboard_shots(menu: DotMenu, settings: DotSettingsManager) -> void:
 			row["st_best_streak"] = str(n / 2)
 			row["lt_best_streak"] = str(9 + n / 5)
 		return r
-	var stats := DotMenuStats.install(menu.scoreboard)
+	var stats := GSMenuStats.install(menu.scoreboard)
 	menu.scoreboard.open()
 	await _frames(3)
 	await _shot("scoreboard_stats")
 	menu.scoreboard.close()
-	var card := DotMenuStatsPanel.new()
+	var card := GSMenuStatsPanel.new()
 	card.kit = menu.scoreboard.kit
 	menu.add_child(card)
 	card.show_snapshot(menu.scoreboard.source.call())
@@ -205,7 +205,7 @@ func _scoreboard_shots(menu: DotMenu, settings: DotSettingsManager) -> void:
 
 ## net_stat over three seconds of made-up traffic shaped like a real client's (state snapshots, a content burst, a ping that spikes once).
 ## Real time, because the overlay buckets by the clock.
-func _net_stat_shots(menu: DotMenu, settings: DotSettingsManager) -> void:
+func _net_stat_shots(menu: GSMenu, settings: GSSettingsManager) -> void:
 	var meter := ShotMeter.new()
 	menu.net_stat.source = func() -> Object: return meter
 	var net := ShotNet.new()
@@ -266,7 +266,7 @@ func _traffic(meter: ShotMeter, seconds: float) -> void:
 
 
 ## A meter with a transport to name, for a picture: the real one asks the peer under it.
-class ShotMeter extends DotMeteredPeer:
+class ShotMeter extends GSMeteredPeer:
 	var transport := "enet"
 	var net: ShotNet = null
 

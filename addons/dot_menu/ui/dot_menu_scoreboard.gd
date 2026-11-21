@@ -1,9 +1,9 @@
-class_name DotMenuScoreboard
+class_name GSMenuScoreboard
 extends Control
 
 ## The scoreboard a player holds Tab for: the server, the teams, and a row per player (name, score, time, ping) plus the game's columns. Example: docs/examples.md.
 ## A snapshot in, a picture out: one dictionary (GameSpice Server's `scoreboard_snapshot` shape) feeds server, game and offline numbers through the same code. [member columns], [member decorate], [member group_by], [member sort_by] and the `build_*` callables customise it; `scoreboard_hidden` lets a player hide columns.
-## Held, not opened: it never takes the mouse or keyboard, so it is not one of [DotMenu]'s overlays. [method feed_from] takes anything with `want_scoreboard(open)` and a `scoreboard_received` signal.
+## Held, not opened: it never takes the mouse or keyboard, so it is not one of [GSMenu]'s overlays. [method feed_from] takes anything with `want_scoreboard(open)` and a `scoreboard_received` signal.
 
 const CHANNEL := "menu.scoreboard"
 
@@ -32,7 +32,7 @@ const ROW_PAD := 8
 ## The most of the view's height the panel takes; past it the rows scroll.
 const MAX_HEIGHT_FRACTION := 0.8
 
-var kit: DotMenuKit = null
+var kit: GSMenuKit = null
 
 var columns: Array[Dictionary] = default_columns()
 
@@ -108,19 +108,19 @@ static func default_columns() -> Array[Dictionary]:
 
 func _ready() -> void:
 	if kit == null:
-		kit = DotMenuKit.new()
-	DotMenuKit.fill_parent(self)
+		kit = GSMenuKit.new()
+	GSMenuKit.fill_parent(self)
 	# Held over a live game: it must never take a click or a key.
 	mouse_filter = Control.MOUSE_FILTER_IGNORE
 	visible = false
 	_build()
 
 
-func restyle(new_kit: DotMenuKit) -> void:
+func restyle(new_kit: GSMenuKit) -> void:
 	kit = new_kit
 	if not _built:
 		return
-	DotMenuKit.clear(self)
+	GSMenuKit.clear(self)
 	_build()
 	if visible:
 		redraw()
@@ -129,7 +129,7 @@ func restyle(new_kit: DotMenuKit) -> void:
 func _build() -> void:
 	theme = kit.theme()
 	var centre := CenterContainer.new()
-	DotMenuKit.fill_parent(centre)
+	GSMenuKit.fill_parent(centre)
 	centre.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	add_child(centre)
 
@@ -316,7 +316,7 @@ static func format_choices(choices: Dictionary) -> String:
 
 ## Reads the `scoreboard_hidden` setting and redraws if it changed. A schema without it
 ## leaves every column to the game.
-func read_settings(settings: DotSettingsManager) -> void:
+func read_settings(settings: GSSettingsManager) -> void:
 	var text := ""
 	if settings != null and settings.schema != null and settings.schema.has(SETTING):
 		text = settings.get_string(SETTING, "")
@@ -328,7 +328,7 @@ func read_settings(settings: DotSettingsManager) -> void:
 
 
 func _changed_columns() -> void:
-	DotLog.debug(CHANNEL, "columns changed", {"hidden": ",".join(hidden_keys())})
+	GSLog.debug(CHANNEL, "columns changed", {"hidden": ",".join(hidden_keys())})
 	if visible:
 		redraw()
 
@@ -342,7 +342,7 @@ func hidden_keys() -> PackedStringArray:
 
 
 ## Draws the server's roster: [param link] is told when the board opens and closes and its
-## `scoreboard_received` is drawn. GameSpice Server's `DotClientLink`, or anything shaped like it.
+## `scoreboard_received` is drawn. GameSpice Server's `GSClientLink`, or anything shaped like it.
 func feed_from(link: Object) -> void:
 	if _feed != null and _feed.has_signal(&"scoreboard_received") \
 			and _feed.is_connected(&"scoreboard_received", show_snapshot):
@@ -467,10 +467,10 @@ func redraw() -> void:
 	if sig == _drawn_sig and _body.get_child_count() > 0:
 		return
 	_drawn_sig = sig
-	DotMenuKit.clear(_body)
+	GSMenuKit.clear(_body)
 
 	var header: Control = build_header.call(kit, snap) if build_header.is_valid() else _header(snap)
-	DotMenuKit.clear(_head)
+	GSMenuKit.clear(_head)
 	if header != null:
 		_head.add_child(header)
 
@@ -587,7 +587,7 @@ func _team_block(team: Dictionary, members: Array) -> Control:
 
 func _team_header(team: Dictionary, members: Array) -> Control:
 	var p := kit.palette
-	var colour: Variant = DotMenuPalette.parse_color(team.get("color", null))
+	var colour: Variant = GSMenuPalette.parse_color(team.get("color", null))
 	var tint: Color = colour if colour is Color else p.accent
 	var line := HBoxContainer.new()
 	line.mouse_filter = Control.MOUSE_FILTER_IGNORE
@@ -680,7 +680,7 @@ func _cell(column: Dictionary, row: Dictionary) -> Control:
 				pic.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
 				pic.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
 				pic.custom_minimum_size = Vector2(28, 28)
-				DotMenuKit.fill_parent(pic)
+				GSMenuKit.fill_parent(pic)
 				holder.add_child(pic)
 			return holder
 

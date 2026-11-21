@@ -1,4 +1,4 @@
-class_name DotMenuMaps
+class_name GSMenuMaps
 extends RefCounted
 
 ## The map menu: M opens a picker of the game's maps (or courses, layouts, modes) and choosing one changes to it. Solo directly; on a server the SERVER decides. Example: docs/examples.md.
@@ -12,28 +12,28 @@ const TOPIC := &"map_menu"
 const COMMAND := "mapmenu"
 
 ## Solo: the map changed. [param result] is what the change returned.
-signal changed(id: StringName, result: DotResult)
+signal changed(id: StringName, result: GSResult)
 
 ## A line for the player: a refusal, a vote started, a change made. Also drawn by
-## [method DotMenu.toast] unless [member toast] is off.
+## [method GSMenu.toast] unless [member toast] is off.
 signal said(text: String)
 
 ## `func() -> Array` of rows, for solo. Read every time M is pressed: a delivered map pack
 ## that arrives later is in the next list.
 var rows_fn: Callable = Callable()
 
-## `func(id: StringName) -> DotResult` (may await), for solo: change now.
+## `func(id: StringName) -> GSResult` (may await), for solo: change now.
 var change_fn: Callable = Callable()
 
 ## Whether M opens anything. A game whose server is the only judge (no solo world) still
 ## sets this; one with a single map leaves the menu unwired instead.
 var enabled: bool = true
 
-## The menu it draws in. Set by [method DotMenu.use_maps].
-var menu: CanvasLayer = null  # a DotMenu (untyped: see dot_menu_huds.gd)
+## The menu it draws in. Set by [method GSMenu.use_maps].
+var menu: CanvasLayer = null  # a GSMenu (untyped: see dot_menu_huds.gd)
 
 ## What is asked when connected: anything with `send_chat(text)` and `notice_received`.
-## Null looks up [member link_service] in [DotRegistry] when M is pressed.
+## Null looks up [member link_service] in [GSRegistry] when M is pressed.
 var link: Object = null
 var link_service: StringName = &"dot_client_link"
 
@@ -115,12 +115,12 @@ func open_rows(rows: Array, allowed: bool, where: String = "", flag: String = ""
 	_tabbed = modes_tab == &"show" or (modes_tab != &"hide" and not _mode_rows.is_empty())
 	tab = TAB_MAPS
 	var items := _map_rows
-	var p: DotMenuPicker = menu.picker
+	var p: GSMenuPicker = menu.picker
 	p.noun = noun
 	p.pick_closes = true
 	p.footer_extra = Callable()
 	var key: String = menu.bindings.key_for(menu.maps_action) if menu.bindings != null and not menu.bindings.row_for_action(menu.maps_action).is_empty() \
-		else DotInputBinding.describe_action(menu.maps_action)
+		else GSInputBinding.describe_action(menu.maps_action)
 	var heading := title
 	if allowed:
 		p.instructions = "1–7 or click to change to it. 8 and 9 turn the page. 0, %s or Esc closes." % key
@@ -179,12 +179,12 @@ func toggle_tab() -> bool:
 
 func show_tab(id: StringName) -> void:
 	tab = id
-	var p: DotMenuPicker = menu.picker
+	var p: GSMenuPicker = menu.picker
 	p.items = _mode_rows if id == TAB_MODES else _map_rows
 	p.page = 0
 	for i in p.items.size():
 		if bool((p.items[i] as Dictionary).get("current", false)):
-			p.page = i / DotMenuPicker.PAGE_SIZE
+			p.page = i / GSMenuPicker.PAGE_SIZE
 			break
 	p.pick_closes = id == TAB_MAPS or apply_mode_now
 	p.noun = tr("modes") if id == TAB_MODES else noun
@@ -192,7 +192,7 @@ func show_tab(id: StringName) -> void:
 
 
 func _draw_tab() -> void:
-	var p: DotMenuPicker = menu.picker
+	var p: GSMenuPicker = menu.picker
 	if not _tabbed:
 		p.tabs = []
 		p.tab = &""
@@ -203,7 +203,7 @@ func _draw_tab() -> void:
 		p.tab_clicked.connect(show_tab)
 	p.tabs = [{"id": TAB_MAPS, "name": tr("Maps")}, {"id": TAB_MODES, "name": tr("Game modes")}]
 	p.tab = tab
-	p.tab_key_text = DotInputBinding.describe_action(menu.modes_action)
+	p.tab_key_text = GSInputBinding.describe_action(menu.modes_action)
 	p.instructions = _instructions if tab == TAB_MAPS else tr("Pick a game mode. It applies with the next map you choose.") if not apply_mode_now else tr("Pick a game mode; it changes on this map now.")
 	p._rebuild()
 
@@ -270,10 +270,10 @@ func _chosen(id: StringName) -> void:
 		res = await change_fn.call(id, with_mode)
 	else:
 		res = await change_fn.call(id)
-	var result: DotResult = res if res is DotResult else DotResult.success(id)
+	var result: GSResult = res if res is GSResult else GSResult.success(id)
 	changed.emit(id, result)
 	if result.ok:
-		DotLog.info(CHANNEL, "map changed from the menu", {"map": String(id)})
+		GSLog.info(CHANNEL, "map changed from the menu", {"map": String(id)})
 	else:
 		_say(result.error.message)
 
@@ -367,7 +367,7 @@ func _link() -> Object:
 		return link
 	if link_service == &"":
 		return null
-	return DotRegistry.get_node_service(link_service)
+	return GSRegistry.get_node_service(link_service)
 
 
 ## Connected to a server: the server is asked. Anything else is solo.

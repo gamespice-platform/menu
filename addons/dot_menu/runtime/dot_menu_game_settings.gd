@@ -1,13 +1,13 @@
-class_name DotMenuGameSettings
-extends DotMenuSettings
+class_name GSMenuGameSettings
+extends GSMenuSettings
 
-## [DotMenuSettings] declared by data: a game passes a [DotMenuGameSpec] and has its settings, key table, help screen and
+## [GSMenuSettings] declared by data: a game passes a [GSMenuGameSpec] and has its settings, key table, help screen and
 ## Comfort row, with no settings class of its own to keep. Behaviour is the base class's.
 
-var spec: DotMenuGameSpec = null
+var spec: GSMenuGameSpec = null
 
 
-func _init(game_spec: DotMenuGameSpec = null) -> void:
+func _init(game_spec: GSMenuGameSpec = null) -> void:
 	if game_spec == null:
 		return
 	spec = game_spec
@@ -15,7 +15,7 @@ func _init(game_spec: DotMenuGameSpec = null) -> void:
 	directory = spec.settings_dir
 	app_namespace = spec.app_namespace
 	schema = spec.make_schema()
-	config = DotMenuConfig.new()
+	config = GSMenuConfig.new()
 	config.brand_name = spec.brand_name
 	if not spec.config_settings.is_empty():
 		config.settings = spec.config_settings.duplicate(true)
@@ -32,7 +32,7 @@ func _init(game_spec: DotMenuGameSpec = null) -> void:
 	var _layered := config.load_layered()
 
 
-func setup(store: DotSettingsStore = null, with_menu: bool = true) -> DotResult:
+func setup(store: GSSettingsStore = null, with_menu: bool = true) -> GSResult:
 	var where := store
 	if spec != null and spec.before_setup.is_valid():
 		where = spec.before_setup.call(self, store)
@@ -40,11 +40,11 @@ func setup(store: DotSettingsStore = null, with_menu: bool = true) -> DotResult:
 	if applier != null and spec != null and spec.fov_transform.is_valid():
 		applier.fov_transform = spec.fov_transform
 	if menu != null and spec != null and spec.gore_text != "":
-		DotMenuStock.add_gore_row(menu.page(&"video"))
+		GSMenuStock.add_gore_row(menu.page(&"video"))
 	if menu != null and spec != null and spec.comfort_row_text != "":
 		var general := menu.page(&"general")
 		if general != null:
-			general.section("Comfort").add(DotMenuRow.toggle(&"reduce_motion", "Reduce motion", spec.comfort_row_text))
+			general.section("Comfort").add(GSMenuRow.toggle(&"reduce_motion", "Reduce motion", spec.comfort_row_text))
 	if menu != null and spec != null:
 		for entry: Array in spec.extra_rows:
 			var page := menu.page(entry[0])
@@ -55,6 +55,6 @@ func setup(store: DotSettingsStore = null, with_menu: bool = true) -> DotResult:
 	return made
 
 
-func _fill_help(help: DotMenuHelp) -> void:
+func _fill_help(help: GSMenuHelp) -> void:
 	if spec != null:
 		spec.fill_help(help)

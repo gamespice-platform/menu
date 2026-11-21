@@ -1,4 +1,4 @@
-class_name DotMenuLoadoutSaved
+class_name GSMenuLoadoutSaved
 extends VBoxContainer
 ## The saved-loadout switcher of the loadout screen: a chip per saved loadout and a name field
 ## with Save new, Rename and Delete. It only emits the words of the server's /loadout command.
@@ -6,7 +6,7 @@ extends VBoxContainer
 ## `save NAME`, `use N`, `rename N NAME` or `delete N`, without the command itself.
 signal requested(args: String)
 
-var kit: DotMenuKit
+var kit: GSMenuKit
 var _chips: HBoxContainer
 var _name: LineEdit
 var _save_new: Button
@@ -16,7 +16,7 @@ var _held: Array = []
 var _locked: bool = false
 
 
-func setup(p_kit: DotMenuKit) -> void:
+func setup(p_kit: GSMenuKit) -> void:
 	kit = p_kit
 	var p := kit.palette
 	name = "Saved"
@@ -51,7 +51,7 @@ func setup(p_kit: DotMenuKit) -> void:
 ## Draws the server's `saved` list: `{index, name, selected, saved}` per loadout.
 func show_list(saved: Array) -> void:
 	_held = saved
-	DotMenuKit.clear(_chips)
+	GSMenuKit.clear(_chips)
 	var p := kit.palette
 	for e: Variant in saved:
 		var d := e as Dictionary

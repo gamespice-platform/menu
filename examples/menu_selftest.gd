@@ -7,7 +7,7 @@ const CHECKS := 578
 
 
 func _ready() -> void:
-	DotLog.set_level(DotLog.Level.ERROR)
+	GSLog.set_level(GSLog.Level.ERROR)
 	# Every section runs inside the tree: the screens need a viewport to be built in.
 	_run.call_deferred()
 
@@ -70,35 +70,35 @@ func _run() -> void:
 func _test_palette() -> void:
 	_section("A theme is data")
 
-	var res := DotMenuPalette.from_dictionary({
+	var res := GSMenuPalette.from_dictionary({
 		"id": "sea", "name": "Sea", "accent": "#3080ff", "surface": [0.1, 0.2, 0.3],
 		"danger": "red", "extra": {"team_red": "#ff0000"},
 	})
 	_check(res.ok, "a theme reads hex, arrays and named colours")
-	var p: DotMenuPalette = res.value
+	var p: GSMenuPalette = res.value
 	_check(p.accent.is_equal_approx(Color.html("#3080ff")), "a hex accent is the accent")
 	_check(p.surface.is_equal_approx(Color(0.1, 0.2, 0.3)), "an array is a colour, alpha one")
 	_check(p.danger.is_equal_approx(Color.RED), "and a colour's name is the colour")
 	_check(p.color(&"team_red").is_equal_approx(Color.RED), "a game's own colour is read back by name")
 	_check(p.color(&"nobody", Color.BLUE) == Color.BLUE, "and one the theme does not name falls back")
-	_check(p.text.is_equal_approx(DotMenuPalette.new().text), "a key left out keeps the base's value")
+	_check(p.text.is_equal_approx(GSMenuPalette.new().text), "a key left out keeps the base's value")
 
-	var bad := DotMenuPalette.from_dictionary({"id": "x", "accent": "not a colour"})
+	var bad := GSMenuPalette.from_dictionary({"id": "x", "accent": "not a colour"})
 	_check(not bad.ok and bad.error.message.contains("accent"), "a colour nobody can read fails, naming the key")
-	_check(not DotMenuPalette.from_dictionary({"accent": "#fff"}).ok, "and a theme without an id is refused")
+	_check(not GSMenuPalette.from_dictionary({"accent": "#fff"}).ok, "and a theme without an id is refused")
 
-	var again := DotMenuPalette.from_dictionary(p.to_dictionary())
+	var again := GSMenuPalette.from_dictionary(p.to_dictionary())
 	_check(again.ok and again.value.accent.is_equal_approx(p.accent) and again.value.color(&"team_red").is_equal_approx(Color.RED),
 		"a theme survives a round trip through its own data")
-	_check(DotMenuPalette.ink_on(Color(1, 0.9, 0)) == Color(0.04, 0.04, 0.05), "black ink on a bright accent")
-	_check(DotMenuPalette.ink_on(Color(0.1, 0.2, 0.4)).r > 0.9, "and white ink on a dark one")
+	_check(GSMenuPalette.ink_on(Color(1, 0.9, 0)) == Color(0.04, 0.04, 0.05), "black ink on a bright accent")
+	_check(GSMenuPalette.ink_on(Color(0.1, 0.2, 0.4)).r > 0.9, "and white ink on a dark one")
 	_check(Color(p.accent, 0.13).is_equal_approx(p.accent_wash()), "the wash follows the accent rather than being stored")
 
 
 func _test_themes() -> void:
 	_section("The catalogue")
 
-	var t := DotMenuThemes.stock()
+	var t := GSMenuThemes.stock()
 	_check(t.size() == 8, "eight stock themes")
 	_check(t.default_id() == &"midnight", "Midnight first, so it is the default")
 	_check(t.named(&"paper").is_light(), "Paper is a light theme")
@@ -126,7 +126,7 @@ func _test_themes() -> void:
 	var f := FileAccess.open(path, FileAccess.WRITE)
 	f.store_string(JSON.stringify({"themes": [{"id": "dusk", "name": "Dusk", "accent": "#ff8040"}]}))
 	f.close()
-	var t2 := DotMenuThemes.stock()
+	var t2 := GSMenuThemes.stock()
 	var loaded := t2.load_json(path)
 	_check(loaded.ok and t2.find(&"dusk") != null and t2.size() == 9, "a file of themes adds them")
 	_check(t2.load_json(dir + "/missing.json").ok, "and a missing file is the first launch, not an error")
@@ -139,7 +139,7 @@ func _test_themes() -> void:
 func _test_config() -> void:
 	_section("A developer changes values without code")
 
-	var cfg := DotMenuConfig.new()
+	var cfg := GSMenuConfig.new()
 	var applied := cfg.apply_dictionary({
 		"brand_mark": "air", "theme": "ember", "rows_hidden": ["render_scale"],
 		"settings": {
@@ -165,7 +165,7 @@ func _test_config() -> void:
 	_check(problems.size() == 2, "a key no setting has and a field no setting has are both reported")
 	_check(s.validate().ok, "and the schema is still one a document can be loaded against")
 
-	var narrow := DotMenuConfig.new()
+	var narrow := GSMenuConfig.new()
 	narrow.settings = {"field_of_view": {"max": 80}}
 	var s2 := _schema()
 	var _p := narrow.apply_to_schema(s2)
@@ -176,10 +176,10 @@ func _test_config() -> void:
 	_check(cfg.row_title(&"fx_quality", "Effects") == "Particles" and cfg.row_description(&"fx_quality", "x") == "x",
 		"a row is reworded by id, and what is not reworded stays")
 
-	var themed := DotMenuConfig.new()
+	var themed := GSMenuConfig.new()
 	themed.theme = &"paper"
 	themed.themes_allowed = PackedStringArray(["paper", "midnight", "mint"])
-	var catalogue := DotMenuThemes.stock()
+	var catalogue := GSMenuThemes.stock()
 	var _mint := catalogue.add_dictionary({"id": "mint", "base": "midnight", "accent": "#7fffd4"})
 	var s3 := _schema()
 	var _q := themed.apply_to_schema(s3, themed.make_themes(catalogue))
@@ -190,7 +190,7 @@ func _test_config() -> void:
 	_check(theme_def.coerce(&"mint").ok and not theme_def.coerce(&"ember").ok,
 		"so a game's theme is stored, and one no longer offered is refused at load")
 
-	var broken := DotMenuConfig.new()
+	var broken := GSMenuConfig.new()
 	broken.browser_tips = &"sometimes"
 	_check(not broken.validate().ok, "and a value nobody can act on is refused")
 
@@ -200,42 +200,42 @@ func _test_stock() -> void:
 
 	var s := _schema()
 	var declared := 0
-	for group in DotMenuStock.DEFAULT_GROUPS:
-		for key in DotMenuStock.KEYS[group]:
+	for group in GSMenuStock.DEFAULT_GROUPS:
+		for key in GSMenuStock.KEYS[group]:
 			if s.has(key):
 				declared += 1
 	var expected := 0
-	for group in DotMenuStock.DEFAULT_GROUPS:
-		expected += (DotMenuStock.KEYS[group] as Array).size()
+	for group in GSMenuStock.DEFAULT_GROUPS:
+		expected += (GSMenuStock.KEYS[group] as Array).size()
 	_check(declared == expected and s.keys().size() == expected, "the default groups declare exactly their keys")
 	_check(not s.has(&"music_volume"), "music is asked for, not given: a slider for a silent bus does nothing")
-	_check(s.find(&"sensitivity").scope == DotSettingsDef.Scope.ACCOUNT, "sensitivity is the player's, everywhere")
-	_check(s.find(&"field_of_view").scope == DotSettingsDef.Scope.SERVER_CLAMPED, "the view may be capped by a server")
-	_check(s.find(&"master_volume").scope == DotSettingsDef.Scope.DEVICE, "and a volume is this machine's")
+	_check(s.find(&"sensitivity").scope == GSSettingsDef.Scope.ACCOUNT, "sensitivity is the player's, everywhere")
+	_check(s.find(&"field_of_view").scope == GSSettingsDef.Scope.SERVER_CLAMPED, "the view may be capped by a server")
+	_check(s.find(&"master_volume").scope == GSSettingsDef.Scope.DEVICE, "and a volume is this machine's")
 	_check(s.validate().ok, "the stock schema validates")
 
-	var own := DotSettingsSchema.new()
-	own.add(DotSettingsDef.integer(&"field_of_view", 92, 70, 120, &"video"))
-	DotMenuStock.declare(own)
+	var own := GSSettingsSchema.new()
+	own.add(GSSettingsDef.integer(&"field_of_view", 92, 70, 120, &"video"))
+	GSMenuStock.declare(own)
 	_check(int(own.find(&"field_of_view").default_value) == 92, "a game's own version of a stock key wins")
 
 	# The family's most repeated bug, as a check: every stock key is applied by something.
 	var orphans := PackedStringArray()
-	for group in DotMenuStock.ALL_GROUPS:
-		for key in DotMenuStock.KEYS[group]:
-			if not (DotMenuApplier.APPLIES.has(key) or DotMenuApplier.APPLIED_BY_MENU.has(key)
-					or DotMenuApplier.LEFT_TO_THE_GAME.has(key)):
+	for group in GSMenuStock.ALL_GROUPS:
+		for key in GSMenuStock.KEYS[group]:
+			if not (GSMenuApplier.APPLIES.has(key) or GSMenuApplier.APPLIED_BY_MENU.has(key)
+					or GSMenuApplier.LEFT_TO_THE_GAME.has(key)):
 				orphans.append(String(key))
 	_check(orphans.is_empty(), "every stock key is applied by something (%s)" % ", ".join(orphans))
 
-	var all := _schema(DotMenuStock.ALL_GROUPS)
+	var all := _schema(GSMenuStock.ALL_GROUPS)
 	var sl := all.find(&"slide_volume")
 	_check(sl != null and is_equal_approx(float(sl.default_value), 1.0) and sl.category == &"audio", "slide_volume is stock, default 1.0 in the audio group (dot-game's default)")
-	_check(DotMenuStock.audio_page().sections.any(func(sec) -> bool: return sec.rows.any(func(r) -> bool: return r.key == &"slide_volume")), "the Audio page has the slide_volume slider")
+	_check(GSMenuStock.audio_page().sections.any(func(sec) -> bool: return sec.rows.any(func(r) -> bool: return r.key == &"slide_volume")), "the Audio page has the slide_volume slider")
 	var rowless := PackedStringArray()
 	var unknown := PackedStringArray()
 	var seen := {}
-	for p in DotMenuStock.pages():
+	for p in GSMenuStock.pages():
 		for sec in p.sections:
 			for r in sec.rows:
 				if r.is_setting():
@@ -243,13 +243,13 @@ func _test_stock() -> void:
 					if not all.has(r.key):
 						unknown.append(String(r.key))
 	# Its switches are the live board's columns, one per column, so no single row names it.
-	seen[DotMenuScoreboard.SETTING] = true
+	seen[GSMenuScoreboard.SETTING] = true
 	for key in all.keys():
 		if not seen.has(key):
 			rowless.append(String(key))
 	_check(unknown.is_empty(), "every stock row names a stock setting (%s)" % ", ".join(unknown))
 	_check(rowless.is_empty(), "and every stock setting has a row (%s)" % ", ".join(rowless))
-	_check(DotMenuStock.pages().map(func(p: DotMenuPage) -> StringName: return p.id) == [&"general", &"video", &"audio", &"controls", &"advanced"],
+	_check(GSMenuStock.pages().map(func(p: GSMenuPage) -> StringName: return p.id) == [&"general", &"video", &"audio", &"controls", &"advanced"],
 		"General, Video, Audio, Controls, Advanced")
 
 
@@ -261,17 +261,17 @@ func _test_bindings() -> void:
 	k.add(&"dot_fps_crouch", &"bind_duck", "Crouch", "Shift", "Movement")
 	_check(k.rows.size() == 9 and k.rows[5]["label"] == "Crouch", "a row for an action already there replaces it in place")
 
-	var s := DotSettingsSchema.new()
-	s.add(DotSettingsDef.binding(&"bind_help", "F1", &"controls").with_scope(DotSettingsDef.Scope.ACCOUNT))
-	k.add(&"test_chat", &"bind_chat", "Chat", "Y", "Interface", DotSettingsDef.Scope.ACCOUNT)
+	var s := GSSettingsSchema.new()
+	s.add(GSSettingsDef.binding(&"bind_help", "F1", &"controls").with_scope(GSSettingsDef.Scope.ACCOUNT))
+	k.add(&"test_chat", &"bind_chat", "Chat", "Y", "Interface", GSSettingsDef.Scope.ACCOUNT)
 	k.add_to_schema(s)
-	_check(s.find(&"bind_forward").scope == DotSettingsDef.Scope.DEVICE, "a key is this keyboard's by default")
-	_check(s.find(&"bind_chat").scope == DotSettingsDef.Scope.ACCOUNT, "unless its row says otherwise")
+	_check(s.find(&"bind_forward").scope == GSSettingsDef.Scope.DEVICE, "a key is this keyboard's by default")
+	_check(s.find(&"bind_chat").scope == GSSettingsDef.Scope.ACCOUNT, "unless its row says otherwise")
 	_check(str(s.find(&"bind_help").default_value) == "F1", "and a binding the game declared itself is left alone")
 
 	var st := _manager(s)
 	k.apply_all(st)
-	_check(DotMenuBindings.shown(k.row_for_action(&"dot_fps_forward")) == "W", "every row lands on the InputMap")
+	_check(GSMenuBindings.shown(k.row_for_action(&"dot_fps_forward")) == "W", "every row lands on the InputMap")
 	_check(k.key_for(&"test_help") == "F1", "from the stored value, not the table's default")
 
 	var _cleared := st.set_value(&"bind_flashlight", "")
@@ -301,13 +301,13 @@ func _test_bindings() -> void:
 func _test_applier() -> void:
 	_section("Every value reaches what it controls")
 
-	var s := _schema(DotMenuStock.ALL_GROUPS)
+	var s := _schema(GSMenuStock.ALL_GROUPS)
 	var st := _manager(s)
 	var _a := st.set_value(&"master_volume", 0.5)
 	var _b := st.set_value(&"sensitivity", 2.0)
 	var _c := st.set_value(&"shake_scale", 0.0)
 
-	var applier := DotMenuApplier.new()
+	var applier := GSMenuApplier.new()
 	applier.settings = st
 	add_child(applier)
 
@@ -324,9 +324,9 @@ func _test_applier() -> void:
 	var _set := applier.setup()
 
 	_check(is_equal_approx(mixer.master, 0.5) and mixer.applied > 0, "a stored volume is applied at boot, without being touched")
-	_check(is_equal_approx(look.mouse_sensitivity, 2.0 * DotMenuApplier.DEGREES_PER_COUNT), "the sensitivity is the family's degrees per count")
+	_check(is_equal_approx(look.mouse_sensitivity, 2.0 * GSMenuApplier.DEGREES_PER_COUNT), "the sensitivity is the family's degrees per count")
 	_check(fx.shake_scale == 0.0, "the shake reaches the effects")
-	_check(DotMenuStock.declare(DotSettingsSchema.new()).has(&"reduce_motion") and not fx.reduce_motion and not fx.reduced_motion,
+	_check(GSMenuStock.declare(GSSettingsSchema.new()).has(&"reduce_motion") and not fx.reduce_motion and not fx.reduced_motion,
 		"reduce_motion is a stock Comfort key, off by default")
 	var _rm := st.set_value(&"reduce_motion", true)
 	_check(fx.reduce_motion and fx.reduced_motion, "turning reduce_motion on reaches both spellings of the effects' flag")
@@ -335,13 +335,13 @@ func _test_applier() -> void:
 
 	var hands := FakeHands.new()
 	add_child(hands)
-	_check(DotMenuStock.VIEWMODEL_FOV == 54, "the view model default is 54, the value that read closest to a first-person shooter's in the FC render")
-	_check(hands.horizontal == float(DotMenuStock.VIEWMODEL_FOV), "a view model added after boot gets the viewmodel_fov default")
-	var on_screen := func(cam: float) -> float: return DotViewLens.lens_scale(cam, DotViewLens.vertical_from_horizontal_4_3(54.0)) / tan(deg_to_rad(cam) * 0.5)
+	_check(GSMenuStock.VIEWMODEL_FOV == 54, "the view model default is 54, the value that read closest to a first-person shooter's in the FC render")
+	_check(hands.horizontal == float(GSMenuStock.VIEWMODEL_FOV), "a view model added after boot gets the viewmodel_fov default")
+	var on_screen := func(cam: float) -> float: return GSViewLens.lens_scale(cam, GSViewLens.vertical_from_horizontal_4_3(54.0)) / tan(deg_to_rad(cam) * 0.5)
 	_check(is_equal_approx(on_screen.call(73.7), on_screen.call(83.6)) and is_equal_approx(on_screen.call(60.0), on_screen.call(100.0)), "the hands' size on screen does not depend on the world field of view")
 	var _vm := st.set_value(&"viewmodel_fov", 80)
 	_check(hands.horizontal == 80.0, "and follows the setting live")
-	_check(DotMenuStock.video_page().sections.any(func(sec) -> bool: return sec.rows.any(func(r) -> bool: return r.key == &"viewmodel_fov")), "the Video page has its slider")
+	_check(GSMenuStock.video_page().sections.any(func(sec) -> bool: return sec.rows.any(func(r) -> bool: return r.key == &"viewmodel_fov")), "the Video page has its slider")
 	hands.queue_free()
 
 	var _d := st.set_value(&"sfx_volume", 0.25)
@@ -356,13 +356,13 @@ func _test_applier() -> void:
 	var cam2 := FakeCamera.new()
 	applier.bind_camera(cam2, &"fov_desired")
 	_check(cam2.fov_desired == 100.0, "a camera with its own property, through the game's own measure")
-	_check(absf(DotMenuApplier.vertical_from_horizontal_4_3(90.0) - 73.74) < 0.05 and absf(DotMenuApplier.vertical_from_horizontal_4_3(100.0) - 83.6) < 0.1, "4:3 horizontal degrees become the vertical ones a camera takes")
+	_check(absf(GSMenuApplier.vertical_from_horizontal_4_3(90.0) - 73.74) < 0.05 and absf(GSMenuApplier.vertical_from_horizontal_4_3(100.0) - 83.6) < 0.1, "4:3 horizontal degrees become the vertical ones a camera takes")
 
 	var _g := st.set_value(&"fps_max", 144)
 	_check(Engine.max_fps == 144, "the frame-rate cap is the engine's")
 	var _h := st.set_value(&"fps_max", 0)
 
-	var bare := DotMenuApplier.new()
+	var bare := GSMenuApplier.new()
 	bare.settings = st
 	add_child(bare)
 	var _s2 := bare.setup()
@@ -391,7 +391,7 @@ func _test_screen() -> void:
 	var actions := _find_all(menu.screen, "Button", "Action_")
 	_check(actions.size() == 2, "and Help and Leave under them")
 
-	var fps_switch := _row_control(menu, "show_fps") as DotMenuSwitch
+	var fps_switch := _row_control(menu, "show_fps") as GSMenuSwitch
 	_check(fps_switch != null and not fps_switch.button_pressed, "a switch shows the stored value")
 	fps_switch.button_pressed = true
 	_check(menu.settings.get_bool(&"show_fps"), "and flipping it writes the setting, with nothing to apply")
@@ -426,12 +426,12 @@ func _test_screen() -> void:
 
 	menu.screen.show_page(&"controls")
 	await get_tree().process_frame
-	var keys := menu.screen.find_children("Row_bind_*", "DotMenuKeyButton", true, false)
+	var keys := menu.screen.find_children("Row_bind_*", "GSMenuKeyButton", true, false)
 	_check(keys.size() == 9, "a key button for every binding row")
 	_check(menu.screen.find_child("ResetKeys", true, false) != null, "and a way to put them all back")
 	_free_menu(menu)
 
-	var narrow := _menu([DotMenuStock.GROUP_AUDIO, DotMenuStock.GROUP_INTERFACE] as Array[StringName])
+	var narrow := _menu([GSMenuStock.GROUP_AUDIO, GSMenuStock.GROUP_INTERFACE] as Array[StringName])
 	narrow.open(&"video")
 	await get_tree().process_frame
 	_check(_row_control(narrow, "render_scale") == null and narrow.screen.find_child("Body", true, false).get_child_count() == 0,
@@ -446,37 +446,37 @@ func _test_screen() -> void:
 func _test_rows() -> void:
 	_section("A game extends a page")
 
-	var cfg := DotMenuConfig.new()
+	var cfg := GSMenuConfig.new()
 	cfg.rows_hidden = PackedStringArray(["vsync"])
 	cfg.pages_hidden = PackedStringArray(["audio"])
 	cfg.page_order = PackedStringArray(["controls"])
 	cfg.rows = {"show_fps": {"title": "FPS"}}
-	var menu := _menu(DotMenuStock.DEFAULT_GROUPS, cfg)
+	var menu := _menu(GSMenuStock.DEFAULT_GROUPS, cfg)
 
 	var lit := [false]
 	var pressed := [0]
 	var allowed := [true]
-	var gameplay := DotMenuPage.make(&"gameplay", "Gameplay", "Your view.")
+	var gameplay := GSMenuPage.make(&"gameplay", "Gameplay", "Your view.")
 	gameplay.section("View") \
-		.add(DotMenuRow.live_toggle("Flashlight", "", func() -> bool: return lit[0], func(on: bool) -> void: lit[0] = on)
+		.add(GSMenuRow.live_toggle("Flashlight", "", func() -> bool: return lit[0], func(on: bool) -> void: lit[0] = on)
 			.named(&"flashlight").enabled_when(func() -> bool: return allowed[0])
 			.described_by(func() -> String: return "Allowed." if allowed[0] else "This server turned flashlights off.")) \
-		.add(DotMenuRow.button("Arrange", "Drag the HUD.", "Move HUD elements", func() -> void: pressed[0] += 1).named(&"arrange")) \
-		.add(DotMenuRow.custom("Name", "", func(kit: DotMenuKit) -> Control:
+		.add(GSMenuRow.button("Arrange", "Drag the HUD.", "Move HUD elements", func() -> void: pressed[0] += 1).named(&"arrange")) \
+		.add(GSMenuRow.custom("Name", "", func(kit: GSMenuKit) -> Control:
 			var e := LineEdit.new()
 			e.text = "custom"
 			return e).named(&"name")) \
-		.add(DotMenuRow.note("Only you see it."))
+		.add(GSMenuRow.note("Only you see it."))
 	menu.add_page(gameplay, &"video")
 	var _moved := menu.page(&"general").take_row(&"show_fps")
 	gameplay.section("View").add(_moved)
 
 	menu.open(&"gameplay")
 	await get_tree().process_frame
-	var order: Array = menu.screen.visible_pages().map(func(p: DotMenuPage) -> StringName: return p.id)
+	var order: Array = menu.screen.visible_pages().map(func(p: GSMenuPage) -> StringName: return p.id)
 	_check(order == [&"controls", &"general", &"gameplay", &"video", &"advanced"], "pages in the config's order, the hidden one gone")
 
-	var light := _row_control(menu, "flashlight") as DotMenuSwitch
+	var light := _row_control(menu, "flashlight") as GSMenuSwitch
 	_check(light != null and not light.disabled, "a live row draws its owner's state")
 	light.button_pressed = true
 	_check(lit[0], "and writes through its setter, storing nothing")
@@ -489,7 +489,7 @@ func _test_rows() -> void:
 	allowed[0] = false
 	menu.screen.refresh()
 	await get_tree().process_frame
-	light = _row_control(menu, "flashlight") as DotMenuSwitch
+	light = _row_control(menu, "flashlight") as GSMenuSwitch
 	var says_off := menu.screen.find_child("Body", true, false).find_children("*", "Label", true, false).any(
 		func(l: Node) -> bool: return (l as Label).text.contains("turned flashlights off"))
 	_check(light.disabled and says_off, "drawn again, it is disabled and says why")
@@ -507,7 +507,7 @@ func _test_facade() -> void:
 	var changes: Array = []
 	var themes_seen: Array = []
 	menu.overlays_changed.connect(func(open: bool) -> void: changes.append(open))
-	menu.theme_changed.connect(func(p: DotMenuPalette) -> void: themes_seen.append(p.id))
+	menu.theme_changed.connect(func(p: GSMenuPalette) -> void: themes_seen.append(p.id))
 
 	_check(menu.handle_event(_key(KEY_ESCAPE)) and menu.is_open(), "Escape opens the menu")
 	_check(changes == [true], "and says something is open, once")
@@ -554,7 +554,7 @@ func _test_facade() -> void:
 	var _same := menu.settings.set_value(&"show_fps", true)
 	_check(themes_seen.size() == 1, "a change to anything else does not rebuild the screens")
 
-	var mine := DotMenuPicker.new()
+	var mine := GSMenuPicker.new()
 	add_child(mine)
 	menu.add_overlay(mine)
 	mine.open([{"id": "a", "name": "A"}])
@@ -591,7 +591,7 @@ func _test_server_rules() -> void:
 		func(l: Node) -> bool: return (l as Label).text.contains("caps it at 95"))
 	_check(notes.size() == 1, "and says the server caps it")
 	_check(_row_control(menu, "render_scale") == null, "a row it hides is gone")
-	_check(not menu.screen.visible_pages().any(func(p: DotMenuPage) -> bool: return p.id == &"audio"), "and a page")
+	_check(not menu.screen.visible_pages().any(func(p: GSMenuPage) -> bool: return p.id == &"audio"), "and a page")
 	_check(menu.kit.palette.id == &"midnight", "a theme it does not offer is moved off, for this connection")
 	_check(menu.settings.get_string(&"ui_theme") == "violet", "while the stored choice is untouched")
 	var leave := menu.screen.find_child("Action_leave", true, false) as Button
@@ -658,15 +658,15 @@ func _test_help_and_picker() -> void:
 
 func _test_layout() -> void:
 	_section("Moving the HUD")
-	DotMenuKit._backdrop_shader()
-	DotMenuKit.clear_cache()
-	_check(DotMenuKit._shader == null, "clear_cache() drops the shared shader")
-	_check(DotMenuKit._backdrop_shader() != null and DotMenuKit._shader != null, "and use refills it")
+	GSMenuKit._backdrop_shader()
+	GSMenuKit.clear_cache()
+	_check(GSMenuKit._shader == null, "clear_cache() drops the shared shader")
+	_check(GSMenuKit._backdrop_shader() != null and GSMenuKit._shader != null, "and use refills it")
 
 	var hud := FakeHud.new()
 	add_child(hud)
 	hud.size = Vector2(800, 800)
-	var editor := DotMenuLayoutEditor.new()
+	var editor := GSMenuLayoutEditor.new()
 	editor.target = hud
 	editor.pieces = {&"timer": "Timer", &"keys": "Keys"}
 	add_child(editor)
@@ -676,11 +676,11 @@ func _test_layout() -> void:
 	_check(editor.piece_at(Vector2(400, 700)) == &"timer", "a piece is found under the pointer")
 	editor.drag(&"timer", Vector2(400, 700), Vector2(200, 100))
 	_check(hud.positions[&"timer"].is_equal_approx(Vector2(0.25, 0.125)), "a drag moves its centre, as a fraction of the screen")
-	var decoded := DotMenuLayoutEditor.decode(saved[-1], [&"timer", &"keys"])
+	var decoded := GSMenuLayoutEditor.decode(saved[-1], [&"timer", &"keys"])
 	_check(decoded[&"timer"].is_equal_approx(Vector2(0.25, 0.125)), "and is saved as text that reads back the same")
-	_check(DotMenuLayoutEditor.decode('{"timer": [3, -1], "nope": [0.5, 0.5]}', [&"timer"]) == {&"timer": Vector2(1, 0)},
+	_check(GSMenuLayoutEditor.decode('{"timer": [3, -1], "nope": [0.5, 0.5]}', [&"timer"]) == {&"timer": Vector2(1, 0)},
 		"a hand-edited layout is held on screen, and a piece nobody has is dropped")
-	_check(DotMenuLayoutEditor.decode("{ broken").is_empty(), "and one that does not parse is the default layout")
+	_check(GSMenuLayoutEditor.decode("{ broken").is_empty(), "and one that does not parse is the default layout")
 	editor.reset_all()
 	_check(hud.positions.is_empty() and saved[-1] == "", "reset puts everything back")
 	editor.queue_free()
@@ -690,22 +690,22 @@ func _test_layout() -> void:
 func _test_settings_node() -> void:
 	_section("One node for a game that has no presentation layer")
 
-	var trimmed := DotMenuStock.declare(DotSettingsSchema.new(), DotMenuStock.DEFAULT_GROUPS, null,
+	var trimmed := GSMenuStock.declare(GSSettingsSchema.new(), GSMenuStock.DEFAULT_GROUPS, null,
 		[&"ui_volume", &"shake_scale", &"allow_flashes", &"chat_window"] as Array[StringName])
 	_check(not trimmed.has(&"ui_volume") and not trimmed.has(&"chat_window") and trimmed.has(&"sfx_volume"),
 		"a game leaves out the stock keys it has nothing to apply to")
-	var own := DotSettingsSchema.new()
-	own.add(DotSettingsDef.number(&"shake_scale", 0.5, 0.0, 2.0, &"accessibility"))
-	var _o := DotMenuStock.declare(own, DotMenuStock.DEFAULT_GROUPS, null, [&"shake_scale"] as Array[StringName])
+	var own := GSSettingsSchema.new()
+	own.add(GSSettingsDef.number(&"shake_scale", 0.5, 0.0, 2.0, &"accessibility"))
+	var _o := GSMenuStock.declare(own, GSMenuStock.DEFAULT_GROUPS, null, [&"shake_scale"] as Array[StringName])
 	_check(own.has(&"shake_scale"), "but never one it declared itself")
 
-	var node := DotMenuSettings.new()
+	var node := GSMenuSettings.new()
 	node.app_namespace = &"menu_settings_test"
-	var schema := DotSettingsSchema.new()
-	schema.add(DotSettingsDef.integer(&"field_of_view", 92, 70, 120, &"video").with_scope(DotSettingsDef.Scope.SERVER_CLAMPED))
-	node.schema = DotMenuStock.declare(schema)
+	var schema := GSSettingsSchema.new()
+	schema.add(GSSettingsDef.integer(&"field_of_view", 92, 70, 120, &"video").with_scope(GSSettingsDef.Scope.SERVER_CLAMPED))
+	node.schema = GSMenuStock.declare(schema)
 	add_child(node)
-	var res := node.setup(DotSettingsStoreMemory.new())
+	var res := node.setup(GSSettingsStoreMemory.new())
 	_check(res.ok and node.settings != null and node.applier != null and node.menu != null, "it builds the three")
 
 	var look := FakeLook.new()
@@ -714,7 +714,7 @@ func _test_settings_node() -> void:
 	node.bind_look(look)
 	node.bind_camera(cam)
 	node.bind_audio(mixer)
-	_check(cam.fov == 92.0 and is_equal_approx(look.mouse_sensitivity, 2.5 * DotMenuApplier.DEGREES_PER_COUNT)
+	_check(cam.fov == 92.0 and is_equal_approx(look.mouse_sensitivity, 2.5 * GSMenuApplier.DEGREES_PER_COUNT)
 		and is_equal_approx(mixer.master, 0.8), "anything bound is applied as it is bound, a game's own default included")
 	var d := node.describe()
 	_check(int(d["look_bound"]) == 1 and bool(d["camera_bound"]) and bool(d["audio_bound"]), "and says what is bound")
@@ -730,13 +730,13 @@ func _test_settings_node() -> void:
 
 
 func _test_net_stat_own() -> void:
-	var own := DotSettingsSchema.new()
-	own.add(DotSettingsDef.number(&"volume", 1.0, 0.0, 1.0, &"audio"))
-	var _declared := DotMenuStock.declare_net_stat(own)
+	var own := GSSettingsSchema.new()
+	own.add(GSSettingsDef.number(&"volume", 1.0, 0.0, 1.0, &"audio"))
+	var _declared := GSMenuStock.declare_net_stat(own)
 	var mine := _manager(own)
 	var host := Node.new()
 	add_child(host)
-	var followed := DotMenuNetStat.follow(host, mine)
+	var followed := GSMenuNetStat.follow(host, mine)
 	var _lvl := mine.set_value(&"net_stat", 2)
 	var _hh := mine.set_value(&"net_stat_height", 64)
 	_check(followed.visible and followed.level == 2 and followed.graph_height == 64 and own.keys().size() == 5,
@@ -749,26 +749,26 @@ func _test_net_stat_own() -> void:
 
 func _test_map_modes() -> void:
 	_section("- switches the map menu between Maps and Game modes")
-	for a in [DotMenuBindings.MAPS_ACTION, DotMenuBindings.HELP_ACTION, DotMenuBindings.MODES_ACTION]:
+	for a in [GSMenuBindings.MAPS_ACTION, GSMenuBindings.HELP_ACTION, GSMenuBindings.MODES_ACTION]:
 		if InputMap.has_action(a):
 			InputMap.erase_action(a)
-	var node := DotMenuSettings.new()
+	var node := GSMenuSettings.new()
 	node.app_namespace = &"menu_modes_test"
-	node.config = DotMenuConfig.new()
+	node.config = GSMenuConfig.new()
 	node.config.escape_grace_ms = 0
 	node.map_modes = true
 	add_child(node)
-	var _s := node.setup(DotSettingsStoreMemory.new())
-	var mrow := node.bindings.row_for_action(DotMenuBindings.MODES_ACTION)
+	var _s := node.setup(GSSettingsStoreMemory.new())
+	var mrow := node.bindings.row_for_action(GSMenuBindings.MODES_ACTION)
 	_check(not mrow.is_empty() and str(mrow["default"]) == "Minus", "the tab key is in the table, on - by default")
 
 	var chosen: Array = []
 	var maps_only: Array = [{"id": "map:a", "name": "A"}, {"id": "map:b", "name": "B", "current": true}]
 	var both: Array = maps_only + [{"id": "mode:ffa", "name": "Free for all", "kind": "mode"}, {"id": "mode:tdm", "name": "Team", "kind": "mode"}]
 	var rows: Array = maps_only.duplicate()
-	var maps := node.use_maps(func() -> Array: return rows, func(id: StringName, mode: StringName) -> DotResult:
+	var maps := node.use_maps(func() -> Array: return rows, func(id: StringName, mode: StringName) -> GSResult:
 		chosen.append([id, mode])
-		return DotResult.success(id))
+		return GSResult.success(id))
 	maps.open()
 	await get_tree().process_frame
 	_check(not maps.has_tabs() and node.menu.picker.tabs.is_empty(), "no modes provided: no tab")
@@ -821,11 +821,11 @@ func _test_map_modes() -> void:
 
 
 ## The map key on a menu with no key table, and on a table that already has M.
-func _test_modes_rebind(node: DotMenuSettings, rows: Array, both: Array) -> void:
+func _test_modes_rebind(node: GSMenuSettings, rows: Array, both: Array) -> void:
 	var maps := node.menu.maps
-	var row := node.bindings.row_for_action(DotMenuBindings.MODES_ACTION)
+	var row := node.bindings.row_for_action(GSMenuBindings.MODES_ACTION)
 	var res := node.bindings.rebind(row, "F6", node.settings)
-	_check(res.ok and node.bindings.key_for(DotMenuBindings.MODES_ACTION) == "F6", "the key rebinds")
+	_check(res.ok and node.bindings.key_for(GSMenuBindings.MODES_ACTION) == "F6", "the key rebinds")
 	rows.assign(both)
 	maps.open()
 	await get_tree().process_frame
@@ -838,13 +838,13 @@ func _test_modes_rebind(node: DotMenuSettings, rows: Array, both: Array) -> void
 
 func _test_map_menu_without_table(rows: Array) -> void:
 	# A menu built by hand with no table still gets M once the game hands it a list.
-	if InputMap.has_action(DotMenuBindings.MAPS_ACTION):
-		InputMap.erase_action(DotMenuBindings.MAPS_ACTION)
-	var bare := DotMenu.new()
+	if InputMap.has_action(GSMenuBindings.MAPS_ACTION):
+		InputMap.erase_action(GSMenuBindings.MAPS_ACTION)
+	var bare := GSMenu.new()
 	bare.manage_pointer = false
 	add_child(bare)
 	var _b := bare.setup()
-	var _u := bare.use_maps(func() -> Array: return rows, func(id: StringName) -> DotResult: return DotResult.success(id))
+	var _u := bare.use_maps(func() -> Array: return rows, func(id: StringName) -> GSResult: return GSResult.success(id))
 	_check(bare.handle_event(_key(KEY_M)) and bare.picker.is_open(), "a menu with no key table puts the map menu on M itself")
 	bare.picker.close()
 	bare.open_help()
@@ -853,14 +853,14 @@ func _test_map_menu_without_table(rows: Array) -> void:
 	bare.help.close()
 
 	# A table with something on M already: the map key goes to F3, never onto M twice.
-	var keys := DotMenuBindings.new()
+	var keys := GSMenuBindings.new()
 	keys.add(&"test_mark", &"bind_mark", "Mark", "M", "Hands")
-	var taken := DotMenuSettings.new()
+	var taken := GSMenuSettings.new()
 	taken.app_namespace = &"menu_maps_taken_test"
 	taken.bindings = keys
 	add_child(taken)
-	var _t := taken.setup(DotSettingsStoreMemory.new(), false)
-	_check(keys.key_for(DotMenuBindings.MAPS_ACTION) == "F3" and keys.defaults_on("M").size() == 1,
+	var _t := taken.setup(GSSettingsStoreMemory.new(), false)
+	_check(keys.key_for(GSMenuBindings.MAPS_ACTION) == "F3" and keys.defaults_on("M").size() == 1,
 		"a table that already has M gets the map key on F3 (each game's suite fails on that, so move the game's own)")
 	taken.queue_free()
 	bare.queue_free()
@@ -877,18 +877,18 @@ func _contrast(fg: Color, plate: Color, ground: Color) -> float:
 func _test_gamespice() -> void:
 	_section("The Gamespice theme and the platform's default")
 
-	var t := DotMenuThemes.stock()
+	var t := GSMenuThemes.stock()
 	var g := t.named(&"gamespice")
 	_check(g.id == &"gamespice" and g.accent_deep.to_html(false) == "f2542d", "Gamespice ships, filled in the site's accent #f2542d")
 	_check(g.flame().size() == 3 and g.flame()[0].to_html(false) == "ffc83d" and g.flame()[2].to_html(false) == "b8193c",
 		"with the flame gradient #ffc83d > #f2542d > #b8193c")
 	var mid := t.named(&"midnight")
 	_check(mid.flame().is_empty() and is_zero_approx(mid.glow), "and the flat themes name no flame and no glow")
-	var again := DotMenuPalette.from_dictionary(g.to_dictionary())
+	var again := GSMenuPalette.from_dictionary(g.to_dictionary())
 	_check(again.ok and is_equal_approx(again.value.glow, 1.0) and again.value.flame().size() == 3, "the glow and flame survive a round trip")
 
-	var gk := DotMenuKit.new(g)
-	var mk := DotMenuKit.new(mid)
+	var gk := GSMenuKit.new(g)
+	var mk := GSMenuKit.new(mid)
 	var ring := gk.focus_ring()
 	_check(is_equal_approx(ring.border_color.a, 1.0) and ring.expand_margin_left >= 2.0, "a glowing theme's focus ring is full strength and set outside the control")
 	_check(is_equal_approx(mk.focus_ring().border_color.a, 0.7) and is_zero_approx(mk.focus_ring().expand_margin_left), "a flat theme's ring is what it always was")
@@ -902,20 +902,20 @@ func _test_gamespice() -> void:
 	if strip != null:
 		strip.free()
 
-	_check(DotMenuThemes.platform_default() == &"", "no platform theme unless the project names one")
-	ProjectSettings.set_setting(DotMenuThemes.PLATFORM_SETTING, "gamespice")
-	_check(DotMenuConfig.new().make_themes().default_id() == &"gamespice", "a platform theme becomes every game's default")
-	var narrowed := DotMenuConfig.new()
+	_check(GSMenuThemes.platform_default() == &"", "no platform theme unless the project names one")
+	ProjectSettings.set_setting(GSMenuThemes.PLATFORM_SETTING, "gamespice")
+	_check(GSMenuConfig.new().make_themes().default_id() == &"gamespice", "a platform theme becomes every game's default")
+	var narrowed := GSMenuConfig.new()
 	narrowed.themes_allowed = PackedStringArray(["paper", "contrast"])
 	_check(narrowed.make_themes().default_id() == &"paper", "unless the game does not offer it")
-	ProjectSettings.set_setting(DotMenuThemes.PLATFORM_SETTING, null)
-	_check(DotMenuConfig.new().make_themes().default_id() == &"midnight", "and without one Midnight stays the default")
+	ProjectSettings.set_setting(GSMenuThemes.PLATFORM_SETTING, null)
+	_check(GSMenuConfig.new().make_themes().default_id() == &"midnight", "and without one Midnight stays the default")
 
 
 func _test_hud_follows() -> void:
 	_section("The HUD follows the theme")
 
-	var t := DotMenuThemes.stock()
+	var t := GSMenuThemes.stock()
 	var midnight := t.named(&"midnight")
 	_check(midnight.hud_plate.get_luminance() < 0.1 and midnight.hud_plate.a >= 0.7 and midnight.hud_keycap.get_luminance() < 0.3,
 		"the default theme's HUD is dark: deep plates and dark key caps")
@@ -929,23 +929,23 @@ func _test_hud_follows() -> void:
 				unreadable.append("%s on %s" % [id, ground.to_html(false)])
 	_check(unreadable.is_empty(), "every stock theme's HUD words read on their plate over a white, a black and a pale-blue map (%s)" % ", ".join(unreadable))
 
-	var again := DotMenuPalette.from_dictionary(midnight.to_dictionary())
+	var again := GSMenuPalette.from_dictionary(midnight.to_dictionary())
 	_check(again.ok and is_equal_approx(again.value.hud_team_fill, midnight.hud_team_fill) and again.value.hud_keycap_edge.to_html() == midnight.hud_keycap_edge.to_html(),
 		"the HUD's numbers and colours survive a round trip through the theme's data")
-	_check(not DotMenuPalette.from_dictionary({"id": "x", "hud_team_fill": "lots"}).ok, "and a number nobody can read is refused")
+	_check(not GSMenuPalette.from_dictionary({"id": "x", "hud_team_fill": "lots"}).ok, "and a number nobody can read is refused")
 
 	var menu := _menu()
 	var root := Control.new()
 	root.size = Vector2(1280.0, 720.0)
 	add_child(root)
-	var vitals := DotVitals.new()
+	var vitals := GSVitals.new()
 	root.add_child(vitals)
 	var words := Label.new()
 	root.add_child(words)
 	var accent := Theme.new()
-	accent.set_color(&"highlight", DotHudPiece.THEME_TYPE, Color.MAGENTA)
+	accent.set_color(&"highlight", GSHudPiece.THEME_TYPE, Color.MAGENTA)
 	menu.follow_hud(root, accent)
-	var hud := DotHud.new()
+	var hud := GSHud.new()
 	add_child(hud)
 	menu.follow_hud(hud)
 	_check(menu.followed_huds().size() == 2, "a game hands the menu its HUD roots")
@@ -971,7 +971,7 @@ func _test_hud_follows() -> void:
 	_check(menu.settings.schema.has(&"hud_scale") and is_equal_approx(menu.hud_scale(), 1.0), "the HUD size is a stock setting, 1 by default")
 	_check(is_equal_approx(root.scale.x, 1.0), "and a HUD at size 1 is left as the game laid it out")
 	_set = menu.settings.set_value(&"hud_scale", 1.2)
-	_check(is_equal_approx(root.scale.x, 1.2) and is_equal_approx(hud.user_scale, 1.2), "a new size reaches a plain root and a DotHud")
+	_check(is_equal_approx(root.scale.x, 1.2) and is_equal_approx(hud.user_scale, 1.2), "a new size reaches a plain root and a GSHud")
 	var frame := root.get_viewport().get_visible_rect().size
 	_check(absf(root.size.x * root.scale.x - frame.x) < 1.0, "and the plain root still spans the frame")
 	_set = menu.settings.set_value(&"hud_scale", 1.0)
@@ -987,11 +987,11 @@ func _test_hud_follows() -> void:
 	await get_tree().process_frame
 
 
-func _old_document_manager(schema: DotSettingsSchema, values: Dictionary) -> DotSettingsManager:
+func _old_document_manager(schema: GSSettingsSchema, values: Dictionary) -> GSSettingsManager:
 	# A document from before documents recorded their defaults: values only.
-	var store := DotSettingsStoreMemory.new()
+	var store := GSSettingsStoreMemory.new()
 	var _saved := store.save_document(&"moved", &"local", {"version": 1, "values": values})
-	var m := DotSettingsManager.new()
+	var m := GSSettingsManager.new()
 	m.schema = schema
 	m.local_store = store
 	m.app_namespace = &"moved"
@@ -1002,8 +1002,8 @@ func _old_document_manager(schema: DotSettingsSchema, values: Dictionary) -> Dot
 	return m
 
 
-func _medkit_keys() -> DotMenuBindings:
-	var k := DotMenuBindings.new()
+func _medkit_keys() -> GSMenuBindings:
+	var k := GSMenuBindings.new()
 	k.add(&"test_use", &"bind_use", "Use", "E", "Hands")
 	k.add(&"test_heal", &"bind_heal", "Medkit", "G", "Hands")
 	k.add_help("Hands")
@@ -1015,20 +1015,20 @@ func _test_moved_defaults() -> void:
 
 	# Declared: the medkit's default was H until help took it.
 	var k := _medkit_keys().renamed(&"bind_heal", ["H"])
-	var s := DotSettingsSchema.new()
+	var s := GSSettingsSchema.new()
 	k.add_to_schema(s)
 	_check(s.find(&"bind_heal").previous_defaults == ["H"], "a renamed default reaches the setting's declaration")
 	var m := _old_document_manager(s, {"bind_help": "H", "bind_heal": "H", "bind_use": "Q"})
 	k.apply_all(m)
 	_check(m.get_string(&"bind_heal") == "G" and k.key_for(&"test_heal") == "G",
 		"an old file with the medkit on H puts it on its new default, G")
-	_check(m.get_string(&"bind_help") == "H" and k.key_for(DotMenuBindings.HELP_ACTION) == "H", "and help keeps H")
+	_check(m.get_string(&"bind_help") == "H" and k.key_for(GSMenuBindings.HELP_ACTION) == "H", "and help keeps H")
 	_check(m.get_string(&"bind_use") == "Q" and k.key_for(&"test_use") == "Q", "a key the player chose is kept")
 	m.queue_free()
 
 	# Not declared: the conflict check on load settles it the same way.
 	var k2 := _medkit_keys()
-	var s2 := DotSettingsSchema.new()
+	var s2 := GSSettingsSchema.new()
 	k2.add_to_schema(s2)
 	var m2 := _old_document_manager(s2, {"bind_help": "H", "bind_heal": "H", "bind_use": "Q"})
 	var moved := k2.settle(m2)
@@ -1041,7 +1041,7 @@ func _test_moved_defaults() -> void:
 	# Two of the player's own choices on one key, neither a default (a file edited by hand):
 	# the first row in the table keeps it.
 	var k3 := _medkit_keys()
-	var s3 := DotSettingsSchema.new()
+	var s3 := GSSettingsSchema.new()
 	k3.add_to_schema(s3)
 	var m3 := _old_document_manager(s3, {"bind_use": "J", "bind_heal": "J"})
 	var _m3 := k3.settle(m3)
@@ -1049,25 +1049,25 @@ func _test_moved_defaults() -> void:
 	m3.queue_free()
 
 	# A table that ships two rows on one default meant it.
-	var k4 := DotMenuBindings.new()
+	var k4 := GSMenuBindings.new()
 	k4.add(&"test_a", &"bind_a", "A", "Q", "Hands")
 	k4.add(&"test_b", &"bind_b", "B", "Q", "Hands")
-	var s4 := DotSettingsSchema.new()
+	var s4 := GSSettingsSchema.new()
 	k4.add_to_schema(s4)
 	var m4 := _old_document_manager(s4, {})
 	_check(k4.settle(m4).is_empty(), "rows that all default to the key are left alone")
 	m4.queue_free()
 
-	# The applier settles too: it is what DotMenuSettings and the presentations boot through.
+	# The applier settles too: it is what GSMenuSettings and the presentations boot through.
 	var k5 := _medkit_keys()
-	var s5 := DotSettingsSchema.new()
+	var s5 := GSSettingsSchema.new()
 	k5.add_to_schema(s5)
 	var m5 := _old_document_manager(s5, {"bind_heal": "H"})
-	var ap := DotMenuApplier.new()
+	var ap := GSMenuApplier.new()
 	ap.settings = m5
 	ap.bindings = k5
 	ap.apply_all()
-	_check(m5.get_string(&"bind_heal") == "G", "DotMenuApplier.apply_all settles before applying")
+	_check(m5.get_string(&"bind_heal") == "G", "GSMenuApplier.apply_all settles before applying")
 	ap.free()
 	m5.queue_free()
 
@@ -1088,11 +1088,11 @@ static func _loadout_offer(choose: bool = true) -> Dictionary:
 	}
 
 
-func _test_loadout_bare(node: DotMenuSettings) -> void:
+func _test_loadout_bare(node: GSMenuSettings) -> void:
 	# A menu built by hand with no table still gets B once the game hands it an offer.
-	if InputMap.has_action(DotMenuBindings.LOADOUT_ACTION):
-		InputMap.erase_action(DotMenuBindings.LOADOUT_ACTION)
-	var bare := DotMenu.new()
+	if InputMap.has_action(GSMenuBindings.LOADOUT_ACTION):
+		InputMap.erase_action(GSMenuBindings.LOADOUT_ACTION)
+	var bare := GSMenu.new()
 	bare.manage_pointer = false
 	add_child(bare)
 	var _b := bare.setup()
@@ -1115,9 +1115,9 @@ func _wheel(index: MouseButton) -> InputEventMouseButton:
 
 
 func _on_action(action: StringName, text: String) -> bool:
-	var ev := DotInputBinding.from_text(text)
+	var ev := GSInputBinding.from_text(text)
 	for other in InputMap.action_get_events(action):
-		if DotMenuBindings.same_input(ev, other):
+		if GSMenuBindings.same_input(ev, other):
 			return true
 	return false
 

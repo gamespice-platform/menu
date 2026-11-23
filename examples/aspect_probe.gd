@@ -2,9 +2,7 @@ extends Node3D
 
 ## Resizes a native window to 16:9, 21:9, 4:3 and portrait under a shell-like stretch (canvas_items, keep) and
 ## checks the game fills each with no bars while keep_aspect is off, and letterboxes when it is on. With
-## `-- --out=DIR` on a display it saves each window as the screen shows it (bars included).
-##
-##   tools/aspect_shot.sh (gpu.sh shot on staging02)
+## `-- --out=DIR` on a display it saves each window as the screen shows it. Run: tools/aspect_shot.sh.
 
 const SIZES := [Vector2i(1600, 900), Vector2i(2520, 1080), Vector2i(1200, 900), Vector2i(720, 1280)]
 

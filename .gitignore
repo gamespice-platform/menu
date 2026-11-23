@@ -11,6 +11,7 @@
 /addons/gs_ui
 /addons/gs_input
 /addons/gs_settings
+/addons/gs_save
 
 # Exports
 build/

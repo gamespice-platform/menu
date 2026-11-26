@@ -106,7 +106,7 @@ var _rtt_scale := 100.0
 ## Wall-clock frame timing; runs only while the panel is shown.
 var frames := GSMenuFrameClock.new()
 
-var _painter: RefCounted = load("uid://t8ih5rf7iudm").new(self)  # GSMenuNetStatPainter, loaded (not named) so the two parsers do not hold each other
+var _painter: RefCounted = load("res://addons/gs_menu/ui/gs_menu_net_stat_painter.gd").new(self)  # GSMenuNetStatPainter, loaded (not named) so the two parsers do not hold each other
 
 ## `func() -> Object`: the client's GameSpice Net manager, or null. Unset looks one up in
 ## [GSRegistry]; see the class note.

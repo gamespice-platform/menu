@@ -236,6 +236,10 @@ The self-test covers themes, config, that every stock setting has an applier and
 
 ## Used by
 
+### Zee's Games
+
+Zee's Games is a collection of games I made on GameSpice, for demonstration and for fun. They show what the platform can do, and they run on live servers you can join. Anybody can create games on GameSpice, and each addon is its own repository and can be used separately from the games and from the rest of GameSpice.
+
 These games ship a copy of it:
 
 - [Fatal Contact](https://zeesgames.com/fatal-contact)

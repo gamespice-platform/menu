@@ -2,7 +2,7 @@
 
 In-game menus for Godot 4 games, built from data. Press Escape and get a settings menu (General, Video, Audio, Controls, Advanced and any pages your game adds), a help screen, rebindable keys, a Tab scoreboard, a numbered picker, a HUD layout editor, themes, and a connection overlay. Every switch and slider is a view of a [GameSpice Settings](https://github.com/gamespice-platform/settings) value, so there is no Apply button: a change is saved and applied at once. Part of TMC's open source [**GameSpice**](https://gamespice.net) collection (MIT licence).
 
-> Built with Claude Code. Every addon has a headless test suite and the suites pass, but little of this has met real players yet. Please report rough edges.
+> gs-menu is a [GameSpice](https://gamespice.net) addon (MIT, built with Claude Code). `examples/menu_selftest.tscn` is its headless suite. The Escape menu in every game of [Zee's Games](https://zeesgames.com) comes from here, and those games run on live servers.
 
 ## Install
 
@@ -233,6 +233,27 @@ tools/screenshot.sh
 ```
 
 The self-test covers themes, config, that every stock setting has an applier and a row, the key table, the screens, server rules, help, the picker, the layout editor and the scoreboard. `tools/screenshot.sh` renders every page, theme and screen to `screenshots/`. Other checks sit in `examples/`.
+
+## Used by
+
+These games ship a copy of it:
+
+- [Fatal Contact](https://zeesgames.com/fatal-contact)
+- [Airdrift](https://zeesgames.com/airdrift)
+- [Playlot](https://zeesgames.com/playlot)
+- [Hungario](https://zeesgames.com/hungario)
+- [Buses From Hell](https://zeesgames.com/buses-from-hell)
+- [Smash Copter](https://zeesgames.com/smash-copter)
+- [Zombie Zone](https://zeesgames.com/zombie-zone)
+- [Hide n Seek](https://zeesgames.com/hide-n-seek)
+- [Prop Hunt](https://zeesgames.com/prop-hunt)
+- [Murder Mystery](https://zeesgames.com/murder-mystery)
+- [Deathrun](https://zeesgames.com/deathrun)
+- [Wipeout](https://zeesgames.com/wipeout)
+- [Dangerous Delivery](https://zeesgames.com/dangerous-delivery)
+- [Look At Me](https://zeesgames.com/look-at-me)
+
+The whole collection is at [zeesgames.com](https://zeesgames.com).
 
 ## Licence
 

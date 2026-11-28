@@ -72,6 +72,15 @@ static func _held(host: Selftest, menu: GSMenu, board: GSMenuScoreboard, link: F
 	host._check(you_label != null and you_label.get_theme_color(&"font_color") == menu.kit.palette.accent, "this player is picked out")
 	host._check(board.ping_colour(30) == menu.kit.palette.hud_ahead and board.ping_colour(250) == menu.kit.palette.danger,
 		"ping is coloured by how bad it is")
+	var again := host._snapshot()
+	for pl in again.get("players", []):
+		(pl as Dictionary)["score"] = int((pl as Dictionary).get("score", 0)) + 1
+	link.scoreboard_received.emit(again)
+	await host.get_tree().process_frame
+	var kept := board.find_children("*", "Label", true, false).filter(func(l: Label) -> bool: return l.text == "cy")
+	host._check(board.reuse_rows and is_instance_valid(you_label) and kept == [you_label]
+		and you_label.get_theme_color(&"font_color") == menu.kit.palette.accent,
+		"a score change refills the rows already drawn rather than building new ones")
 
 	var released := InputEventKey.new()
 	released.physical_keycode = KEY_TAB

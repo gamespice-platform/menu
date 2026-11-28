@@ -43,3 +43,4 @@ What each `GSMenuApi.LEVEL` added; the rule for bumping is on `GSAddonApi`.
 21 The Maps / Game modes tabs: GSMenuMaps.modes_fn/mode_group/modes_tab/apply_mode_now/mode/toggle_tab()/has_tabs(); GSMenu.modes_action; GSMenuBindings.add_modes and MODES_*; GSMenuSettings.map_modes; GSMenuPicker.tabs/tab/pick_closes/tab_clicked.
 22 GSMenuGameSpec and GSMenuGameSettings: a game declares its settings menu (names, field of view, ambient and Comfort rows, left-out stock keys, key table, help text) as data.
 23 The Gamespice stock theme; GSMenuPalette.glow and flame(); GSMenuKit.focus_ring() and flame_strip(); GSMenuThemes.platform_default() and PLATFORM_SETTING (the project setting gs_menu/theme/platform_default, which GSMenuConfig.make_themes puts first).
+24 GSMenuScoreboard.reuse_rows (default on): a redraw refills the stock rows already drawn instead of building them again; off is the older build-every-row path.

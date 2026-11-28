@@ -59,7 +59,7 @@ var sort_by: StringName = &"score"
 var sort_with: Callable = Callable()
 
 ## Overrides, each given the kit: `func(kit, snapshot) -> Control`,
-## `func(kit, team: Dictionary, rows: Array) -> Control`, `func(kit, row, columns) -> Control`.
+## `func(kit, team: Dictionary, rows: Array) -> Control`, `func(kit, row, columns) -> Control`. A team header's `rows` is reused by the next team: copy it to keep it.
 var build_header: Callable = Callable()
 var build_team_header: Callable = Callable()
 var build_row: Callable = Callable()
@@ -87,12 +87,15 @@ var snapshot: Dictionary = {}
 ## Keyed by column key, not position or title, so a game that reorders or retitles columns keeps every choice.
 var player_hidden: Dictionary = {}
 
+## Shown after a bot's name.
+const BOT_TAG := "  BOT"
+const SPECTATORS_GAP := ":  "
+## A column with no format and no kind: [method format_value] then reads a value as str() does.
+const _PLAIN := {}
+
 var _feed: Object = null
-var _window: PanelContainer = null
+var _frame: GSMenuScoreboardFrame = null
 var _head: VBoxContainer = null
-var _head_margin: MarginContainer = null
-var _viewport: Viewport = null
-var _scroll: ScrollContainer = null
 var _body: VBoxContainer = null
 var _since := 0.0
 var _built := false
@@ -100,6 +103,11 @@ var _drawn_sig := 0
 var _live_rows: Array[PanelContainer] = []
 var _row_pool: Array[PanelContainer] = []
 var _pool_sig := 0
+# Reused by every redraw, which runs on the refresh timer while the board is held: cleared, never allocated.
+var _placed: Array[bool] = []
+var _blocks: Array[Control] = []
+var _members: Array = []
+var _names := PackedStringArray()
 
 
 ## Avatar, name, score, time connected and ping. What every game starts from.
@@ -137,102 +145,17 @@ func restyle(new_kit: GSMenuKit) -> void:
 
 func _build() -> void:
 	theme = kit.theme()
-	var centre := CenterContainer.new()
-	GSMenuKit.fill_parent(centre)
-	centre.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	add_child(centre)
-
-	_window = PanelContainer.new()
-	_window.name = "Window"
-	_window.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	var s := kit.surface_box()
-	s.bg_color = Color(kit.palette.surface, 0.9)
-	s.content_margin_left = 26
-	s.content_margin_right = 26
-	s.content_margin_top = 20
-	s.content_margin_bottom = 20
-	_window.add_theme_stylebox_override(&"panel", s)
-	centre.add_child(_window)
-
-	var stack := VBoxContainer.new()
-	stack.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	stack.add_theme_constant_override(&"separation", 12)
-	_window.add_child(stack)
-	_head = VBoxContainer.new()
-	_head.name = "Head"
-	_head.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	_head_margin = MarginContainer.new()
-	_head_margin.name = "HeadMargin"
-	_head_margin.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	stack.add_child(_head_margin)
-	_head_margin.add_child(_head)
-	# IGNORE: PASS still swallows clicks on HUD controls behind; the cost is no wheel scrolling.
-	_scroll = ScrollContainer.new()
-	_scroll.name = "Scroll"
-	_scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
-	_scroll.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	_scroll.focus_mode = Control.FOCUS_NONE
-	stack.add_child(_scroll)
-	_body = VBoxContainer.new()
-	_body.name = "Body"
-	_body.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	_body.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	_body.add_theme_constant_override(&"separation", 12)
-	_scroll.add_child(_body)
-	_body.minimum_size_changed.connect(_fit_scroll)
-	_head.minimum_size_changed.connect(_fit_scroll)
-	_scroll.get_v_scroll_bar().visibility_changed.connect(_fit_bar)
+	_frame = GSMenuScoreboardFrame.new(kit)
+	_head = _frame.head
+	_body = _frame.body
+	add_child(_frame)
 	_built = true
-	_fit()
-	_connect_viewport()
 
 
-func _enter_tree() -> void:
-	if _built:
-		_connect_viewport()
-
-
-func _exit_tree() -> void:
-	if _viewport != null and _viewport.size_changed.is_connected(_fit):
-		_viewport.size_changed.disconnect(_fit)
-	_viewport = null
-
-
-func _connect_viewport() -> void:
-	var vp := get_viewport()
-	if vp == _viewport or vp == null:
-		return
-	if _viewport != null and _viewport.size_changed.is_connected(_fit):
-		_viewport.size_changed.disconnect(_fit)
-	_viewport = vp
-	if not vp.size_changed.is_connected(_fit):
-		vp.size_changed.connect(_fit)
-
-
-## The header takes the scrollbar's width as a right margin so its columns meet the rows'.
-func _fit_bar() -> void:
-	if _scroll == null or _head_margin == null:
-		return
-	var bar := _scroll.get_v_scroll_bar()
-	_head_margin.add_theme_constant_override(&"margin_right", int(bar.get_combined_minimum_size().x) if bar.visible else 0)
-
-
+## Sizes the window to the view now; the frame also does on every resize.
 func _fit() -> void:
-	if _window == null or not is_inside_tree():
-		return
-	var view := get_viewport_rect().size
-	_window.custom_minimum_size = Vector2(clampf(view.x - 80.0, 360.0, 1080.0), 0)
-	_fit_scroll()
-
-
-## The panel stops at [constant MAX_HEIGHT_FRACTION] of the view; the rows scroll, the header stays.
-func _fit_scroll() -> void:
-	if _scroll == null or _head == null or not is_inside_tree():
-		return
-	var room := get_viewport_rect().size.y * MAX_HEIGHT_FRACTION - 40.0 - 12.0 - _head.get_combined_minimum_size().y
-	var want := minf(_body.get_combined_minimum_size().y, maxf(room, 80.0))
-	if not is_equal_approx(_scroll.custom_minimum_size.y, want):
-		_scroll.custom_minimum_size.y = want
+	if _frame != null:
+		_frame.fit()
 
 
 ## Adds [param column] before the column keyed [param before], or at the end. A column with
@@ -498,40 +421,62 @@ func _redraw_body(snap: Dictionary) -> void:
 		_body.add_child(_team_block({}, all))
 		return
 
-	var placed: Array[bool] = []
-	placed.resize(all.size())
-	var blocks: Array[Control] = []
+	_placed.clear()
+	_placed.resize(all.size())
+	_blocks.clear()
 	for t in team_list:
-		var members: Array = []
+		_members.clear()
+		var id: Variant = t.get("id", "")
 		for i in range(all.size()):
-			if str(all[i].get(group_by, "")) == str(t.get("id", "")):
-				members.append(all[i])
-				placed[i] = true
-		blocks.append(_team_block(t, members))
+			if _same_id(all[i].get(group_by, ""), id):
+				_members.append(all[i])
+				_placed[i] = true
+		_blocks.append(_team_block(t, _members))
+	_members.clear()
 
-	if side_by_side and blocks.size() == 2:
+	if side_by_side and _blocks.size() == 2:
 		var pair := HBoxContainer.new()
 		pair.mouse_filter = Control.MOUSE_FILTER_IGNORE
 		pair.add_theme_constant_override(&"separation", 18)
-		for b in blocks:
+		for b in _blocks:
 			b.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 			pair.add_child(b)
 		_body.add_child(pair)
 	else:
-		for b in blocks:
+		for b in _blocks:
 			_body.add_child(b)
+	_blocks.clear()
 
-	var rest: Array = []
+	_names.clear()
 	for i in range(all.size()):
-		if not placed[i]:
-			rest.append(all[i])
-	if not rest.is_empty():
-		var names := PackedStringArray()
-		for r in rest:
-			names.append(str(r.get("name", "?")))
-		var line := kit.paragraph("%s:  %s" % [spectators_title, ", ".join(names)], kit.size_small, kit.palette.dim)
+		if not _placed[i]:
+			_names.append(_as_text(all[i].get("name", "?")))
+	if not _names.is_empty():
+		var who := ", ".join(_names)
+		var line := kit.paragraph(spectators_title + SPECTATORS_GAP + who, kit.size_small, kit.palette.dim)
 		line.name = "Spectators"
 		_body.add_child(line)
+
+
+## Whether a row's group value names team [param id]: what comparing their str() said (an int 1 and a String "1" match, an
+## int 1 and a float 1.0 do not), without building either string in the usual case of two values of one type.
+func _same_id(a: Variant, b: Variant) -> bool:
+	var ta := typeof(a)
+	var tb := typeof(b)
+	if ta == tb:
+		if ta == TYPE_FLOAT and a != b:
+			return is_equal_approx(a, b) and String.num(a) == String.num(b)
+		return a == b
+	if (ta == TYPE_STRING or ta == TYPE_STRING_NAME) and (tb == TYPE_STRING or tb == TYPE_STRING_NAME):
+		return a == b
+	return _as_text(a) == _as_text(b)
+
+
+## [param value] as str() writes it.
+func _as_text(value: Variant) -> String:
+	if value is String:
+		return value
+	return "<null>" if value == null else format_value(_PLAIN, value, _PLAIN)
 
 
 func _header(snap: Dictionary) -> Control:
@@ -717,7 +662,7 @@ func _refill(panel: PanelContainer, row: Dictionary) -> void:
 	for i in range(cols.size()):
 		var c: Dictionary = cols[i]
 		var old := line.get_child(i) as Control
-		var kind := StringName(str(c.get("kind", KIND_TEXT)))
+		var kind := StringName(c.get("kind", KIND_TEXT))
 		if kind == KIND_CUSTOM or kind == KIND_AVATAR or not (old is Label):
 			var cell := _cell(c, row)
 			_size_cell(cell, c)
@@ -783,13 +728,13 @@ func _cell_value(column: Dictionary, row: Dictionary) -> Variant:
 func _cell_text(column: Dictionary, row: Dictionary) -> String:
 	var text := format_value(column, _cell_value(column, row), row)
 	if column.get("key", &"") == &"name" and bool(row.get("bot", false)):
-		text += "  BOT"
+		text += BOT_TAG
 	return text
 
 
 func _cell_colour(column: Dictionary, row: Dictionary) -> Color:
 	var key: StringName = column.get("key", &"")
-	if StringName(str(column.get("kind", KIND_TEXT))) == KIND_PING:
+	if StringName(column.get("kind", KIND_TEXT)) == KIND_PING:
 		var value: Variant = _cell_value(column, row)
 		return ping_colour(int(value) if value != null else -1)
 	if key == &"name" and bool(row.get("you", false)):

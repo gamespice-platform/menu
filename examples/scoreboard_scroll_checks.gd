@@ -37,7 +37,8 @@ static func run(host: Node) -> void:
 	host._check(scroll.size.y >= scroll.get_child(0).get_combined_minimum_size().y - 1.0, "rows that fit are not clipped")
 	host._check(absf(head.get_child(0).size.x - body.size.x) < 0.5 and head.get_theme_constant(&"margin_right") == 0,
 		"with no scrollbar the header takes the full width")
-	var fit := Callable(board, "_fit")
+	# The window follows its viewport: the frame that holds it connects size_changed.
+	var fit := Callable(board._frame, "fit")
 	vp.remove_child(board)
 	host._check(not vp.size_changed.is_connected(fit), "leaving the tree disconnects size_changed")
 	var vp2 := SubViewport.new()

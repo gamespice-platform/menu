@@ -74,6 +74,10 @@ var side_by_side: bool = true
 ## Seconds between redraws while it is held.
 var refresh_sec: float = 0.5
 
+## Refills the rows already drawn on a redraw instead of building every one again; off builds each row new (the older path).
+## Only the stock rows are kept: a game's [member build_row] is always called.
+var reuse_rows: bool = true
+
 ## The words under the rows for players on no team when there are teams.
 var spectators_title: String = "Spectating"
 
@@ -93,6 +97,9 @@ var _body: VBoxContainer = null
 var _since := 0.0
 var _built := false
 var _drawn_sig := 0
+var _live_rows: Array[PanelContainer] = []
+var _row_pool: Array[PanelContainer] = []
+var _pool_sig := 0
 
 
 ## Avatar, name, score, time connected and ping. What every game starts from.
@@ -120,6 +127,8 @@ func restyle(new_kit: GSMenuKit) -> void:
 	kit = new_kit
 	if not _built:
 		return
+	_live_rows.clear()
+	_row_pool.clear()
 	GSMenuKit.clear(self)
 	_build()
 	if visible:
@@ -467,7 +476,16 @@ func redraw() -> void:
 	if sig == _drawn_sig and _body.get_child_count() > 0:
 		return
 	_drawn_sig = sig
+	_harvest_rows()
 	GSMenuKit.clear(_body)
+	_redraw_body(snap)
+	# Rows nobody needed this time (a player left) are freed, so none outlive the board.
+	for spare in _row_pool:
+		spare.queue_free()
+	_row_pool.clear()
+
+
+func _redraw_body(snap: Dictionary) -> void:
 
 	var header: Control = build_header.call(kit, snap) if build_header.is_valid() else _header(snap)
 	GSMenuKit.clear(_head)
@@ -579,7 +597,7 @@ func _team_block(team: Dictionary, members: Array) -> Control:
 	if members.is_empty():
 		list.add_child(kit.paragraph("Nobody yet.", kit.size_small, kit.palette.dim))
 	for r in members:
-		var drawn: Control = build_row.call(kit, r, visible_columns()) if build_row.is_valid() else _row(r)
+		var drawn: Control = build_row.call(kit, r, visible_columns()) if build_row.is_valid() else _stock_row(r)
 		if drawn != null:
 			list.add_child(drawn)
 	return block
@@ -624,13 +642,11 @@ func _column_titles() -> Control:
 
 
 func _row(row: Dictionary) -> Control:
-	var p := kit.palette
 	var you := bool(row.get("you", false))
 	var panel := PanelContainer.new()
 	panel.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	var none := Color(0, 0, 0, 0)
-	panel.add_theme_stylebox_override(&"panel",
-		kit.box(p.accent_wash() if you else none, kit.radius_small, p.accent if you else none, 1 if you else 0, Vector4(ROW_PAD, 5, ROW_PAD, 5)))
+	panel.set_meta(&"gs_you", you)
+	panel.add_theme_stylebox_override(&"panel", _row_box(you))
 	var line := HBoxContainer.new()
 	line.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	line.add_theme_constant_override(&"separation", 12)
@@ -640,6 +656,79 @@ func _row(row: Dictionary) -> Control:
 		_size_cell(cell, c)
 		line.add_child(cell)
 	return panel
+
+
+## Takes the drawn stock rows out of their lists before the lists are freed, so the next draw refills them.
+func _harvest_rows() -> void:
+	if not reuse_rows:
+		_live_rows.clear()
+		return
+	var sig := _columns_sig()
+	if sig != _pool_sig:
+		_pool_sig = sig
+		_live_rows.clear()
+		return
+	for panel in _live_rows:
+		if not is_instance_valid(panel) or panel.is_queued_for_deletion():
+			continue
+		var parent := panel.get_parent()
+		if parent != null:
+			parent.remove_child(panel)
+		_row_pool.append(panel)
+	_live_rows.clear()
+	# Popped from the back, so reversed: rows keep their places when the order holds.
+	_row_pool.reverse()
+
+
+func _columns_sig() -> int:
+	var keys := kit.get_instance_id()
+	for c in visible_columns():
+		keys = keys * 31 + hash(c.get("key", "")) * 7 + hash(c.get("kind", KIND_TEXT))
+	return keys
+
+
+func _stock_row(row: Dictionary) -> Control:
+	if not reuse_rows:
+		return _row(row)
+	var panel: PanelContainer = null
+	if not _row_pool.is_empty():
+		panel = _row_pool.pop_back()
+		_refill(panel, row)
+	else:
+		panel = _row(row)
+	_live_rows.append(panel)
+	return panel
+
+
+func _row_box(you: bool) -> StyleBox:
+	var p := kit.palette
+	var none := Color(0, 0, 0, 0)
+	return kit.box(p.accent_wash() if you else none, kit.radius_small, p.accent if you else none, 1 if you else 0, Vector4(ROW_PAD, 5, ROW_PAD, 5))
+
+
+## Writes [param row] into a row [method _row] built earlier for the same columns: what it would have built, without new Controls for text.
+func _refill(panel: PanelContainer, row: Dictionary) -> void:
+	var you := bool(row.get("you", false))
+	if bool(panel.get_meta(&"gs_you", false)) != you:
+		panel.set_meta(&"gs_you", you)
+		panel.add_theme_stylebox_override(&"panel", _row_box(you))
+	var line := panel.get_child(0) as HBoxContainer
+	var cols := visible_columns()
+	for i in range(cols.size()):
+		var c: Dictionary = cols[i]
+		var old := line.get_child(i) as Control
+		var kind := StringName(str(c.get("kind", KIND_TEXT)))
+		if kind == KIND_CUSTOM or kind == KIND_AVATAR or not (old is Label):
+			var cell := _cell(c, row)
+			_size_cell(cell, c)
+			line.add_child(cell)
+			line.move_child(cell, i)
+			line.remove_child(old)
+			old.queue_free()
+			continue
+		var l := old as Label
+		l.text = _cell_text(c, row)
+		l.add_theme_color_override(&"font_color", _cell_colour(c, row))
 
 
 func _size_cell(cell: Control, column: Dictionary) -> void:
@@ -662,7 +751,6 @@ func _size_cell(cell: Control, column: Dictionary) -> void:
 
 
 func _cell(column: Dictionary, row: Dictionary) -> Control:
-	var p := kit.palette
 	var key: StringName = column.get("key", &"")
 	var kind := StringName(str(column.get("kind", KIND_TEXT)))
 	var value: Variant = row.get(key, row.get(String(key), null))
@@ -684,16 +772,29 @@ func _cell(column: Dictionary, row: Dictionary) -> Control:
 				holder.add_child(pic)
 			return holder
 
-	var text := format_value(column, value, row)
-	var colour := p.text
-	if kind == KIND_PING:
-		colour = ping_colour(int(value) if value != null else -1)
-	elif key == &"name" and bool(row.get("you", false)):
-		colour = p.accent
-	var l := kit.label(text, kit.size_body, colour, key == &"name")
-	if key == &"name" and bool(row.get("bot", false)):
-		l.text += "  BOT"
-	return l
+	return kit.label(_cell_text(column, row), kit.size_body, _cell_colour(column, row), key == &"name")
+
+
+func _cell_value(column: Dictionary, row: Dictionary) -> Variant:
+	var key: StringName = column.get("key", &"")
+	return row.get(key, row.get(String(key), null))
+
+
+func _cell_text(column: Dictionary, row: Dictionary) -> String:
+	var text := format_value(column, _cell_value(column, row), row)
+	if column.get("key", &"") == &"name" and bool(row.get("bot", false)):
+		text += "  BOT"
+	return text
+
+
+func _cell_colour(column: Dictionary, row: Dictionary) -> Color:
+	var key: StringName = column.get("key", &"")
+	if StringName(str(column.get("kind", KIND_TEXT))) == KIND_PING:
+		var value: Variant = _cell_value(column, row)
+		return ping_colour(int(value) if value != null else -1)
+	if key == &"name" and bool(row.get("you", false)):
+		return kit.palette.accent
+	return kit.palette.text
 
 
 ## The words a column shows for [param value]: its `format` Callable, or its kind's.
@@ -739,5 +840,5 @@ func ping_colour(ms: int) -> Color:
 func describe() -> Dictionary:
 	return {
 		"open": visible, "columns": columns.size(), "hidden": hidden_keys(), "rows": (snapshot.get("players", []) as Array).size(),
-		"teams": teams().size(), "fed": _feed != null, "source": source.is_valid(),
+		"teams": teams().size(), "fed": _feed != null, "source": source.is_valid(), "reuse_rows": reuse_rows, "rows_kept": _live_rows.size(),
 	}
